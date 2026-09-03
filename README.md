@@ -10,92 +10,136 @@
 
 Side-Scan Sonar (SSS), towed behind research vessels or mounted on Autonomous Underwater Vehicles (AUVs), acoustically maps the seafloor to detect lost fishing gear ("ghost nets"), sunken pipelines/cables, shipwrecks, and hazardous anthropogenic debris. Manual acoustic log inspection across thousands of nautical miles is tedious, slow, and error-prone due to high speckle noise, varying pixel resolutions, and natural acoustic shadows.
 
-This project delivers a production-quality prototype system built around four mandated deliverables:
-1. **Object Detection & Semantic Segmentation Core:** Domain-aware candidate extraction (YOLO) and pixel-level region refinement (U-Net).
+This project delivers an end-to-end, production-quality system built around four mandated deliverables:
+1. **Object Detection & Semantic Segmentation Core:** Domain-aware candidate extraction (YOLOv11) and pixel-level region refinement (Standard U-Net & Attention U-Net).
 2. **Confidence Scoring & Noise Filtering Module:** Acoustic shadow-highlight geometric pairing and Autoencoder-based anomaly filtering to eliminate rock clusters, sand ripples, and speckle noise.
 3. **Anomalous Reporting & Geotagging Engine:** Deterministic location determination (Case A: Affine GeoTransform; Case B: Sonar geometry + Navigation log), dimension estimation (length, width, area), and JSON/CSV reporting.
 4. **Interactive Dashboard:** Modern UI displaying sonar waterfall overlays, detection tables, Leaflet/Mapbox geospatial mapping, and automated PDF/CSV reports.
 
 ---
 
-## 2. Six-Layer Architecture
+## 2. Implementation Progress & Roadmap
 
-```
-Raw SSS Survey / XTF / GeoTIFF
-             │
-             ▼
-[Layer 1: Data Ingestion & Tiling]
-  ├── Multi-format reader (GeoTIFF, VRT, STAC, XTF, PNG Waterfall)
-  └── Slant-range & ground-range correction
-             │
-             ▼
-[Layer 2: Preprocessing Pipeline]
-  ├── Speckle noise reduction (Lee filter / adaptive median)
-  ├── Contrast enhancement (CLAHE / histogram equalization)
-  └── Highlight & acoustic shadow extraction
-             │
-             ▼
-[Layer 3: AI Detection & Segmentation]
-  ├── Fast candidate detection (YOLOv11/v8)
-  └── Pixel-level mask refinement (U-Net)
-             │
-             ▼
-[Layer 4: Confidence Calibration & Anomaly Filtering]
-  ├── CNN Autoencoder reconstruction error (Algorithms 1-9)
-  ├── Shadow-highlight geometric consistency check
-  └── Natural rock field suppression (DBSCAN + texture)
-             │
-             ▼
-[Layer 5: Geotagging & Dimension Engine (Module 5)]
-  ├── Stage 1: Dataset & Metadata Ingestion
-  ├── Stage 2: Georef Case Classification (Case A / Case B)
-  ├── Stage 3: Deterministic Location Determination
-  ├── Stage 4: WGS84 Lat/Lon Conversion (PyProj EPSG:4326)
-  └── Stage 5: Metric Dimensions & Report Assembly
-             │
-             ▼
-[Layer 6: AI Orchestrator, Storage & Dashboard]
-  ├── AI Agent Orchestration (Traceable, audit-logged)
-  ├── SQLite / PostGIS Detection Database
-  └── Full-Stack Interactive Web Dashboard
-```
-
----
-
-## 3. Dataset Audit & Inventory
-
-| Dataset / Source | Format & Scale | Annotations / Ground Truth | Best Suited Component |
+| Stage | Module | Status | Key Deliverables |
 |---|---|---|---|
-| **China Offshore SSS-AI (Zenodo)** | 3,255 image chips (Dongying, Yantai, Quanzhou, Shenzhen) | Harmonized image-level class labels (`HN`: Fishing Net, `POC`: Pipeline, `RP`: Riprap, `SS`: Seabed, etc.) | Target Classification, Autoencoder Anomaly Baseline (`SS` normal seabed), Stage 3 YOLO proposal chips |
-| **NOAA H11584** | 2 GeoTIFF mosaics (~1.2 GB, 1m/px resolution, 445 kHz) | Embedded CRS & GeoTransform | Layer 1 Ingestion, Layer 2 Preprocessing & Tiling, Layer 5 Case A Geotagging & Dimension Validation |
-| **Hudson River 2009 (EPSG:26918)** | 4 GeoTIFFs + VRT mosaic + STAC Catalog (1m/px) | Full NAD83 UTM 18N georeferencing | Geospatial Case A Georeferencing, Tiling & Map Overlay |
-| **NOAA Boston Harbor (DH_NOAA)** | 1 GeoTIFF + World file (`.tfw`) + XML metadata | UTM Zone 19N, 1m pixel scale | Case A Geotagging & Metric Dimension Benchmarking |
-| **Monrovia IVER SSS** | High-resolution waterfall PNG (2.89 MB) | Raw port/starboard acoustic waterfall + nadir zone | Case B Sonar Geometry Reconstruction & Shadow-Highlight Pair Modeling |
+| **Stage 1** | **Dataset Preparation & Audit** | **COMPLETED** | Non-destructive audit (3,255 Zenodo chips, NOAA GeoTIFFs), inventory JSON, baseline isolation, YOLO split. |
+| **Stage 2** | **Sonar Preprocessing Pipeline** | **COMPLETED** | Lee speckle filter ($1.276\times$ ENL gain), CLAHE contrast boost, shadow-highlight extraction, high-res mosaic tiling ($640\times640$). |
+| **Stage 3** | **YOLO Debris Detection Core** | **COMPLETED** | YOLOv11 detection engine, training script, mAP evaluation, confusion matrix generator, batch inference CLI. |
+| **Stage 4** | **U-Net Semantic Segmentation** | **COMPLETED** | Standard U-Net & Attention U-Net with Attention Gates, BCEDiceLoss, FocalLoss, PatchTiler with cosine blending, dry-run & synthetic demo. |
+| **Stage 5** | **Anomaly Detection & False-Positive Filtering** | *Up Next* | CNN Autoencoder reconstruction error (Algorithms 1-9), DBSCAN rock cluster filtering, confidence calibration. |
+| **Stage 6** | **AI Agent / Orchestrator** | *Pending* | Traceable execution flow, audit logging, coordinate synthesis, explainability logs. |
+| **Stage 7** | **Dimension Estimation & Geotagging** | *Pending* | Case A Affine & Case B navigation math, PyProj WGS84 conversion, metric calculation. |
+| **Stage 8** | **Interactive UI Dashboard** | *Pending* | Dual waterfall viewer, Leaflet GIS map, split-view detector/segmenter overlays, report exporter. |
+| **Stage 9** | **End-to-End System Verification** | *Pending* | Edge-case verification, FastAPI integration, final documentation. |
 
 ---
 
-## 4. Development Rules & Integrity Principles
+## 3. Architecture Flow
 
-1. **No Fabricated Data or Metrics:** All models, coordinates, and metrics are verified against real inputs. If segmentation masks are absent, the training pipeline is implemented and documented rather than inventing fake masks.
-2. **Clear Operational Separation:** REAL MODE (real model weights & georeferenced rasters) vs. DEMO MODE (interactive preview with clear labeling).
-3. **Independent Testability:** Every module has isolated unit/smoke tests with zero hidden circular dependencies.
-4. **Credit-Efficient Step-by-Step Execution:** One development stage at a time, strictly awaiting user instruction before advancing.
+```
+Side-Scan Sonar (SSS) Image / Survey Mosaic
+                   │
+                   ▼
+      [Input Validation & Ingestion]
+       ├── Format & corrupt file check
+       └── Raster metadata extraction (CRS, Transform, Resolution)
+                   │
+                   ▼
+       [Sonar Preprocessing Engine]
+       ├── Normalization & Grayscale standardization
+       ├── Speckle noise reduction (Lee filter / adaptive median)
+       └── CLAHE contrast enhancement & TVG normalization
+                   │
+                   ▼
+     [Acoustic Shadow-Highlight Pairing]
+       ├── Highlight extraction (backscatter peak)
+       └── Far-range acoustic shadow trailing verification
+                   │
+                   ▼
+         [YOLO Candidate Detection]
+       ├── YOLOv11 inference for candidate region proposals
+       └── Bounding box extraction & class confidence
+                   │
+                   ▼
+        [U-Net Region Segmentation]
+       ├── Attention U-Net with Oktay et al. Attention Gates
+       └── Patch-based sliding window with cosine seam blending
+                   │
+                   ▼
+  [Anomaly Detection & False-Positive Filtering]
+       ├── CNN Autoencoder Reconstruction Error (Algorithms 1-9)
+       ├── DBSCAN rock cluster suppression
+       └── Calibrated confidence scoring (Platt / Temperature scaling)
+                   │
+                   ▼
+  [Geospatial Engine & Dimension Estimation]
+       ├── Case A: Direct Affine Matrix Transform
+       ├── Case B: Navigation GPS + Slant-to-Ground Range Projection
+       ├── Lat/Lon conversion via PyProj (EPSG:4326 WGS84)
+       └── Physical length, width, and area metric calculation
+                   │
+                   ▼
+             [Risk Assessment]
+       └── Multi-factor risk scoring (debris category, size, confidence)
+                   │
+                   ▼
+          [AI Pipeline Agent]
+       ├── Traceable execution audit log
+       ├── Structured SQLite database persistence
+       └── Structured JSON / CSV report generation
+                   │
+                   ▼
+    [Full-Stack Interactive Dashboard]
+       ├── Dual Sonar Waterfall Viewer (Raw vs. Processed)
+       ├── Bounding box & mask overlays
+       ├── Leaflet / Mapbox interactive GIS map
+       └── Downloadable survey inspection reports
+```
 
 ---
 
-## 5. Verification & Testing
+## 4. Quickstart & Verification
 
-To test the current module skeletons:
+### Running the Complete Test Suite
+
 ```bash
+# 1. Verify all core module boundaries & orchestrator
 python tests/test_skeletons.py
+
+# 2. Verify Stage 1 dataset outputs
+python tests/test_stage1_dataset.py
+
+# 3. Verify Stage 2 preprocessing pipeline (Lee filter, CLAHE, Tiler)
+python tests/test_stage2_preprocessing.py
+
+# 4. Verify Stage 3 YOLO detection core
+python tests/test_stage3_yolo.py
+
+# 5. Verify Stage 4 U-Net & Attention U-Net segmentation core
+python tests/test_stage4_segmentation.py
 ```
-Output:
+
+### Stage 4: U-Net Training & Inference
+
+```bash
+# Dry run verification (validates architecture, shapes, gradient flow, audits dataset)
+python training/train_unet.py --dry-run
+
+# Run synthetic demonstration training
+python training/train_unet.py --synthetic-demo --epochs 3 --batch-size 8
+
+# Run evaluation on test chips
+python evaluation/evaluate_unet.py --checkpoint models/checkpoints/unet/attention_unet_best.pt --model attention_unet
+
+# Segment custom sonar imagery
+python inference/segment_debris.py --input <path_to_image_or_folder> --checkpoint models/checkpoints/unet/attention_unet_best.pt
 ```
-Testing Preprocessor...
-Testing YOLODetector...
-Testing UNetSegmenter...
-Testing DimensionEstimator...
-Testing GeospatialEngine Case A...
-Testing Agent Orchestrator...
-All module skeletons verified successfully!
-```
+
+---
+
+## 5. Development Principles
+
+1. **Strict Data Integrity:** Real input images and rasters are never modified destructively. Missing annotations are honestly reported rather than fabricating synthetic data.
+2. **Clear Operational Separation:** REAL MODE (real weights and rasters) vs. DEMO MODE (controlled demonstration clearly identified).
+3. **Deterministic Geospatial Math:** Strict implementation of Case A Affine Transformation and Case B Dead-Reckoning Navigation Projection.
+4. **Credit-Efficient Step-by-Step Execution:** Systematic modular development with automated regression test coverage at each stage.
