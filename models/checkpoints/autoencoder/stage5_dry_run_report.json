@@ -1,0 +1,14 @@
+{
+  "stage": "Stage 5: Anomaly Detection & False-Positive Filtering",
+  "model": "AcousticAutoencoder",
+  "parameters": 5589505,
+  "latent_dim": 128,
+  "patch_size": [
+    128,
+    128
+  ],
+  "baseline_train_chips": 22,
+  "baseline_val_chips": 10,
+  "algorithms_verified": "Algorithms 1-9",
+  "timestamp": "2026-09-03 23:40:16"
+}

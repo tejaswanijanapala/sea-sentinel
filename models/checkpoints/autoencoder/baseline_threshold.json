@@ -1,0 +1,115 @@
+{
+  "model_checkpoint": "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\models\\checkpoints\\autoencoder\\baseline_autoencoder.pt",
+  "threshold_3sigma": 0.094049,
+  "normal_seabed_mu": 0.062424,
+  "normal_seabed_sigma": 0.010542,
+  "training_samples": 22,
+  "validation_samples": 10,
+  "latent_dim": 128,
+  "patch_size": [
+    128,
+    128
+  ],
+  "history": [
+    {
+      "epoch": 1,
+      "train_mse": 0.125749,
+      "val_mse": 0.079691
+    },
+    {
+      "epoch": 2,
+      "train_mse": 0.107322,
+      "val_mse": 0.078766
+    },
+    {
+      "epoch": 3,
+      "train_mse": 0.086746,
+      "val_mse": 0.077207
+    },
+    {
+      "epoch": 4,
+      "train_mse": 0.079801,
+      "val_mse": 0.075461
+    },
+    {
+      "epoch": 5,
+      "train_mse": 0.075399,
+      "val_mse": 0.07399
+    },
+    {
+      "epoch": 6,
+      "train_mse": 0.072235,
+      "val_mse": 0.072842
+    },
+    {
+      "epoch": 7,
+      "train_mse": 0.069111,
+      "val_mse": 0.071922
+    },
+    {
+      "epoch": 8,
+      "train_mse": 0.069898,
+      "val_mse": 0.070774
+    },
+    {
+      "epoch": 9,
+      "train_mse": 0.068424,
+      "val_mse": 0.068719
+    },
+    {
+      "epoch": 10,
+      "train_mse": 0.067964,
+      "val_mse": 0.066285
+    },
+    {
+      "epoch": 11,
+      "train_mse": 0.066313,
+      "val_mse": 0.064873
+    },
+    {
+      "epoch": 12,
+      "train_mse": 0.064658,
+      "val_mse": 0.063896
+    },
+    {
+      "epoch": 13,
+      "train_mse": 0.062277,
+      "val_mse": 0.063031
+    },
+    {
+      "epoch": 14,
+      "train_mse": 0.061777,
+      "val_mse": 0.062532
+    },
+    {
+      "epoch": 15,
+      "train_mse": 0.06007,
+      "val_mse": 0.062159
+    },
+    {
+      "epoch": 16,
+      "train_mse": 0.061543,
+      "val_mse": 0.061898
+    },
+    {
+      "epoch": 17,
+      "train_mse": 0.063197,
+      "val_mse": 0.061964
+    },
+    {
+      "epoch": 18,
+      "train_mse": 0.059592,
+      "val_mse": 0.062073
+    },
+    {
+      "epoch": 19,
+      "train_mse": 0.060575,
+      "val_mse": 0.062022
+    },
+    {
+      "epoch": 20,
+      "train_mse": 0.059874,
+      "val_mse": 0.062424
+    }
+  ]
+}

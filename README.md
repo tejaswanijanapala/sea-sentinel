@@ -26,9 +26,9 @@ This project delivers an end-to-end, production-quality system built around four
 | **Stage 2** | **Sonar Preprocessing Pipeline** | **COMPLETED** | Lee speckle filter ($1.276\times$ ENL gain), CLAHE contrast boost, shadow-highlight extraction, high-res mosaic tiling ($640\times640$). |
 | **Stage 3** | **YOLO Debris Detection Core** | **COMPLETED** | YOLOv11 detection engine, training script, mAP evaluation, confusion matrix generator, batch inference CLI. |
 | **Stage 4** | **U-Net Semantic Segmentation** | **COMPLETED** | Standard U-Net & Attention U-Net with Attention Gates, BCEDiceLoss, FocalLoss, PatchTiler with cosine blending, dry-run & synthetic demo. |
-| **Stage 5** | **Anomaly Detection & False-Positive Filtering** | *Up Next* | CNN Autoencoder reconstruction error (Algorithms 1-9), DBSCAN rock cluster filtering, confidence calibration. |
-| **Stage 6** | **AI Agent / Orchestrator** | *Pending* | Traceable execution flow, audit logging, coordinate synthesis, explainability logs. |
-| **Stage 7** | **Dimension Estimation & Geotagging** | *Pending* | Case A Affine & Case B navigation math, PyProj WGS84 conversion, metric calculation. |
+| **Stage 5** | **Anomaly Detection & Rock Suppression** | **COMPLETED** | CNN Autoencoder (Algorithms 1-9), 3-sigma threshold calibration ($T=0.094049$), DBSCAN rock field filter, Platt confidence calibration. |
+| **Stage 6** | **AI Agent / Orchestrator** | *Up Next* | Traceable execution flow, audit logging, coordinate synthesis, explainability logs. |
+| **Stage 7** | **Dimension Estimation & Geotagging** | *Pending* | Module 5 five-stage geotagging (Case A Affine & Case B Navigation math), PyProj WGS84 conversion, metric calculation. |
 | **Stage 8** | **Interactive UI Dashboard** | *Pending* | Dual waterfall viewer, Leaflet GIS map, split-view detector/segmenter overlays, report exporter. |
 | **Stage 9** | **End-to-End System Verification** | *Pending* | Edge-case verification, FastAPI integration, final documentation. |
 
@@ -117,6 +117,9 @@ python tests/test_stage3_yolo.py
 
 # 5. Verify Stage 4 U-Net & Attention U-Net segmentation core
 python tests/test_stage4_segmentation.py
+
+# 6. Verify Stage 5 Anomaly Detection & False-Positive Filtering
+python tests/test_stage5_anomaly.py
 ```
 
 ### Stage 4: U-Net Training & Inference
@@ -133,6 +136,22 @@ python evaluation/evaluate_unet.py --checkpoint models/checkpoints/unet/attentio
 
 # Segment custom sonar imagery
 python inference/segment_debris.py --input <path_to_image_or_folder> --checkpoint models/checkpoints/unet/attention_unet_best.pt
+```
+
+### Stage 5: Anomaly Detection & False-Positive Filtering
+
+```bash
+# Dry run verification
+python training/train_autoencoder.py --dry-run
+
+# Train CNN Autoencoder on normal seabed baseline & calibrate 3-sigma threshold
+python training/train_autoencoder.py --epochs 20 --batch-size 8
+
+# Evaluate error separation between normal seabed and real debris
+python evaluation/evaluate_anomaly.py
+
+# Filter detections and calibrate confidence
+python inference/filter_anomalies.py
 ```
 
 ---
