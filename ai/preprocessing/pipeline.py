@@ -331,3 +331,7 @@ class SonarPreprocessor:
             "candidate_highlights": sh_analysis["candidate_highlights"],
             "metrics": metrics
         }
+
+    # Alias for API flexibility
+    preprocess = process
+

@@ -27,8 +27,8 @@ This project delivers an end-to-end, production-quality system built around four
 | **Stage 3** | **YOLO Debris Detection Core** | **COMPLETED** | YOLOv11 detection engine, training script, mAP evaluation, confusion matrix generator, batch inference CLI. |
 | **Stage 4** | **U-Net Semantic Segmentation** | **COMPLETED** | Standard U-Net & Attention U-Net with Attention Gates, BCEDiceLoss, FocalLoss, PatchTiler with cosine blending, dry-run & synthetic demo. |
 | **Stage 5** | **Anomaly Detection & Rock Suppression** | **COMPLETED** | CNN Autoencoder (Algorithms 1-9), 3-sigma threshold calibration ($T=0.094049$), DBSCAN rock field filter, Platt confidence calibration. |
-| **Stage 6** | **AI Agent / Orchestrator** | *Up Next* | Traceable execution flow, audit logging, coordinate synthesis, explainability logs. |
-| **Stage 7** | **Dimension Estimation & Geotagging** | *Pending* | Module 5 five-stage geotagging (Case A Affine & Case B Navigation math), PyProj WGS84 conversion, metric calculation. |
+| **Stage 6** | **AI Agent / Orchestrator** | **COMPLETED** | Central SIHPipelineAgent coordinator, execution tracing with microsecond metrics, explainability narratives, SQLite audit persistence. |
+| **Stage 7** | **Dimension Estimation & Geotagging** | *Up Next* | Module 5 five-stage geotagging (Case A Affine & Case B Navigation math), PyProj WGS84 conversion, metric calculation. |
 | **Stage 8** | **Interactive UI Dashboard** | *Pending* | Dual waterfall viewer, Leaflet GIS map, split-view detector/segmenter overlays, report exporter. |
 | **Stage 9** | **End-to-End System Verification** | *Pending* | Edge-case verification, FastAPI integration, final documentation. |
 
@@ -120,6 +120,9 @@ python tests/test_stage4_segmentation.py
 
 # 6. Verify Stage 5 Anomaly Detection & False-Positive Filtering
 python tests/test_stage5_anomaly.py
+
+# 7. Verify Stage 6 AI Agent Orchestrator & Explainability
+python tests/test_stage6_agent.py
 ```
 
 ### Stage 4: U-Net Training & Inference
@@ -152,6 +155,16 @@ python evaluation/evaluate_anomaly.py
 
 # Filter detections and calibrate confidence
 python inference/filter_anomalies.py
+```
+
+### Stage 6: End-to-End AI Agent Pipeline Execution
+
+```bash
+# Run end-to-end coordinated pipeline on single sonar image or directory
+python scripts/run_pipeline.py --input <path_to_image_or_mosaic>
+
+# Run batch survey analysis with CSV & JSON inspection report export
+python scripts/run_pipeline.py --input datasets/processed/yolo_dataset/images/test/ --output-dir outputs/reports/
 ```
 
 ---
