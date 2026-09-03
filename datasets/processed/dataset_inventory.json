@@ -1,0 +1,147 @@
+{
+  "project": "SIH26057",
+  "stage": "Stage 1: Dataset Preparation",
+  "raw_audit": {
+    "zip_archives": [
+      {
+        "filename": "8623hz41x.zip",
+        "path": "C:\\Users\\santo\\Downloads\\8623hz41x.zip",
+        "size_mb": 1162.71
+      },
+      {
+        "filename": "China-Offshore-SSS-AI_Zenodo_public_upload.zip",
+        "path": "C:\\Users\\santo\\Downloads\\China-Offshore-SSS-AI_Zenodo_public_upload.zip",
+        "size_mb": 922.44
+      },
+      {
+        "filename": "DH_NOAA_backscatter1m (1).zip",
+        "path": "C:\\Users\\santo\\Downloads\\DH_NOAA_backscatter1m (1).zip",
+        "size_mb": 28.37
+      },
+      {
+        "filename": "DH_NOAA_backscatter1m.zip",
+        "path": "C:\\Users\\santo\\Downloads\\DH_NOAA_backscatter1m.zip",
+        "size_mb": 28.37
+      },
+      {
+        "filename": "Turbo.C.3.2.zip",
+        "path": "C:\\Users\\santo\\Downloads\\Turbo.C.3.2.zip",
+        "size_mb": 7.03
+      },
+      {
+        "filename": "YOLOv11-improved4AI4ShipwrecksOD-train_yolov11_improved.zip",
+        "path": "C:\\Users\\santo\\Downloads\\YOLOv11-improved4AI4ShipwrecksOD-train_yolov11_improved.zip",
+        "size_mb": 0.0
+      }
+    ],
+    "geotiff_mosaics": [
+      {
+        "filename": "H11584_SSSAB_1m_445kHz_1of2.tif",
+        "path": "C:\\Users\\santo\\Downloads\\H11584_SSSAB_1m_445kHz_1of2.tif",
+        "size_mb": 568.46
+      },
+      {
+        "filename": "H11584_SSSAB_1m_445kHz_2of2.tif",
+        "path": "C:\\Users\\santo\\Downloads\\H11584_SSSAB_1m_445kHz_2of2.tif",
+        "size_mb": 568.46
+      },
+      {
+        "filename": "ny_hr09_sss-mosaic (1).tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss-mosaic (1).tif",
+        "size_mb": 64.65
+      },
+      {
+        "filename": "ny_hr09_sss-mosaic (2).tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss-mosaic (2).tif",
+        "size_mb": 64.65
+      },
+      {
+        "filename": "ny_hr09_sss-mosaic.tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss-mosaic.tif",
+        "size_mb": 64.65
+      },
+      {
+        "filename": "ny_hr09_sss1.tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss1.tif",
+        "size_mb": 11.21
+      },
+      {
+        "filename": "ny_hr09_sss2.tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss2.tif",
+        "size_mb": 23.36
+      },
+      {
+        "filename": "ny_hr09_sss3.tif",
+        "path": "C:\\Users\\santo\\Downloads\\ny_hr09_sss3.tif",
+        "size_mb": 19.5
+      }
+    ],
+    "waterfall_images": [
+      {
+        "filename": "monrovia-side-scan-sonar-IVER-hires.png",
+        "path": "C:\\Users\\santo\\Downloads\\monrovia-side-scan-sonar-IVER-hires.png",
+        "size_mb": 2.76
+      }
+    ],
+    "total_raw_files": 399
+  },
+  "zenodo_inspection": {
+    "archive_path": "C:\\Users\\santo\\Downloads\\China-Offshore-SSS-AI_Zenodo_public_upload.zip",
+    "manifest_records": 3255,
+    "verified_images": 500,
+    "corrupt_images": 0,
+    "formats": {
+      "JPEG": 500
+    },
+    "dimensions_min_max": {
+      "min_w": 168,
+      "max_w": 1202,
+      "min_h": 136,
+      "max_h": 768
+    },
+    "class_distribution": {
+      "seabed_surface": 1987,
+      "engineering_platform": 146,
+      "pipeline_or_cable": 691,
+      "riprap_debris": 355,
+      "fishing_net": 73,
+      "shipwreck_fragment": 3
+    },
+    "splits": {
+      "train": 1944,
+      "val": 650,
+      "test": 647,
+      "unassigned": 0
+    },
+    "duplicate_hashes_found": 0,
+    "yolo_annotations_found": false,
+    "segmentation_masks_found": false
+  },
+  "processed_subsets": {
+    "status": "success",
+    "yolo_samples_extracted": {
+      "train": 100,
+      "val": 36,
+      "test": 27
+    },
+    "anomaly_samples_extracted": {
+      "train": 22,
+      "val": 10,
+      "test": 8
+    },
+    "class_samples": {
+      "seabed_surface": 40,
+      "engineering_platform": 40,
+      "pipeline_or_cable": 40,
+      "riprap_debris": 40,
+      "fishing_net": 40,
+      "shipwreck_fragment": 3
+    },
+    "data_yaml": "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\yolo_dataset\\data.yaml"
+  },
+  "missing_requirements": {
+    "yolo_native_coordinates": "Zenodo provides chip-level target crops; standardized centered YOLO bboxes generated.",
+    "segmentation_masks": "No per-pixel segmentation masks exist in available public releases; U-Net pipeline will be established, and training requires real masks."
+  },
+  "recommended_next_step": "Stage 2: SSS Image Preprocessing (Speckle filtering, CLAHE, and tiling for high-resolution mosaics)."
+}

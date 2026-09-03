@@ -1,0 +1,15 @@
+# Geospatial Association & Geotagging Configuration
+# Corresponds to Module 5 (Five Stages)
+geospatial:
+  target_crs: "EPSG:4326" # Universal WGS84 (Latitude, Longitude)
+  fallback_export_formats: ["json", "csv"]
+  cases:
+    case_a:
+      description: "Direct Affine Transform from Georeferenced GeoTIFF / VRT (CRS + GeoTransform)"
+      default_uncertainty_m: 1.5
+    case_b:
+      description: "Dead-reckoning reconstruction from Navigation Log (GPS + Heading + Altitude + Slant Range)"
+      default_uncertainty_m: 8.0
+  dimensions:
+    default_resolution_m_per_px: 1.0 # Standard resolution for NOAA SSS mosaics (e.g. 1m/px)
+    require_scale_metadata: true # Do NOT fabricate metric dimensions if pixel scale is unknown

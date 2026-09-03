@@ -1,0 +1,23 @@
+# Anomaly Detection & False Positive Filtering Configuration
+# Based on CNN Autoencoder Reconstruction Error + Geometric Heuristics
+anomaly_detection:
+  autoencoder:
+    input_shape: [1, 128, 128] # [channels, height, width]
+    latent_dim: 64
+    reconstruction_loss: "mse" # Mean Squared Error (Algorithm 7)
+    mse_threshold: 0.035 # Reconstruction error threshold T (Algorithm 8)
+  rules_and_heuristics:
+    snr_filter:
+      min_snr_db: 3.0 # Minimum signal-to-noise ratio over local background patch
+    shadow_consistency:
+      require_acoustic_shadow: true
+      shadow_direction: "far_range" # Shadow must point away from sonar nadir
+      min_shadow_length_px: 5
+    rock_cluster_filter:
+      max_aspect_ratio_irregularity: 4.5
+      dbscan_eps: 30 # Distance threshold for rock cluster grouping
+      min_samples_cluster: 5
+  confidence_calibration:
+    low_confidence_threshold: 0.40 # Below this: discarded as noise
+    suspicious_threshold: 0.65 # Between low and suspicious: flagged for manual review
+    confirmed_threshold: 0.75 # Above this: confirmed anthropogenic debris

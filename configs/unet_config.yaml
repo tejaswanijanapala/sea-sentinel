@@ -1,0 +1,18 @@
+# U-Net Semantic Segmentation Configuration
+unet:
+  architecture: "standard_unet" # "standard_unet" or "attention_unet"
+  in_channels: 1 # Sonar acoustic intensity grayscale
+  num_classes: 2 # Binary debris segmentation: 0: background seafloor, 1: debris
+  base_features: 32
+  loss:
+    bce_weight: 0.5
+    dice_weight: 0.5
+  input_size: [256, 256] # Patch size for ROI segmentation
+  training:
+    epochs: 40
+    batch_size: 8
+    learning_rate: 0.001
+    min_lr: 0.00001
+    weight_decay: 0.0001
+  status:
+    real_masks_available: false # Real mask presence indicator; prevents training with synthetic/fabricated masks unless provided

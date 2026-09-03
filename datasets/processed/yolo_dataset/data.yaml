@@ -1,0 +1,12 @@
+# YOLOv11 Sonar Debris Detection Dataset
+path: C:\Users\santo\.gemini\antigravity-ide\scratch\SIH57\datasets\processed\yolo_dataset
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: fishing_net
+  1: pipeline_or_cable
+  2: shipwreck_fragment
+  3: engineering_platform
+  4: riprap_debris

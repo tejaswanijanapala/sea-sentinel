@@ -1,0 +1,67 @@
+# SIH26057 - System Configuration
+# Organisation: Ministry of Earth Sciences (MoES) - National Institute of Ocean Technology (NIOT)
+# Problem Statement: AI-Powered Automated Underwater Marine Debris and Anomaly Detection System
+
+system:
+  project_name: "SIH57-AquaVision-AI"
+  version: "1.0.0"
+  organization: "MoES - NIOT"
+  problem_statement_id: "SIH26057"
+  environment: "development"
+  mode: "REAL_WITH_DEMO_FALLBACK" # REAL mode when data/models present, DEMO fallback for missing data
+  device: "auto" # "cuda" or "cpu"
+
+storage:
+  data_dir: "datasets"
+  models_dir: "models/checkpoints"
+  output_dir: "outputs"
+  reports_dir: "outputs/reports"
+  db_path: "backend/app/sih57.db"
+
+pipeline:
+  stages:
+    - input_validation
+    - preprocessing
+    - noise_reduction
+    - candidate_detection
+    - semantic_segmentation
+    - anomaly_filtering
+    - classification
+    - dimension_estimation
+    - geospatial_association
+    - risk_assessment
+    - database_storage
+    - report_generation
+
+classes:
+  # Harmonized classes derived from China Offshore SSS-AI and NIOT problem statement
+  - id: 0
+    name: "fishing_net"
+    benchmark_code: "HN"
+    description: "Ghost fishing nets or entangled synthetic netting"
+    risk_level: "HIGH"
+  - id: 1
+    name: "pipeline_or_cable"
+    benchmark_code: "POC"
+    description: "Exposed or partially buried undersea cables and pipelines"
+    risk_level: "MEDIUM"
+  - id: 2
+    name: "shipwreck_fragment"
+    benchmark_code: "RO"
+    description: "Sunken vessel debris, metal hulls, or structural wreckage"
+    risk_level: "HIGH"
+  - id: 3
+    name: "engineering_platform"
+    benchmark_code: "EP"
+    description: "Man-made pile legs, subsea structures, or concrete blocks"
+    risk_level: "MEDIUM"
+  - id: 4
+    name: "riprap_debris"
+    benchmark_code: "RP"
+    description: "Artificial rock armor, concrete ballast, or dropped cargo"
+    risk_level: "LOW"
+  - id: 5
+    name: "seabed_natural"
+    benchmark_code: "SS"
+    description: "Normal seafloor, ripples, mounds, or natural geology (negative class)"
+    risk_level: "NONE"

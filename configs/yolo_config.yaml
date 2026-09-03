@@ -1,0 +1,22 @@
+# YOLO Detection Configuration (Ultralytics YOLOv11 / YOLOv8)
+yolo:
+  model_type: "yolo11n.pt" # Nano variant preferred for local/edge deployment; switchable to yolo11s / yolo11m
+  input_size: 640
+  conf_threshold: 0.35 # Candidate filtering threshold
+  iou_threshold: 0.45 # Non-Maximum Suppression (NMS) threshold
+  max_det: 100
+  device: "auto" # "cpu" or "cuda"
+  classes:
+    0: "fishing_net"
+    1: "pipeline_or_cable"
+    2: "shipwreck_fragment"
+    3: "engineering_platform"
+    4: "riprap_debris"
+  training:
+    epochs: 50
+    batch_size: 16
+    lr0: 0.01
+    weight_decay: 0.0005
+    patience: 10
+    save_period: 5
+    workers: 2

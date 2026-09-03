@@ -1,0 +1,25 @@
+# Preprocessing & Sonar Signal Enhancement Configuration
+preprocessing:
+  target_size: [640, 640] # Default model input resolution [width, height]
+  normalize:
+    enabled: true
+    method: "min_max" # "min_max" [0, 1] or "z_score"
+  denoise:
+    enabled: true
+    method: "lee" # "lee", "adaptive_median", "bilateral", or "gaussian"
+    kernel_size: 5
+    lee_filter_variance: 0.25
+  contrast:
+    enabled: true
+    method: "clahe" # "clahe" or "histogram_equalization"
+    clip_limit: 2.0
+    tile_grid_size: [8, 8]
+  shadow_highlight:
+    extract_shadows: true
+    shadow_intensity_threshold: 30 # Pixel values < 30 treated as acoustic shadow
+    highlight_intensity_threshold: 200 # Pixel values > 200 treated as acoustic highlight
+    min_shadow_area_px: 50
+  tiling:
+    tile_width: 1024
+    tile_height: 1024
+    overlap_px: 128 # Overlap between tiles to avoid clipping border targets
