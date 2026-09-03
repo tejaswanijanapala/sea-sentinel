@@ -1,0 +1,29 @@
+{
+  "stage": "Stage 4: U-Net Semantic Segmentation",
+  "model_type": "attention_unet",
+  "parameter_count": 7851197,
+  "loss_function": "bce_dice",
+  "input_resolution": [
+    256,
+    256
+  ],
+  "forward_backward_pass": "PASSED",
+  "dataset_audit": {
+    "status": "masks_missing",
+    "data_dir": "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets",
+    "total_images_found": 204,
+    "total_masks_found": 0,
+    "paired_samples_count": 0,
+    "has_real_masks": false,
+    "sample_images": [
+      "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\dataset_samples_montage.jpg",
+      "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\anomaly_baseline\\test\\dongying_URM_003.jpg",
+      "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\anomaly_baseline\\test\\dongying_URM_010.jpg",
+      "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\anomaly_baseline\\test\\dongying_URM_013.jpg",
+      "C:\\Users\\santo\\.gemini\\antigravity-ide\\scratch\\SIH57\\datasets\\processed\\anomaly_baseline\\test\\dongying_URM_016.jpg"
+    ],
+    "sample_masks": [],
+    "message": "No per-pixel segmentation masks exist in this directory. The complete U-Net architecture is ready for training once ground truth masks are provided."
+  },
+  "dry_run_timestamp": "2026-09-03 22:52:23"
+}
