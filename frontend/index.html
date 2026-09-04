@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sea Sentinel — AI Underwater Debris & Anomaly Detection System</title>
+  <title>Sea Sentinel — AI Underwater Marine Debris & Anomaly Detection System</title>
   <meta name="description" content="Autonomous Marine Debris Detection, U-Net Segmentation, and Module 5 Geotagging Platform for NIOT / MoES.">
 
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet GIS CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -22,7 +22,7 @@
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
+  <!-- Top Navigation Header -->
   <header class="navbar">
     <div class="nav-left">
       <div class="logo-mark">
@@ -37,271 +37,235 @@
       </div>
     </div>
 
-    <!-- Center Workspace View Switcher -->
+    <!-- Workspace View Switcher -->
     <div class="workspace-tabs">
-      <button class="tab-btn active" id="tabSplit" data-tab="split">
-        <i class="fa-solid fa-table-columns"></i> Split View
-      </button>
-      <button class="tab-btn" id="tabWaterfall" data-tab="waterfall">
+      <button class="tab-btn active" id="tabWaterfall" data-tab="waterfall">
         <i class="fa-solid fa-water"></i> Sonar Scan
+      </button>
+      <button class="tab-btn" id="tabSplit" data-tab="split">
+        <i class="fa-solid fa-table-columns"></i> Split View
       </button>
       <button class="tab-btn" id="tabMap" data-tab="map">
         <i class="fa-solid fa-map-location-dot"></i> GIS Map
       </button>
     </div>
 
-    <!-- Right Controls & Status -->
+    <!-- Right Status & Report Trigger -->
     <div class="nav-right">
-      <div class="status-indicator">
-        <span class="pulse-dot"></span>
-        <span id="surveyStatusBadge">API ACTIVE</span>
+      <div class="status-pill complete" id="pipelineStatusPill">
+        <span class="status-dot"></span>
+        <span id="pipelineStatusText">PIPELINE COMPLETE</span>
       </div>
-      <button class="btn-report" id="btnOpenReport" title="View Hydrographic Mission Report">
-        <i class="fa-solid fa-file-lines"></i> Mission Report
+      <button class="btn-report-pill" id="btnOpenReportTop" title="Open Hydrographic Mission Report">
+        <i class="fa-solid fa-file-waveform"></i> Report
       </button>
-      <div class="export-dropdown">
-        <button class="btn-ghost" id="btnExportMenu">
-          <i class="fa-solid fa-download"></i> Export <i class="fa-solid fa-chevron-down fa-xs"></i>
-        </button>
-        <div class="dropdown-menu" id="exportDropdownMenu">
-          <button class="dropdown-item" id="btnExportFullReport">
-            <i class="fa-solid fa-file-waveform"></i> View & Print Mission Report
-          </button>
-          <button class="dropdown-item" id="btnDownloadReportHTML">
-            <i class="fa-solid fa-file-code"></i> Download HTML Report
-          </button>
-          <button class="dropdown-item" id="btnExportGeoJSON">
-            <i class="fa-solid fa-earth-americas"></i> GeoJSON FeatureCollection
-          </button>
-          <button class="dropdown-item" id="btnExportCSV">
-            <i class="fa-solid fa-file-csv"></i> Hydrographic CSV Report
-          </button>
-        </div>
-      </div>
     </div>
   </header>
 
-  <!-- Mission Control & Ingestion Toolbar -->
-  <section class="mission-toolbar">
-    <div class="toolbar-section">
-      <span class="toolbar-label"><i class="fa-solid fa-crosshairs"></i> Benchmark Missions:</span>
-      <div class="sample-pills" id="sampleChipsContainer">
-        <!-- Rendered dynamically by app.js -->
-        <button class="sample-pill active" data-sample-id="ghost_net_01">
-          <i class="fa-solid fa-network-wired"></i> Ghost Net
-        </button>
-        <button class="sample-pill" data-sample-id="pipeline_cable_01">
-          <i class="fa-solid fa-bolt"></i> Cable / Pipe
-        </button>
-        <button class="sample-pill" data-sample-id="rock_cluster_01">
-          <i class="fa-solid fa-mountain"></i> Rock Moraine
-        </button>
-        <button class="sample-pill" data-sample-id="engine_part_01">
-          <i class="fa-solid fa-gears"></i> Engine Debris
-        </button>
-      </div>
-    </div>
+  <!-- 3-Column Dashboard Grid -->
+  <main class="dashboard-grid">
 
-    <div class="toolbar-actions">
-      <!-- File Ingestion Trigger -->
-      <div class="upload-wrapper">
-        <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" />
-        <button class="btn-upload" id="uploadDropzone">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
-          <span>Upload Sonar Scan</span>
-        </button>
-        <div class="file-chip" id="uploadFileInfo" style="display: none;">
-          <i class="fa-solid fa-file-image"></i>
-          <span id="uploadFileName">file.png</span>
-          <button id="btnClearUpload" class="btn-chip-close">&times;</button>
+    <!-- Column 1: Survey Telemetry -->
+    <aside class="glass-panel telemetry-panel">
+      <div class="panel-header">
+        <span class="panel-title"><i class="fa-solid fa-chart-simple"></i> Survey Telemetry</span>
+        <span class="panel-tag cyan">LIVE FEED</span>
+      </div>
+
+      <!-- Accuracy Circular Radial Gauge -->
+      <div class="accuracy-gauge-wrap">
+        <div class="accuracy-gauge">
+          <svg viewBox="0 0 120 120" class="gauge-svg">
+            <circle cx="60" cy="60" r="48" class="gauge-bg"></circle>
+            <circle cx="60" cy="60" r="48" class="gauge-progress" id="accuracyGaugeCircle" style="stroke-dasharray: 301.6; stroke-dashoffset: 61.5;"></circle>
+          </svg>
+          <div class="gauge-inner">
+            <div class="gauge-val" id="telemetryAccuracyVal">79.6%</div>
+            <div class="gauge-sub">ACCURACY</div>
+          </div>
         </div>
       </div>
 
-      <!-- Execute AI Pipeline Button -->
-      <button class="btn-primary" id="btnRunPipeline">
-        <i class="fa-solid fa-microchip"></i>
-        <span id="btnRunText">Run AI Pipeline</span>
-      </button>
-    </div>
-  </section>
+      <!-- 2x2 Telemetry Metric Grid -->
+      <div class="telemetry-grid">
+        <div class="telemetry-cell">
+          <div class="cell-label">TOTAL TARGETS</div>
+          <div class="cell-val cyan" id="kpiTotal">0</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="cell-label">CONFIRMED DEBRIS</div>
+          <div class="cell-val green" id="kpiConfirmed">0</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="cell-label">SUSPICIOUS</div>
+          <div class="cell-val amber" id="kpiSuspicious">0</div>
+        </div>
+        <div class="telemetry-cell">
+          <div class="cell-label">HIGH HAZARD RISK</div>
+          <div class="cell-val red" id="kpiHighRisk">0</div>
+        </div>
+      </div>
 
-  <!-- Live Multi-Stage Pipeline Progress Ribbon (Appears during execution) -->
-  <div class="pipeline-ribbon" id="pipelineStepper" style="display: none;">
-    <div class="ribbon-content">
-      <span class="ribbon-title"><i class="fa-solid fa-bolt"></i> AI PIPELINE:</span>
-      <div class="ribbon-step" id="stepPrep">
-        <span class="step-circle">1</span> Preprocessing <span class="step-timing" id="stepPrepMs">--</span>
+      <!-- 2x2 Model Indicators -->
+      <div class="model-status-grid">
+        <div class="model-pill" id="pillYolo"><span class="dot green"></span> YOLOv11</div>
+        <div class="model-pill" id="pillUnet"><span class="dot orange"></span> U-Net</div>
+        <div class="model-pill" id="pillAuto"><span class="dot green"></span> Autoencoder</div>
+        <div class="model-pill" id="pillGeo"><span class="dot green"></span> GeoEngine</div>
       </div>
-      <div class="ribbon-step" id="stepYolo">
-        <span class="step-circle">2</span> YOLO Proposals <span class="step-timing" id="stepYoloMs">--</span>
-      </div>
-      <div class="ribbon-step" id="stepRock">
-        <span class="step-circle">3</span> DBSCAN Moraine <span class="step-timing" id="stepRockMs">--</span>
-      </div>
-      <div class="ribbon-step" id="stepUnet">
-        <span class="step-circle">4</span> Attention U-Net <span class="step-timing" id="stepUnetMs">--</span>
-      </div>
-      <div class="ribbon-step" id="stepAuto">
-        <span class="step-circle">5</span> CNN Autoencoder <span class="step-timing" id="stepAutoMs">--</span>
-      </div>
-      <div class="ribbon-step" id="stepGeo">
-        <span class="step-circle">6</span> WGS84 Geotag <span class="step-timing" id="stepGeoMs">--</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- KPI Metric Summary Bar -->
-  <section class="kpi-banner">
-    <div class="kpi-box">
-      <div class="kpi-content">
-        <div class="kpi-title">Total Targets</div>
-        <div class="kpi-num cyan" id="kpiTotal">0</div>
+      <!-- Export Survey Deliverables -->
+      <div class="export-section">
+        <div class="export-title">Export Survey Deliverables</div>
+        <button class="btn-export-outline" id="btnExportCSV">
+          <i class="fa-solid fa-file-csv"></i> Download CSV Report
+        </button>
+        <button class="btn-export-outline" id="btnOpenReport">
+          <i class="fa-solid fa-file-lines"></i> View HTML Report
+        </button>
       </div>
-      <div class="kpi-icon-wrap cyan"><i class="fa-solid fa-cubes-stacked"></i></div>
-    </div>
+    </aside>
 
-    <div class="kpi-box">
-      <div class="kpi-content">
-        <div class="kpi-title">Confirmed Debris</div>
-        <div class="kpi-num green" id="kpiConfirmed">0</div>
-      </div>
-      <div class="kpi-icon-wrap green"><i class="fa-solid fa-shield-halved"></i></div>
-    </div>
+    <!-- Column 2: Center Stage (Upload & Sonar Waterfall) -->
+    <section class="center-stage">
 
-    <div class="kpi-box">
-      <div class="kpi-content">
-        <div class="kpi-title">Suspicious Anomalies</div>
-        <div class="kpi-num amber" id="kpiSuspicious">0</div>
-      </div>
-      <div class="kpi-icon-wrap amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
-    </div>
+      <!-- Top Card: Upload Sonar Image for Analysis -->
+      <div class="glass-panel upload-panel">
+        <div class="panel-header">
+          <span class="panel-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Sonar Image for Analysis</span>
+          <span class="panel-tag gray">SSS / GeoTIFF / PNG / JPEG</span>
+        </div>
 
-    <div class="kpi-box">
-      <div class="kpi-content">
-        <div class="kpi-title">High Hazard Obstacles</div>
-        <div class="kpi-num red" id="kpiHighRisk">0</div>
-      </div>
-      <div class="kpi-icon-wrap red"><i class="fa-solid fa-skull-crossbones"></i></div>
-    </div>
-  </section>
+        <!-- Dashed Dropzone Area -->
+        <div class="upload-dropzone-box" id="uploadDropzone">
+          <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" />
 
-  <!-- Main Stage Workspace -->
-  <main class="main-workspace" id="workspaceContainer">
+          <!-- Idle State -->
+          <div id="dropzoneIdleState" class="dropzone-idle">
+            <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div class="dropzone-main"><b>Upload Sonar Imagery or GeoTIFF Mosaic</b></div>
+            <div class="dropzone-sub">Drag &amp; drop or <span class="browse-link">browse files</span></div>
 
-    <!-- Primary Viewing Stage (Sonar Canvas & GIS Map) -->
-    <section class="viewing-stage" id="viewingStage">
-      
-      <!-- Sonar Waterfall Container -->
-      <div class="panel-card" id="cardWaterfall">
-        <div class="card-bar">
-          <div class="card-title-wrap">
-            <span class="card-icon"><i class="fa-solid fa-water"></i></span>
-            <div>
-              <div class="card-title">Side-Scan Sonar Waterfall Scan</div>
-              <div class="card-meta">Port / Starboard Transducer Acoustic Backscatter</div>
+            <!-- Quick Benchmark Missions -->
+            <div class="quick-samples-bar" id="sampleChipsContainer">
+              <!-- Rendered dynamically by app.js -->
             </div>
           </div>
 
-          <!-- View Mode Segmented Controls -->
-          <div class="segmented-control" id="viewModeContainer">
-            <button class="seg-btn" data-mode="raw" id="btnModeRaw">Raw Scan</button>
-            <button class="seg-btn" data-mode="enhanced" id="btnModeEnhanced">Enhanced</button>
-            <button class="seg-btn active" data-mode="overlay" id="btnModeOverlay">Detections &amp; Masks</button>
+          <!-- Complete / Active State -->
+          <div id="dropzoneCompleteState" class="dropzone-complete" style="display: none;">
+            <div class="complete-circle"><i class="fa-solid fa-check"></i></div>
+            <div class="complete-title" id="completeTitle">✔ Analysis complete: 2 targets</div>
+            <div class="complete-meta" id="completeMeta">ID: SURVEY_053E90C0 · 75227.55ms · Accuracy: 79.6%</div>
+            <button class="btn-analyze-another" id="btnAnalyzeAnother">Analyze Another</button>
           </div>
         </div>
 
-        <div class="waterfall-stage">
+        <!-- Horizontal Pipeline Stepper -->
+        <div class="pipeline-stepper-track" id="pipelineStepper">
+          <div class="stepper-line"></div>
+          <div class="stepper-node active" id="stepUpload">
+            <div class="node-dot"></div>
+            <div class="node-label">Uploading</div>
+          </div>
+          <div class="stepper-node active" id="stepPrep">
+            <div class="node-dot"></div>
+            <div class="node-label">Preprocessing</div>
+          </div>
+          <div class="stepper-node active" id="stepYolo">
+            <div class="node-dot"></div>
+            <div class="node-label">YOLO Detection</div>
+          </div>
+          <div class="stepper-node active" id="stepUnet">
+            <div class="node-dot"></div>
+            <div class="node-label">U-Net Segmentation</div>
+          </div>
+          <div class="stepper-node active" id="stepAuto">
+            <div class="node-dot"></div>
+            <div class="node-label">Anomaly Detection</div>
+          </div>
+          <div class="stepper-node active" id="stepGeo">
+            <div class="node-dot"></div>
+            <div class="node-label">Geotagging</div>
+          </div>
+          <div class="stepper-node active" id="stepReport">
+            <div class="node-dot"></div>
+            <div class="node-label">Report Ready</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Card: Side-Scan Sonar Waterfall Scan -->
+      <div class="glass-panel waterfall-panel" id="cardWaterfall">
+        <div class="panel-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="panel-title"><i class="fa-solid fa-bars-staggered"></i> Side-Scan Sonar Waterfall Scan</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="view-mode-toggle" id="viewModeContainer">
+              <button class="view-mode-btn" data-mode="raw" id="btnModeRaw">Raw Scan</button>
+              <button class="view-mode-btn" data-mode="enhanced" id="btnModeEnhanced">Enhanced</button>
+              <button class="view-mode-btn active" data-mode="overlay" id="btnModeOverlay">Detections &amp; Masks</button>
+            </div>
+            <span class="panel-tag cyan">DUAL CHANNEL (PORT / STARBOARD)</span>
+          </div>
+        </div>
+
+        <div class="waterfall-viewport">
           <div class="nadir-track">
             <div class="nadir-line"></div>
             <div class="nadir-tag">NADIR TRACKLINE</div>
           </div>
           <div class="swath-tag port">&larr; PORT SWATH (75m)</div>
           <div class="swath-tag stbd">(75m) STARBOARD SWATH &rarr;</div>
-          <canvas id="sonarCanvas"></canvas>
+          <div class="canvas-wrap">
+            <canvas id="sonarCanvas"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- Leaflet Bathymetric Map Container -->
-      <div class="panel-card" id="cardMap">
-        <div class="card-bar">
-          <div class="card-title-wrap">
-            <span class="card-icon"><i class="fa-solid fa-map-location-dot"></i></span>
-            <div>
-              <div class="card-title">Georeferenced WGS84 Target Map</div>
-              <div class="card-meta">Module 5 Affine &amp; Dead-Reckoning Projection (EPSG:4326)</div>
-            </div>
+      <!-- Collapsible / Togglable GIS Map View -->
+      <div class="glass-panel map-panel" id="cardMap" style="display: none;">
+        <div class="panel-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Georeferenced WGS84 Target Map</span>
+            <span class="panel-tag green">EPSG:4326 (WGS84)</span>
           </div>
-          <span class="map-counter-badge" id="mapTargetCount">0 Targets Plotted</span>
+          <span class="panel-tag gray" id="mapTargetCount">0 Targets Plotted</span>
         </div>
-
-        <div class="map-stage">
+        <div class="map-viewport">
           <div id="leafletMap"></div>
         </div>
       </div>
 
     </section>
 
-    <!-- Side Target Inspector & Detail Panel -->
-    <aside class="inspector-panel" id="inspectorPanel">
-      <div class="inspector-header">
-        <div class="inspector-title">
-          <i class="fa-solid fa-crosshairs"></i> Target Inspector
-        </div>
-        <span class="badge-subtle" id="inspectorStatusBadge">CALIBRATED</span>
+    <!-- Column 3: Target Inspector -->
+    <aside class="glass-panel inspector-panel">
+      <div class="panel-header">
+        <span class="panel-title"><i class="fa-solid fa-crosshairs"></i> Target Inspector</span>
+        <span class="panel-tag gray">MULTI-FACTOR TIER</span>
       </div>
 
-      <!-- Active Inspected Target Hero Banner (Prominently shows target ID & class) -->
-      <div class="active-target-hero" id="activeTargetHero">
-        <div class="hero-top-row">
-          <span class="hero-target-id" id="inspectorTargetId">TGT_001</span>
-          <span class="priority-badge higher" id="inspectorPriorityBadge">▲ HIGHER PRIORITY (&gt;75%)</span>
-        </div>
-        <div class="hero-class-row">
-          <span class="hero-class-label">Target Class:</span>
-          <span class="hero-class-name" id="inspectorTargetClass">fishing_net</span>
-        </div>
-        <div class="hero-stats-row">
-          <div class="hero-stat">
-            <span class="hero-stat-label">Confidence</span>
-            <span class="hero-stat-val" id="inspectorTargetConf">81%</span>
-          </div>
-          <div class="hero-stat">
-            <span class="hero-stat-label">Risk Level</span>
-            <span class="risk-pill HIGH" id="inspectorTargetRisk">HIGH</span>
-          </div>
-          <div class="hero-stat">
-            <span class="hero-stat-label">Dimensions</span>
-            <span class="hero-stat-val" id="inspectorTargetDims">14.2m × 5.8m</span>
-          </div>
-        </div>
+      <!-- Target List -->
+      <div class="target-card-list" id="targetListContainer">
+        <!-- Rendered dynamically by app.js -->
       </div>
 
-      <!-- Hydrographic Explainability Box -->
-      <div class="explanation-card">
-        <div class="explanation-title">
+      <!-- AI Hydrographic Explainability Box -->
+      <div class="narrative-box">
+        <div class="narrative-title">
           <i class="fa-solid fa-brain"></i> AI Hydrographic Explainability
         </div>
-        <p class="explanation-text" id="targetNarrative">
-          Select or point to any target on the map or waterfall scan to inspect its acoustic morphology, Autoencoder anomaly score, and recommended intervention.
+        <p class="narrative-text" id="targetNarrative">
+          Select or point to any target to inspect acoustic morphology, anomaly score, and recommended intervention.
         </p>
-
-        <div class="physics-grid" id="targetPhysicsDetails">
-          <!-- Physics metrics populated by app.js -->
+        <div class="physics-details" id="targetPhysicsDetails">
+          <span style="color:var(--text-dim);">Acoustic model ready</span>
         </div>
-
-        <div class="action-rec-pill" id="targetActionRec">
+        <div class="action-rec" id="targetActionRec">
           Awaiting target selection.
-        </div>
-      </div>
-
-      <!-- All Detected Targets List -->
-      <div class="target-list-section">
-        <div class="target-list-header">
-          <span><i class="fa-solid fa-list-check"></i> All Survey Targets</span>
-          <span class="target-count-badge" id="targetListCount">0 Targets</span>
-        </div>
-        <div class="target-card-list" id="targetListContainer">
-          <!-- Rendered dynamically by app.js -->
         </div>
       </div>
     </aside>
