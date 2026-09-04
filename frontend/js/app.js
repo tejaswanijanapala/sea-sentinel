@@ -24,15 +24,19 @@ class DashboardApp {
     this.waterfall = new WaterfallViewer('sonarCanvas');
     this.map = new GISMap('leafletMap');
 
-    // 2. Introspect Backend Health
+    // 2. Setup Controls and Navigation
+    this._setupEventListeners();
+
+    // 3. Introspect Backend Health
     await this.checkBackendStatus();
 
-    // 3. Load Sample Catalog
+    // 4. Load Sample Catalog
     await this.loadSampleCatalog();
 
-    // 4. Fetch Initial Targets & Setup Controls
-    await this.loadTargets();
-    this._setupEventListeners();
+    // 5. Automatically select and run the first sample to initialize with real AI outputs
+    if (this.samples && this.samples.length > 0) {
+      await this.selectSampleMission(this.samples[0].id, { autoRun: true });
+    }
   }
 
   async checkBackendStatus() {
@@ -44,7 +48,7 @@ class DashboardApp {
       if (this.isBackendOnline) {
         statusBadge.textContent = "API ACTIVE";
       } else {
-        statusBadge.textContent = "STANDALONE DEMO";
+        statusBadge.textContent = "BACKEND OFFLINE";
       }
     }
   }
@@ -76,7 +80,7 @@ class DashboardApp {
     }
   }
 
-  selectSampleMission(sampleId) {
+  async selectSampleMission(sampleId, options = {}) {
     this.currentSample = this.samples.find(s => s.id === sampleId);
     this.uploadedFile = null;
 
@@ -91,24 +95,51 @@ class DashboardApp {
       btn.classList.toggle('active', btn.dataset.sampleId === sampleId);
     });
 
-    // If sample has URL or path, load preview in waterfall
-    if (this.currentSample && this.currentSample.path && this.isBackendOnline) {
+    // Clear previous targets and reset state immediately
+    this.targets = [];
+    this.waterfall.setTargets([]);
+    this.map.setTargets([]);
+    this.currentAnalysisResult = null;
+    this.updateKPIs();
+    this.renderTargetList();
+    this._clearInspector();
+
+    // Load preview in waterfall
+    if (this.currentSample && this.currentSample.path) {
       const imgUrl = `${window.apiService.baseUrl}/api/image?path=${encodeURIComponent(this.currentSample.path)}`;
       this.waterfall.loadSonarImages({ rawUrl: imgUrl });
     }
+
+    if (options.autoRun !== false) {
+      await this.executeAIPipeline();
+    }
   }
 
-  async loadTargets() {
-    this.targets = await window.apiService.getSurveyTargets();
-    this.waterfall.setTargets(this.targets);
-    this.map.setTargets(this.targets);
-
-    this.updateKPIs();
-    this.renderTargetList();
-
-    if (this.targets.length > 0) {
-      this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
+  _clearInspector() {
+    const heroId = document.getElementById('inspectorTargetId');
+    if (heroId) heroId.textContent = "--";
+    const heroClass = document.getElementById('inspectorTargetClass');
+    if (heroClass) heroClass.textContent = "Processing...";
+    const heroConf = document.getElementById('inspectorTargetConf');
+    if (heroConf) heroConf.textContent = "--";
+    const heroPrio = document.getElementById('inspectorPriorityBadge');
+    if (heroPrio) {
+      heroPrio.className = "priority-badge lower";
+      heroPrio.textContent = "STANDBY";
     }
+    const heroRisk = document.getElementById('inspectorTargetRisk');
+    if (heroRisk) {
+      heroRisk.className = "risk-pill LOW";
+      heroRisk.textContent = "--";
+    }
+    const heroDims = document.getElementById('inspectorTargetDims');
+    if (heroDims) heroDims.textContent = "--";
+    const narrativeEl = document.getElementById('targetNarrative');
+    if (narrativeEl) narrativeEl.textContent = "Select or run analysis on any sonar scan to inspect acoustic features.";
+    const recEl = document.getElementById('targetActionRec');
+    if (recEl) recEl.textContent = "Awaiting model detection execution.";
+    const physicsEl = document.getElementById('targetPhysicsDetails');
+    if (physicsEl) physicsEl.innerHTML = '<span style="color:var(--text-dim);">Neural model ready</span>';
   }
 
   async executeAIPipeline() {
@@ -116,8 +147,8 @@ class DashboardApp {
     const btnText = document.getElementById('btnRunText');
     const stepper = document.getElementById('pipelineStepper');
 
-    btn.disabled = true;
-    btnText.textContent = "Analyzing Acoustics...";
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = "Analyzing Acoustics...";
     if (stepper) stepper.style.display = 'block';
 
     const steps = [
@@ -139,7 +170,6 @@ class DashboardApp {
       }
     });
 
-    // Start animated stepper progression
     let currentStepIdx = 0;
     const animateNextStep = () => {
       if (currentStepIdx > 0 && currentStepIdx <= steps.length) {
@@ -153,25 +183,26 @@ class DashboardApp {
       }
     };
 
-    const stepInterval = setInterval(animateNextStep, 220);
+    const stepInterval = setInterval(animateNextStep, 200);
 
     try {
       let analysisResult = null;
+      let imagePathToAnalyze = null;
 
-      if (this.isBackendOnline) {
-        let imagePathToAnalyze = null;
-
-        if (this.uploadedFile) {
-          const uploadRes = await window.apiService.uploadFile(this.uploadedFile);
-          imagePathToAnalyze = uploadRes.saved_path;
-        } else if (this.currentSample && this.currentSample.path) {
-          imagePathToAnalyze = this.currentSample.path;
-        }
-
-        if (imagePathToAnalyze) {
-          analysisResult = await window.apiService.analyzeImage(imagePathToAnalyze);
-        }
+      if (this.uploadedFile) {
+        if (btnText) btnText.textContent = "Uploading Sonar Raster...";
+        const uploadRes = await window.apiService.uploadFile(this.uploadedFile);
+        imagePathToAnalyze = uploadRes.saved_path;
+      } else if (this.currentSample && this.currentSample.path) {
+        imagePathToAnalyze = this.currentSample.path;
       }
+
+      if (!imagePathToAnalyze) {
+        throw new Error("No sonar image or mission selected.");
+      }
+
+      if (btnText) btnText.textContent = "Running Neural Pipelines...";
+      analysisResult = await window.apiService.analyzeImage(imagePathToAnalyze);
 
       clearInterval(stepInterval);
 
@@ -184,7 +215,7 @@ class DashboardApp {
       if (analysisResult && analysisResult.status === "success") {
         this.applyAnalysisResult(analysisResult);
       } else {
-        this.applySimulatedResult();
+        throw new Error((analysisResult && analysisResult.detail) || "Analysis did not return successful status.");
       }
 
     } catch (err) {
@@ -192,12 +223,12 @@ class DashboardApp {
       console.error("Pipeline execution error:", err);
       steps.forEach(s => {
         const el = document.getElementById(s.id);
-        if (el) el.className = "ribbon-step completed";
+        if (el) el.className = "ribbon-step";
       });
-      this.applySimulatedResult();
+      alert(`AI Pipeline Execution Error: ${err.message || err}`);
     } finally {
-      btn.disabled = false;
-      btnText.textContent = "Run AI Pipeline";
+      if (btn) btn.disabled = false;
+      if (btnText) btnText.textContent = "Run AI Pipeline";
     }
   }
 
@@ -207,15 +238,19 @@ class DashboardApp {
     this.waterfall.setTargets(this.targets);
     this.map.setTargets(this.targets);
 
-    // Update Waterfall Rasters if available
+    // Update Waterfall Rasters
     const baseUrl = window.apiService.baseUrl;
     const rawUrl = result.raw_image_url ? `${baseUrl}${result.raw_image_url}` : null;
     const enhancedUrl = result.enhanced_image_url ? `${baseUrl}${result.enhanced_image_url}` : null;
     const annotatedUrl = result.annotated_image_url ? `${baseUrl}${result.annotated_image_url}` : null;
 
     this.waterfall.loadSonarImages({ rawUrl, enhancedUrl, annotatedUrl });
+    this.waterfall.setViewMode("overlay");
+    document.querySelectorAll('.seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === 'overlay');
+    });
 
-    // Update Trace Timings in Stepper
+    // Update Trace Timings in Stepper strictly from real execution trace
     if (result.execution_trace) {
       result.execution_trace.forEach(tr => {
         if (tr.stage === "preprocessing") {
@@ -245,62 +280,10 @@ class DashboardApp {
 
     if (this.targets.length > 0) {
       this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
-    }
-  }
-
-  applySimulatedResult() {
-    const simulatedTimes = {
-      stepPrepMs: "18.4ms",
-      stepYoloMs: "32.1ms",
-      stepRockMs: "4.8ms",
-      stepUnetMs: "26.5ms",
-      stepAutoMs: "12.0ms",
-      stepGeoMs: "8.2ms"
-    };
-
-    Object.entries(simulatedTimes).forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    });
-
-    this.targets = window.BENCHMARK_TARGETS || [];
-    this.waterfall.setTargets(this.targets);
-    this.map.setTargets(this.targets);
-
-    this.currentAnalysisResult = {
-      analysis_id: "BENCHMARK_SIM_001",
-      status: "success",
-      detections: this.targets,
-      raw_image_url: this.currentSample && this.currentSample.path ? `/api/image?path=${encodeURIComponent(this.currentSample.path)}` : null,
-      report_summary: {
-        obtained_image_class: "fishing_net",
-        confidence_score: 0.81,
-        confidence_pct: 81.0,
-        priority_level: "HIGHER",
-        priority_label: "HIGHER PRIORITY (> 75%)",
-        spatial_location: {
-          latitude: 42.747402,
-          longitude: -73.794567,
-          max_length_m: 14.2,
-          max_width_m: 5.8,
-          total_area_sq_m: 82.4
-        },
-        candidate_classes_breakdown: [
-          { class: "fishing_net", confidence_pct: 81.0, priority_level: "HIGHER" },
-          { class: "pipeline_or_cable", confidence_pct: 68.5, priority_level: "LOWER" },
-          { class: "shipwreck_fragment", confidence_pct: 54.0, priority_level: "LOWER" },
-          { class: "engine_debris", confidence_pct: 46.2, priority_level: "LOWER" },
-          { class: "engineering_platform", confidence_pct: 38.0, priority_level: "LOWER" },
-          { class: "riprap_debris", confidence_pct: 29.5, priority_level: "LOWER" }
-        ]
-      }
-    };
-
-    this.updateKPIs();
-    this.renderTargetList();
-
-    if (this.targets.length > 0) {
-      this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
+    } else {
+      this._clearInspector();
+      const narrativeEl = document.getElementById('targetNarrative');
+      if (narrativeEl) narrativeEl.textContent = "No anomalous marine debris detected on this seabed sector.";
     }
   }
 
@@ -626,6 +609,19 @@ class DashboardApp {
     if (btnDropdownHTML) {
       btnDropdownHTML.addEventListener('click', () => this.downloadReportHTML());
     }
+
+    // 9. Export Dropdown Menu Trigger
+    const btnExportMenu = document.getElementById('btnExportMenu');
+    const exportDropdownMenu = document.getElementById('exportDropdownMenu');
+    if (btnExportMenu && exportDropdownMenu) {
+      btnExportMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportDropdownMenu.classList.toggle('show');
+      });
+      document.addEventListener('click', () => {
+        exportDropdownMenu.classList.remove('show');
+      });
+    }
   }
 
   async downloadReportHTML() {
@@ -873,11 +869,21 @@ class DashboardApp {
   }
 
   handleFileSelection(file) {
+    if (!file) return;
     this.uploadedFile = file;
     this.currentSample = null;
 
     // Deselect sample pills
     document.querySelectorAll('.sample-pill').forEach(b => b.classList.remove('active'));
+
+    // Clear previous targets and reset state immediately so no stale targets linger
+    this.targets = [];
+    this.waterfall.setTargets([]);
+    this.map.setTargets([]);
+    this.currentAnalysisResult = null;
+    this.updateKPIs();
+    this.renderTargetList();
+    this._clearInspector();
 
     const dropzone = document.getElementById('uploadDropzone');
     const fileInfo = document.getElementById('uploadFileInfo');
@@ -887,10 +893,11 @@ class DashboardApp {
     if (fileInfo) fileInfo.style.display = 'flex';
     if (fileName) fileName.textContent = file.name;
 
-    // Preview image locally via FileReader in waterfall canvas
+    // Preview image locally via FileReader in waterfall canvas and auto-trigger analysis
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       this.waterfall.loadSonarImages({ rawUrl: e.target.result });
+      await this.executeAIPipeline();
     };
     reader.readAsDataURL(file);
   }

@@ -76,14 +76,10 @@ class GISMap {
     const validCoords = [];
 
     targets.forEach(t => {
-      let lat = t.latitude;
-      let lon = t.longitude;
-      if (!lat && t.simulated_coords) {
-        lat = t.simulated_coords.lat;
-        lon = t.simulated_coords.lon;
-      }
+      const lat = (t.latitude !== undefined && t.latitude !== null) ? Number(t.latitude) : null;
+      const lon = (t.longitude !== undefined && t.longitude !== null) ? Number(t.longitude) : null;
 
-      if (lat && lon) {
+      if (lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon)) {
         validCoords.push([lat, lon]);
 
         let color = "#00e676";

@@ -232,7 +232,8 @@ body {
   z-index: 1100;
 }
 
-.export-dropdown:hover .dropdown-menu {
+.export-dropdown:hover .dropdown-menu,
+.dropdown-menu.show {
   display: block;
 }
 

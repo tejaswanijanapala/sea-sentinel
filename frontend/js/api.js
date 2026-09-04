@@ -225,11 +225,10 @@ class SeaSentinelAPI {
         }
       }
     } catch (e) {
-      // Backend offline
+      console.warn("Geospatial targets API not reachable:", e);
     }
-    return BENCHMARK_TARGETS;
+    return [];
   }
 }
 
 window.apiService = new SeaSentinelAPI();
-window.BENCHMARK_TARGETS = BENCHMARK_TARGETS;

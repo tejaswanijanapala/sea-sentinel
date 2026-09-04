@@ -16,6 +16,7 @@ Strictly adheres to modular tool boundaries; orchestrates specialized engines wi
 
 from typing import Dict, Any, List, Optional
 import os
+import math
 import uuid
 import time
 import cv2
@@ -118,25 +119,62 @@ class SIHPipelineAgent:
         # -------------------------------------------------------------
         # Stage 3: Candidate Object Detection (YOLO)
         # -------------------------------------------------------------
+        # Stage 3: Candidate Object Detection (YOLO / Morphological Proposals)
+        # -------------------------------------------------------------
         t0 = time.perf_counter()
         det_res = self.detector.detect(prep_res.get("preprocessed_image", image_path))
         t_det = round((time.perf_counter() - t0) * 1000, 2)
         raw_detections = det_res.get("detections", [])
 
-        # Acoustic physics highlight fallback if YOLO custom model is in baseline state
+        # Dynamic acoustic physics highlight extraction if YOLO model has no detections or is uncalibrated
         if len(raw_detections) == 0 and prep_res.get("candidate_highlights"):
-            for idx, cand in enumerate(prep_res["candidate_highlights"][:8]):
+            highlights = sorted(prep_res["candidate_highlights"], key=lambda c: c.get("area", 0), reverse=True)
+            for idx, cand in enumerate(highlights[:10]):
                 cb = cand.get("bbox", {})
+                x1 = float(cb.get("x1", 0))
+                y1 = float(cb.get("y1", 0))
+                x2 = float(cb.get("x2", 0))
+                y2 = float(cb.get("y2", 0))
+                bw = max(1.0, x2 - x1)
+                bh = max(1.0, y2 - y1)
+                area = bw * bh
+                aspect_ratio = max(bw, bh) / max(1.0, min(bw, bh))
+                mean_intensity = float(cand.get("mean_intensity", 175))
+
+                # Real acoustic morphology classification based on shape, area, and backscatter
+                if aspect_ratio >= 2.8 or (max(bw, bh) > 160 and aspect_ratio >= 2.0):
+                    pred_class = "pipeline_or_cable"
+                    cls_id = 1
+                elif area > 3500 and aspect_ratio < 2.0:
+                    pred_class = "engineering_platform"
+                    cls_id = 3
+                elif area > 1800:
+                    pred_class = "shipwreck_fragment"
+                    cls_id = 2
+                elif mean_intensity > 200 and aspect_ratio < 2.0 and area < 800:
+                    pred_class = "engine_part"
+                    cls_id = 5
+                elif area < 300:
+                    pred_class = "riprap_debris"
+                    cls_id = 4
+                else:
+                    pred_class = "fishing_net"
+                    cls_id = 0
+
+                intensity_factor = min(1.0, max(0.0, (mean_intensity - 50.0) / 200.0))
+                area_factor = min(1.0, max(0.2, math.log10(max(10, area)) / 4.0))
+                calc_conf = round(float(min(0.92, max(0.48, 0.45 + 0.35 * intensity_factor + 0.12 * area_factor))), 3)
+
                 raw_detections.append({
-                    "object_id": f"DEBRIS_{idx+1:04d}",
-                    "class_id": 0,
-                    "class": "fishing_net" if idx % 2 == 0 else "pipeline_or_cable",
-                    "confidence": float(round(min(0.89, max(0.55, float(cand.get("mean_intensity", 180)) / 255.0)), 2)),
+                    "object_id": f"TGT_{idx+1:03d}",
+                    "class_id": cls_id,
+                    "class": pred_class,
+                    "confidence": calc_conf,
                     "bbox": {
-                        "x1": float(cb.get("x1", 0)),
-                        "y1": float(cb.get("y1", 0)),
-                        "x2": float(cb.get("x2", 0)),
-                        "y2": float(cb.get("y2", 0))
+                        "x1": round(x1, 1),
+                        "y1": round(y1, 1),
+                        "x2": round(x2, 1),
+                        "y2": round(y2, 1)
                     }
                 })
 
@@ -144,7 +182,7 @@ class SIHPipelineAgent:
             "stage": "candidate_detection",
             "status": "completed",
             "duration_ms": t_det,
-            "model_status": det_res.get("status") if len(raw_detections) == 0 else "active",
+            "model_status": det_res.get("status") if len(raw_detections) == 0 else ("yolo_inference" if det_res.get("model_loaded") else "morphological_proposals"),
             "candidates_found": len(raw_detections)
         })
 
@@ -187,6 +225,7 @@ class SIHPipelineAgent:
         t_auto_total = 0.0
         t_geo_total = 0.0
         final_objects = []
+        roi_masks = {}
 
         for det in clustered_detections:
             bbox = det.get("bbox", {})
@@ -205,6 +244,8 @@ class SIHPipelineAgent:
             t_unet_total += (time.perf_counter() - t_u0)
             has_mask = seg_res.get("mask_available", False)
             pixel_area = seg_res.get("total_area_px") if has_mask else None
+            if has_mask and seg_res.get("mask") is not None:
+                roi_masks[det.get("object_id")] = seg_res.get("mask")
 
             # 6b: Autoencoder Anomaly & Shadow Verification
             t_a0 = time.perf_counter()
@@ -260,6 +301,28 @@ class SIHPipelineAgent:
                 case=georef_case,
                 uncertainty_m=1.5 if georef_case == "A" else 8.0
             )
+
+            # Explicit Case C handling: Ensure coordinates are strictly None if not georeferenced
+            if georef_case == "C" or lat is None or lon is None:
+                rec["coordinates_available"] = False
+                rec["latitude"] = None
+                rec["longitude"] = None
+                rec["coordinate_system"] = "UNREFERENCED"
+
+            # Normalized bounding box for responsive client-side scaling
+            w_img = max(1, w_raw)
+            h_img = max(1, h_raw)
+            rec["norm_bbox"] = {
+                "x1": round(max(0.0, min(1.0, float(bbox.get("x1", 0)) / w_img)), 4),
+                "y1": round(max(0.0, min(1.0, float(bbox.get("y1", 0)) / h_img)), 4),
+                "x2": round(max(0.0, min(1.0, float(bbox.get("x2", 0)) / w_img)), 4),
+                "y2": round(max(0.0, min(1.0, float(bbox.get("y2", 0)) / h_img)), 4)
+            }
+            rec["image_dimensions"] = {
+                "width": w_raw,
+                "height": h_raw
+            }
+
             calibrated_conf = anomaly_res.get("calibrated_confidence", det.get("confidence", 0.5))
             priority_level = "HIGHER" if calibrated_conf > 0.75 else "LOWER"
             priority_label = "HIGHER PRIORITY" if calibrated_conf > 0.75 else "LOWER PRIORITY"
@@ -376,19 +439,60 @@ class SIHPipelineAgent:
 
             for obj in final_objects:
                 bbox = obj.get("pixel_bbox", {})
-                x1 = int(bbox.get("x1", 0))
-                y1 = int(bbox.get("y1", 0))
-                x2 = int(bbox.get("x2", 0))
-                y2 = int(bbox.get("y2", 0))
+                x1 = max(0, min(annotated_canvas.shape[1] - 1, int(bbox.get("x1", 0))))
+                y1 = max(0, min(annotated_canvas.shape[0] - 1, int(bbox.get("y1", 0))))
+                x2 = max(x1 + 1, min(annotated_canvas.shape[1], int(bbox.get("x2", 0))))
+                y2 = max(y1 + 1, min(annotated_canvas.shape[0], int(bbox.get("y2", 0))))
                 risk = obj.get("risk_score", "LOW")
-                color = (118, 230, 0) # BGR Emerald
+                obj_id = obj.get("object_id", "OBJ")
+                cls_name = obj.get("class", "debris").replace("_", " ").upper()
+                conf_pct = int(obj.get("calibrated_confidence", 0) * 100)
+                
+                # Dynamic aesthetic color coding
                 if risk == "HIGH":
-                    color = (68, 23, 255) # BGR Coral Red
+                    box_color = (68, 23, 255) # Coral Red (BGR)
+                    mask_color = (68, 40, 255)
                 elif risk == "MEDIUM":
-                    color = (0, 171, 255) # BGR Amber
-                cv2.rectangle(annotated_canvas, (x1, y1), (x2, y2), color, 2)
-                lbl = f"{obj.get('object_id', '')} [{int(obj.get('calibrated_confidence', 0)*100)}%]"
-                cv2.putText(annotated_canvas, lbl, (x1, max(14, y1 - 4)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, color, 1, cv2.LINE_AA)
+                    box_color = (0, 171, 255) # Cyber Amber (BGR)
+                    mask_color = (0, 190, 255)
+                else:
+                    box_color = (118, 230, 0) # Emerald (BGR)
+                    mask_color = (255, 220, 0) # Cyan-Teal (BGR)
+
+                # Visual Segmentation Mask inside bounding box (Attention U-Net)
+                if obj_id in roi_masks:
+                    mask = roi_masks[obj_id]
+                    if mask is not None:
+                        rh, rw = (y2 - y1), (x2 - x1)
+                        if mask.shape[:2] != (rh, rw):
+                            mask = cv2.resize(mask.astype(np.uint8), (rw, rh), interpolation=cv2.INTER_NEAREST)
+                        
+                        roi_slice = annotated_canvas[y1:y2, x1:x2]
+                        bin_mask = (mask > 0)
+                        if np.any(bin_mask):
+                            color_arr = np.array(mask_color, dtype=np.float32)
+                            blended_roi = roi_slice.astype(np.float32)
+                            blended_roi[bin_mask] = 0.55 * blended_roi[bin_mask] + 0.45 * color_arr
+                            annotated_canvas[y1:y2, x1:x2] = np.clip(blended_roi, 0, 255).astype(np.uint8)
+
+                            # Contour border outline
+                            contours, _ = cv2.findContours((mask > 0).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                            for cnt in contours:
+                                shifted_cnt = cnt + np.array([x1, y1])
+                                cv2.drawContours(annotated_canvas, [shifted_cnt], -1, box_color, 2, cv2.LINE_AA)
+
+                # Outer bounding box
+                cv2.rectangle(annotated_canvas, (x1, y1), (x2, y2), box_color, 2)
+
+                # Label tag with dark backdrop for high contrast readability
+                lbl = f"[{obj_id}] {cls_name}: {conf_pct}%"
+                (tw, th), baseline = cv2.getTextSize(lbl, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+                tag_y1 = max(0, y1 - th - 8)
+                tag_y2 = y1
+                tag_x2 = min(annotated_canvas.shape[1], x1 + tw + 10)
+                cv2.rectangle(annotated_canvas, (x1, tag_y1), (tag_x2, tag_y2), (15, 20, 28), cv2.FILLED)
+                cv2.rectangle(annotated_canvas, (x1, tag_y1), (tag_x2, tag_y2), box_color, 1)
+                cv2.putText(annotated_canvas, lbl, (x1 + 4, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.42, box_color, 1, cv2.LINE_AA)
 
             cv2.imwrite(annotated_path, annotated_canvas)
 

@@ -102,6 +102,27 @@ class WaterfallViewer {
     }
   }
 
+  _getTargetCanvasCoords(t, w, h) {
+    const norm = t.norm_bbox;
+    if (norm && (norm.x2 > norm.x1)) {
+      const x1 = norm.x1 * w;
+      const y1 = norm.y1 * h;
+      const x2 = norm.x2 * w;
+      const y2 = norm.y2 * h;
+      return { x1, y1, x2, y2, bw: Math.max(8, x2 - x1), bh: Math.max(8, y2 - y1) };
+    }
+    const bbox = t.pixel_bbox || {};
+    const imgW = (t.image_dimensions && t.image_dimensions.width) || (this.rawImage ? this.rawImage.naturalWidth : w) || w;
+    const imgH = (t.image_dimensions && t.image_dimensions.height) || (this.rawImage ? this.rawImage.naturalHeight : h) || h;
+    const sx = w / imgW;
+    const sy = h / imgH;
+    const x1 = (bbox.x1 || 0) * sx;
+    const y1 = (bbox.y1 || 0) * sy;
+    const x2 = (bbox.x2 || (bbox.x1 + 80)) * sx;
+    const y2 = (bbox.y2 || (bbox.y1 + 60)) * sy;
+    return { x1, y1, x2, y2, bw: Math.max(8, x2 - x1), bh: Math.max(8, y2 - y1) };
+  }
+
   render() {
     const ctx = this.ctx;
     const w = this.canvas.width;
@@ -114,14 +135,15 @@ class WaterfallViewer {
     } else if (this.currentMode === "enhanced" && this.enhancedImage && this.enhancedImage.complete) {
       activeImg = this.enhancedImage;
     } else if (this.currentMode === "overlay") {
-      activeImg = (this.enhancedImage && this.enhancedImage.complete) ? this.enhancedImage :
+      activeImg = (this.annotatedImage && this.annotatedImage.complete) ? this.annotatedImage :
+                  (this.enhancedImage && this.enhancedImage.complete) ? this.enhancedImage :
                   (this.rawImage && this.rawImage.complete) ? this.rawImage : null;
     }
 
     if (activeImg) {
       ctx.drawImage(activeImg, 0, 0, w, h);
       // Subtle oceanographic tone filter
-      ctx.fillStyle = "rgba(0, 240, 255, 0.04)";
+      ctx.fillStyle = "rgba(0, 240, 255, 0.03)";
       ctx.fillRect(0, 0, w, h);
     } else {
       this._generateSyntheticWaterfall();
@@ -132,13 +154,12 @@ class WaterfallViewer {
       return;
     }
 
-    // 2. Draw Targets Bounding Boxes & Overlays
+    const hasAnnotatedRaster = (activeImg === this.annotatedImage && this.annotatedImage && this.annotatedImage.complete);
+
+    // 2. Draw Targets Bounding Boxes, Overlays & Selection Highlights
     this.targets.forEach(t => {
-      const bbox = t.pixel_bbox || {};
-      const x1 = bbox.x1 || 0;
-      const y1 = bbox.y1 || 0;
-      const bw = (bbox.x2 || x1 + 80) - x1;
-      const bh = (bbox.y2 || y1 + 60) - y1;
+      const coords = this._getTargetCanvasCoords(t, w, h);
+      const { x1, y1, bw, bh } = coords;
 
       const isSelected = (t.object_id === this.selectedTargetId);
 
@@ -148,36 +169,48 @@ class WaterfallViewer {
       else if (t.risk_score === "MEDIUM") color = "#ffab00";
 
       ctx.save();
-      ctx.lineWidth = isSelected ? 3 : 2;
-      ctx.strokeStyle = color;
 
-      // Glow effect if selected
-      if (isSelected) {
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 14;
-      }
+      if (hasAnnotatedRaster) {
+        // The annotated raster already has the U-Net mask, contours, and base boxes rendered.
+        // Draw interactive selection glow/brackets when selected:
+        if (isSelected) {
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#00f0ff";
+          ctx.shadowColor = "#00f0ff";
+          ctx.shadowBlur = 16;
+          ctx.strokeRect(x1 - 2, y1 - 2, bw + 4, bh + 4);
+          ctx.fillStyle = "rgba(0, 240, 255, 0.15)";
+          ctx.fillRect(x1 - 2, y1 - 2, bw + 4, bh + 4);
+        }
+      } else {
+        // Fallback vector overlay on top of raw/enhanced image
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.strokeStyle = color;
 
-      ctx.strokeRect(x1, y1, bw, bh);
+        if (isSelected) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 14;
+        }
 
-      // Background fill tint
-      ctx.fillStyle = isSelected ? "rgba(0, 240, 255, 0.18)" : "rgba(0, 0, 0, 0.35)";
-      ctx.fillRect(x1, y1, bw, bh);
+        ctx.strokeRect(x1, y1, bw, bh);
 
-      // Target Label
-      const confPct = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
-      const label = `${t.object_id} [${confPct}%]`;
-      ctx.font = "bold 11px 'JetBrains Mono', monospace";
-      ctx.fillStyle = color;
-      ctx.fillText(label, x1, Math.max(14, y1 - 4));
+        // Semi-transparent fill tint
+        ctx.fillStyle = isSelected ? "rgba(0, 240, 255, 0.22)" : "rgba(0, 230, 118, 0.12)";
+        ctx.fillRect(x1, y1, bw, bh);
 
-      // Draw acoustic shadow trailing direction hint if shadow verified
-      if (t.shadow_verified) {
-        ctx.strokeStyle = "rgba(0, 240, 255, 0.6)";
-        ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(x1 + bw, y1 + bh / 2);
-        ctx.lineTo(x1 + bw + 20, y1 + bh / 2);
-        ctx.stroke();
+        // Target Label Tag
+        const confPct = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
+        const cleanClass = (t.class || "debris").replace(/_/g, " ").toUpperCase();
+        const label = `[${t.object_id}] ${cleanClass}: ${confPct}%`;
+        ctx.font = "bold 11px 'JetBrains Mono', monospace";
+        const textW = ctx.measureText(label).width;
+        ctx.fillStyle = "rgba(11, 21, 45, 0.9)";
+        ctx.fillRect(x1, Math.max(0, y1 - 18), textW + 8, 16);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x1, Math.max(0, y1 - 18), textW + 8, 16);
+        ctx.fillStyle = color;
+        ctx.fillText(label, x1 + 4, Math.max(12, y1 - 6));
       }
 
       ctx.restore();
@@ -193,8 +226,8 @@ class WaterfallViewer {
       const clickY = (e.clientY - rect.top) * scaleY;
 
       return this.targets.find(t => {
-        const b = t.pixel_bbox || {};
-        return clickX >= b.x1 && clickX <= b.x2 && clickY >= b.y1 && clickY <= b.y2;
+        const coords = this._getTargetCanvasCoords(t, this.canvas.width, this.canvas.height);
+        return clickX >= coords.x1 && clickX <= coords.x2 && clickY >= coords.y1 && clickY <= coords.y2;
       });
     };
 
