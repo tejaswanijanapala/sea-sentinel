@@ -98,6 +98,12 @@ class GISMap {
       marker.openPopup();
     }
   }
+
+  invalidateSize() {
+    if (this.map) {
+      setTimeout(() => this.map.invalidateSize(), 150);
+    }
+  }
 }
 
 window.GISMap = GISMap;

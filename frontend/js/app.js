@@ -1,6 +1,6 @@
 /**
  * Sea Sentinel: Main Application Controller
- * Manages Dashboard state, user interactions, upload ingestion, AI pipeline execution,
+ * Manages Dashboard state, workspace views, acoustic upload ingestion, AI pipeline execution,
  * export actions, and synchronized multi-component updates.
  */
 
@@ -43,10 +43,8 @@ class DashboardApp {
     if (statusBadge) {
       if (this.isBackendOnline) {
         statusBadge.textContent = "API ACTIVE";
-        statusBadge.className = "badge-status-online";
       } else {
-        statusBadge.textContent = "DEMO MODE";
-        statusBadge.className = "brand-badge";
+        statusBadge.textContent = "STANDALONE DEMO";
       }
     }
   }
@@ -59,7 +57,7 @@ class DashboardApp {
     container.innerHTML = '';
     this.samples.forEach((s, idx) => {
       const btn = document.createElement('button');
-      btn.className = `sample-chip ${idx === 0 ? 'active' : ''}`;
+      btn.className = `sample-pill ${idx === 0 ? 'active' : ''}`;
       btn.dataset.sampleId = s.id;
 
       let icon = "fa-network-wired";
@@ -86,15 +84,12 @@ class DashboardApp {
     const fileInfo = document.getElementById('uploadFileInfo');
     if (fileInfo) fileInfo.style.display = 'none';
     const dropzone = document.getElementById('uploadDropzone');
-    if (dropzone) dropzone.style.display = 'block';
+    if (dropzone) dropzone.style.display = 'flex';
 
-    // Update active chip state
-    document.querySelectorAll('.sample-chip').forEach(btn => {
+    // Update active pill state
+    document.querySelectorAll('.sample-pill').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.sampleId === sampleId);
     });
-
-    const modeText = document.getElementById('ingestionModeText');
-    if (modeText) modeText.textContent = "BENCHMARK";
 
     // If sample has URL or path, load preview in waterfall
     if (this.currentSample && this.currentSample.path && this.isBackendOnline) {
@@ -122,24 +117,25 @@ class DashboardApp {
     const stepper = document.getElementById('pipelineStepper');
 
     btn.disabled = true;
-    btnText.textContent = "ANALYZING ACOUSTICS...";
+    btnText.textContent = "Analyzing Acoustics...";
     if (stepper) stepper.style.display = 'block';
 
     const steps = [
-      { id: "stepPrep", msId: "stepPrepMs", label: "Preprocessing" },
-      { id: "stepYolo", msId: "stepYoloMs", label: "YOLO Candidate" },
-      { id: "stepRock", msId: "stepRockMs", label: "DBSCAN Moraine" },
-      { id: "stepUnet", msId: "stepUnetMs", label: "Attention U-Net" },
-      { id: "stepAuto", msId: "stepAutoMs", label: "CNN Autoencoder" },
-      { id: "stepGeo",  msId: "stepGeoMs",  label: "Geotagging" }
+      { id: "stepPrep", msId: "stepPrepMs" },
+      { id: "stepYolo", msId: "stepYoloMs" },
+      { id: "stepRock", msId: "stepRockMs" },
+      { id: "stepUnet", msId: "stepUnetMs" },
+      { id: "stepAuto", msId: "stepAutoMs" },
+      { id: "stepGeo",  msId: "stepGeoMs" }
     ];
 
-    // Reset stepper
+    // Reset ribbon steps
     steps.forEach(s => {
       const el = document.getElementById(s.id);
       if (el) {
-        el.className = "step-row";
-        document.getElementById(s.msId).textContent = "--";
+        el.className = "ribbon-step";
+        const ms = document.getElementById(s.msId);
+        if (ms) ms.textContent = "--";
       }
     });
 
@@ -148,16 +144,16 @@ class DashboardApp {
     const animateNextStep = () => {
       if (currentStepIdx > 0 && currentStepIdx <= steps.length) {
         const prev = document.getElementById(steps[currentStepIdx - 1].id);
-        if (prev) prev.className = "step-row completed";
+        if (prev) prev.className = "ribbon-step completed";
       }
       if (currentStepIdx < steps.length) {
         const cur = document.getElementById(steps[currentStepIdx].id);
-        if (cur) cur.className = "step-row active";
+        if (cur) cur.className = "ribbon-step active";
         currentStepIdx++;
       }
     };
 
-    const stepInterval = setInterval(animateNextStep, 250);
+    const stepInterval = setInterval(animateNextStep, 220);
 
     try {
       let analysisResult = null;
@@ -166,7 +162,6 @@ class DashboardApp {
         let imagePathToAnalyze = null;
 
         if (this.uploadedFile) {
-          // Upload file first
           const uploadRes = await window.apiService.uploadFile(this.uploadedFile);
           imagePathToAnalyze = uploadRes.saved_path;
         } else if (this.currentSample && this.currentSample.path) {
@@ -183,13 +178,12 @@ class DashboardApp {
       // Finish all stepper rows
       steps.forEach(s => {
         const el = document.getElementById(s.id);
-        if (el) el.className = "step-row completed";
+        if (el) el.className = "ribbon-step completed";
       });
 
       if (analysisResult && analysisResult.status === "success") {
         this.applyAnalysisResult(analysisResult);
       } else {
-        // Fallback simulation demonstration
         this.applySimulatedResult();
       }
 
@@ -199,7 +193,7 @@ class DashboardApp {
       this.applySimulatedResult();
     } finally {
       btn.disabled = false;
-      btnText.textContent = "EXECUTE AI PIPELINE";
+      btnText.textContent = "Run AI Pipeline";
     }
   }
 
@@ -250,7 +244,6 @@ class DashboardApp {
   }
 
   applySimulatedResult() {
-    // Fill simulated timings
     const simulatedTimes = {
       stepPrepMs: "18.4ms",
       stepYoloMs: "32.1ms",
@@ -291,7 +284,7 @@ class DashboardApp {
     const mapCount = document.getElementById('mapTargetCount');
     if (mapCount) {
       const plotted = this.targets.filter(t => t.latitude && t.longitude).length;
-      mapCount.textContent = `${plotted} MARKERS PLOTTED`;
+      mapCount.textContent = `${plotted} Targets Plotted`;
     }
   }
 
@@ -302,22 +295,22 @@ class DashboardApp {
 
     this.targets.forEach(t => {
       const item = document.createElement('div');
-      item.className = `target-item ${t.object_id === this.selectedTargetId ? 'active' : ''}`;
+      item.className = `target-card ${t.object_id === this.selectedTargetId ? 'active' : ''}`;
       item.onclick = () => this.onTargetSelected(t.object_id);
 
       const conf = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
       const dims = (t.length_m && t.width_m) ? `${t.length_m}m × ${t.width_m}m` : "Estimated";
 
       item.innerHTML = `
-        <div class="target-item-header">
+        <div class="target-card-top">
           <span class="target-id">${t.object_id}</span>
-          <span class="badge-risk ${t.risk_score}">${t.risk_score}</span>
+          <span class="risk-pill ${t.risk_score}">${t.risk_score}</span>
         </div>
-        <div class="target-meta-row">
+        <div class="target-card-row">
           <span><b>Class:</b> ${t.class}</span>
           <span><b>Conf:</b> ${conf}%</span>
         </div>
-        <div class="target-meta-row">
+        <div class="target-card-row">
           <span><b>Size:</b> ${dims}</span>
           <span><b>Status:</b> ${t.anomaly_status}</span>
         </div>
@@ -334,7 +327,7 @@ class DashboardApp {
     this.waterfall.selectTarget(targetId);
     this.map.flyToTarget(targetId);
 
-    document.querySelectorAll('.target-item').forEach(el => {
+    document.querySelectorAll('.target-card').forEach(el => {
       const idEl = el.querySelector('.target-id');
       if (idEl && idEl.textContent === targetId) {
         el.classList.add('active');
@@ -363,32 +356,54 @@ class DashboardApp {
     if (physicsEl) {
       physicsEl.innerHTML = `
         <div><b>Acoustic Shadow:</b> ${shadowStr}</div>
-        <div><b>Autoencoder MSE:</b> ${mseStr} (Baseline T: 0.094)</div>
+        <div><b>Autoencoder MSE:</b> ${mseStr} (Baseline T: 0.106)</div>
         <div><b>GPS Coordinates:</b> ${coordsStr}</div>
-        <div><b>Geological Density:</b> ${target.is_rock_cluster ? 'Rock Field Moraine (Suppressed)' : 'Isolated Anthropogenic Anomaly'}</div>
+        <div><b>Geology:</b> ${target.is_rock_cluster ? 'Rock Moraine (Suppressed)' : 'Isolated Anthropogenic Target'}</div>
       `;
     }
   }
 
   _setupEventListeners() {
-    // 1. Run Pipeline Button
+    // 1. Workspace View Switcher Tabs (Split / Waterfall / Map)
+    const tabs = document.querySelectorAll('.tab-btn');
+    const workspace = document.getElementById('workspaceContainer');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const mode = tab.dataset.tab;
+
+        workspace.classList.remove('mode-waterfall', 'mode-map');
+        if (mode === 'waterfall') {
+          workspace.classList.add('mode-waterfall');
+        } else if (mode === 'map') {
+          workspace.classList.add('mode-map');
+        }
+
+        // Trigger map and canvas resize recalculations
+        this.map.invalidateSize();
+        this.waterfall.render();
+      });
+    });
+
+    // 2. Run Pipeline Button
     const runBtn = document.getElementById('btnRunPipeline');
     if (runBtn) {
       runBtn.addEventListener('click', () => this.executeAIPipeline());
     }
 
-    // 2. View Mode Toggles
-    const viewButtons = document.querySelectorAll('.view-mode-btn');
-    viewButtons.forEach(btn => {
+    // 3. View Mode Toggles (Raw / Enhanced / Detections)
+    const segButtons = document.querySelectorAll('.seg-btn');
+    segButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        viewButtons.forEach(b => b.classList.remove('active'));
+        segButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const mode = btn.dataset.mode;
         this.waterfall.setViewMode(mode);
       });
     });
 
-    // 3. File Upload & Drag-and-Drop
+    // 4. File Upload & Drag-and-Drop
     const dropzone = document.getElementById('uploadDropzone');
     const fileInput = document.getElementById('sonarFileInput');
     const fileInfo = document.getElementById('uploadFileInfo');
@@ -397,23 +412,6 @@ class DashboardApp {
 
     if (dropzone && fileInput) {
       dropzone.addEventListener('click', () => fileInput.click());
-
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('dragover');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('dragover');
-      });
-
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          this.handleFileSelection(e.dataTransfer.files[0]);
-        }
-      });
 
       fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -428,7 +426,7 @@ class DashboardApp {
         this.uploadedFile = null;
         if (fileInput) fileInput.value = '';
         if (fileInfo) fileInfo.style.display = 'none';
-        if (dropzone) dropzone.style.display = 'block';
+        if (dropzone) dropzone.style.display = 'flex';
 
         if (this.samples.length > 0) {
           this.selectSampleMission(this.samples[0].id);
@@ -436,7 +434,16 @@ class DashboardApp {
       });
     }
 
-    // 4. Export GeoJSON
+    // 5. Global Drag & Drop over viewport
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        this.handleFileSelection(e.dataTransfer.files[0]);
+      }
+    });
+
+    // 6. Export GeoJSON
     const btnGeoJSON = document.getElementById('btnExportGeoJSON');
     if (btnGeoJSON) {
       btnGeoJSON.addEventListener('click', () => {
@@ -454,7 +461,7 @@ class DashboardApp {
       });
     }
 
-    // 5. Export CSV
+    // 7. Export CSV
     const btnCSV = document.getElementById('btnExportCSV');
     if (btnCSV) {
       btnCSV.addEventListener('click', () => {
@@ -474,11 +481,8 @@ class DashboardApp {
     this.uploadedFile = file;
     this.currentSample = null;
 
-    // Deselect sample chips
-    document.querySelectorAll('.sample-chip').forEach(b => b.classList.remove('active'));
-
-    const modeText = document.getElementById('ingestionModeText');
-    if (modeText) modeText.textContent = "CUSTOM SCAN";
+    // Deselect sample pills
+    document.querySelectorAll('.sample-pill').forEach(b => b.classList.remove('active'));
 
     const dropzone = document.getElementById('uploadDropzone');
     const fileInfo = document.getElementById('uploadFileInfo');
@@ -509,4 +513,3 @@ class DashboardApp {
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new DashboardApp();
 });
-

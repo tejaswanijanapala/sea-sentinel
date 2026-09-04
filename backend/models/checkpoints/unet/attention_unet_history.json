@@ -1,26 +1,18 @@
 [
   {
     "epoch": 1,
-    "train_loss": 0.7763,
-    "train_iou": 0.0328,
-    "val_loss": 0.837,
-    "val_iou": 0.0345,
-    "val_dice": 0.0666
+    "train_loss": 0.8353,
+    "train_iou": 0.0306,
+    "val_loss": 0.8438,
+    "val_iou": 0.0355,
+    "val_dice": 0.0684
   },
   {
     "epoch": 2,
-    "train_loss": 0.7693,
-    "train_iou": 0.0977,
-    "val_loss": 0.8379,
-    "val_iou": 0.0345,
-    "val_dice": 0.0666
-  },
-  {
-    "epoch": 3,
-    "train_loss": 0.7653,
-    "train_iou": 0.0821,
-    "val_loss": 0.8406,
-    "val_iou": 0.0345,
-    "val_dice": 0.0666
+    "train_loss": 0.8017,
+    "train_iou": 0.0543,
+    "val_loss": 0.8419,
+    "val_iou": 0.0355,
+    "val_dice": 0.0684
   }
 ]
