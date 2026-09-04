@@ -45,11 +45,11 @@
   <!-- Main Dashboard Container -->
   <main class="dashboard-container">
 
-    <!-- Column 1: Telemetry & KPI Cards -->
-    <aside class="glass-panel">
+    <!-- Column 1: Telemetry & KPI Cards & Ingestion Controls -->
+    <aside class="glass-panel" style="display: flex; flex-direction: column; gap: 14px; overflow-y: auto;">
       <div class="panel-header">
         <span class="panel-title"><i class="fa-solid fa-chart-simple"></i> Survey Telemetry</span>
-        <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">LIVE FEED</span>
+        <span style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);" id="surveyStatusBadge">ONLINE</span>
       </div>
 
       <!-- KPI Grid -->
@@ -72,8 +72,89 @@
         </div>
       </div>
 
+      <!-- Section: Acoustic Ingestion Controls -->
+      <div class="control-group">
+        <div class="control-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span><i class="fa-solid fa-satellite-dish"></i> Acoustic Ingestion</span>
+          <span style="font-size: 0.68rem; color: var(--cyan-beam);" id="ingestionModeText">BENCHMARK</span>
+        </div>
+
+        <!-- Sample Mission Quick Selector -->
+        <div class="sample-chips-grid" id="sampleChipsContainer">
+          <button class="sample-chip active" data-sample="ghost_net_01">
+            <i class="fa-solid fa-network-wired"></i> Ghost Net
+          </button>
+          <button class="sample-chip" data-sample="pipeline_cable_01">
+            <i class="fa-solid fa-bolt"></i> Cable / Pipe
+          </button>
+          <button class="sample-chip" data-sample="rock_cluster_01">
+            <i class="fa-solid fa-mountain"></i> Rock Moraine
+          </button>
+          <button class="sample-chip" data-sample="engine_part_01">
+            <i class="fa-solid fa-gears"></i> Engine Debris
+          </button>
+        </div>
+
+        <!-- Drag & Drop Upload Zone -->
+        <div class="upload-dropzone" id="uploadDropzone">
+          <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" />
+          <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <div class="dropzone-text"><b>Upload SSS Image / GeoTIFF</b></div>
+          <div class="dropzone-sub">Drag & drop or <span class="dropzone-browse">browse files</span></div>
+        </div>
+
+        <div id="uploadFileInfo" class="upload-file-info" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-file-image" style="color: var(--cyan-beam);"></i>
+            <span id="uploadFileName" style="font-weight: 500; font-size: 0.78rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 170px;"></span>
+          </div>
+          <button id="btnClearUpload" class="btn-clear-upload" title="Clear file">&times;</button>
+        </div>
+
+        <!-- Execute AI Pipeline Button -->
+        <button class="btn-execute-pipeline" id="btnRunPipeline">
+          <i class="fa-solid fa-play"></i>
+          <span id="btnRunText">EXECUTE AI PIPELINE</span>
+        </button>
+
+        <!-- Pipeline Multi-Stage Stepper -->
+        <div class="pipeline-stepper" id="pipelineStepper" style="display: none;">
+          <div class="stepper-title">AI PIPELINE TRACE</div>
+          <div class="step-row" id="stepPrep">
+            <div class="step-dot"></div>
+            <span class="step-name">1. Lee Filter &amp; CLAHE Normalization</span>
+            <span class="step-ms" id="stepPrepMs">--</span>
+          </div>
+          <div class="step-row" id="stepYolo">
+            <div class="step-dot"></div>
+            <span class="step-name">2. YOLOv11 Region Proposals</span>
+            <span class="step-ms" id="stepYoloMs">--</span>
+          </div>
+          <div class="step-row" id="stepRock">
+            <div class="step-dot"></div>
+            <span class="step-name">3. DBSCAN Geological Moraine Filter</span>
+            <span class="step-ms" id="stepRockMs">--</span>
+          </div>
+          <div class="step-row" id="stepUnet">
+            <div class="step-dot"></div>
+            <span class="step-name">4. Attention U-Net Contour Extraction</span>
+            <span class="step-ms" id="stepUnetMs">--</span>
+          </div>
+          <div class="step-row" id="stepAuto">
+            <div class="step-dot"></div>
+            <span class="step-name">5. CNN Autoencoder Anomaly Scoring</span>
+            <span class="step-ms" id="stepAutoMs">--</span>
+          </div>
+          <div class="step-row" id="stepGeo">
+            <div class="step-dot"></div>
+            <span class="step-name">6. Module 5 WGS84 Geotagging</span>
+            <span class="step-ms" id="stepGeoMs">--</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Export & Data Actions -->
-      <div class="control-group" style="margin-top: 10px;">
+      <div class="control-group" style="margin-top: auto;">
         <span class="control-label">Export Survey Deliverables</span>
         <button class="btn-action" id="btnExportGeoJSON">
           <i class="fa-solid fa-earth-americas"></i> Export GeoJSON (GIS)
@@ -83,18 +164,27 @@
         </button>
       </div>
 
-      <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: auto; line-height: 1.4;">
-        <b>Module 5 Geotagging Engine:</b> Case A Affine & Case B Sonar Geometry with PyProj WGS84 Geodetic Datum Conversion.
+      <div style="font-size: 0.7rem; color: var(--text-dim); line-height: 1.3;">
+        <b>Module 5 Geotagging:</b> Case A Affine &amp; Case B Navigation with PyProj WGS84 Geodetic Datum.
       </div>
     </aside>
 
     <!-- Column 2: Dual Waterfall Viewer & GIS Bathymetric Map -->
     <section class="center-column">
       <!-- Side-Scan Sonar Dual Waterfall Viewer -->
-      <div class="glass-panel" style="padding: 16px;">
-        <div class="panel-header" style="margin-bottom: 8px;">
-          <span class="panel-title"><i class="fa-solid fa-water"></i> Side-Scan Sonar Waterfall Scan</span>
-          <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan-beam);">DUAL CHANNEL (PORT / STARBOARD)</span>
+      <div class="glass-panel" style="padding: 14px;">
+        <div class="panel-header" style="margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="panel-title"><i class="fa-solid fa-water"></i> Side-Scan Sonar Waterfall Scan</span>
+            <span class="badge-status-online" id="activeScanBadge">LIVE SCAN</span>
+          </div>
+
+          <!-- View Mode Segmented Controls -->
+          <div class="view-mode-toggle" id="viewModeContainer">
+            <button class="view-mode-btn" data-mode="raw" id="btnModeRaw">Raw Scan</button>
+            <button class="view-mode-btn" data-mode="enhanced" id="btnModeEnhanced">Enhanced</button>
+            <button class="view-mode-btn active" data-mode="overlay" id="btnModeOverlay">Detections &amp; Shadows</button>
+          </div>
         </div>
 
         <div class="waterfall-viewport">
@@ -110,10 +200,13 @@
       </div>
 
       <!-- Interactive GIS Map -->
-      <div class="glass-panel" style="padding: 16px;">
+      <div class="glass-panel" style="padding: 14px;">
         <div class="panel-header" style="margin-bottom: 8px;">
-          <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Georeferenced WGS84 Target Map</span>
-          <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--emerald-safe);">EPSG:4326 (WGS84)</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Georeferenced WGS84 Target Map</span>
+            <span style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--emerald-safe);">EPSG:4326 (WGS84)</span>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);" id="mapTargetCount">0 MARKERS PLOTTED</span>
         </div>
 
         <div class="map-viewport">

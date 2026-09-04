@@ -274,10 +274,47 @@ class SIHPipelineAgent:
             "high_risk_count": sum(1 for d in final_objects if d.get("risk_score") == "HIGH")
         }
 
+        # -------------------------------------------------------------
+        # Save Enhanced & Annotated Sonar Preview Rasters
+        # -------------------------------------------------------------
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "outputs", "preprocessed")
+        os.makedirs(output_dir, exist_ok=True)
+        enhanced_path = os.path.join(output_dir, f"{analysis_id}_enhanced.png")
+        annotated_path = os.path.join(output_dir, f"{analysis_id}_annotated.png")
+
+        enhanced_img = prep_res.get("preprocessed_image")
+        if enhanced_img is not None and isinstance(enhanced_img, np.ndarray):
+            cv2.imwrite(enhanced_path, enhanced_img)
+            
+            if len(enhanced_img.shape) == 2:
+                annotated_canvas = cv2.cvtColor(enhanced_img, cv2.COLOR_GRAY2BGR)
+            else:
+                annotated_canvas = enhanced_img.copy()
+
+            for obj in final_objects:
+                bbox = obj.get("pixel_bbox", {})
+                x1 = int(bbox.get("x1", 0))
+                y1 = int(bbox.get("y1", 0))
+                x2 = int(bbox.get("x2", 0))
+                y2 = int(bbox.get("y2", 0))
+                risk = obj.get("risk_score", "LOW")
+                color = (118, 230, 0) # BGR Emerald
+                if risk == "HIGH":
+                    color = (68, 23, 255) # BGR Coral Red
+                elif risk == "MEDIUM":
+                    color = (0, 171, 255) # BGR Amber
+                cv2.rectangle(annotated_canvas, (x1, y1), (x2, y2), color, 2)
+                lbl = f"{obj.get('object_id', '')} [{int(obj.get('calibrated_confidence', 0)*100)}%]"
+                cv2.putText(annotated_canvas, lbl, (x1, max(14, y1 - 4)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, color, 1, cv2.LINE_AA)
+
+            cv2.imwrite(annotated_path, annotated_canvas)
+
         return {
             "analysis_id": analysis_id,
             "status": "success",
             "image_path": image_path,
+            "enhanced_image_path": enhanced_path if os.path.exists(enhanced_path) else None,
+            "annotated_image_path": annotated_path if os.path.exists(annotated_path) else None,
             "georeferencing_case": georef_case,
             "total_detections": len(final_objects),
             "summary_statistics": stats,

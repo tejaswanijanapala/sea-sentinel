@@ -151,6 +151,25 @@ def test_edge_case_extreme_resolutions():
         assert res_large["status"] == "success"
 
 
+def test_api_samples_and_images():
+    """Verify samples catalog endpoint and safe image serving endpoint."""
+    res = client.get("/api/samples")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "samples" in data
+    assert data["total_samples"] > 0
+    sample = data["samples"][0]
+    assert "id" in sample
+    assert "filename" in sample
+    assert os.path.exists(sample["path"])
+
+    # Test image endpoint
+    img_res = client.get(f"/api/image?path={sample['path']}")
+    assert img_res.status_code == 200
+    assert img_res.headers["content-type"] in ["image/jpeg", "image/png"]
+
+
 def test_raw_dataset_integrity():
     """Ensure raw dataset files were preserved non-destructively."""
     raw_dir = os.path.join(PROJECT_ROOT, "datasets", "raw")
@@ -165,6 +184,8 @@ if __name__ == "__main__":
     print("  [PASSED] test_api_root")
     test_api_health()
     print("  [PASSED] test_api_health")
+    test_api_samples_and_images()
+    print("  [PASSED] test_api_samples_and_images")
     test_api_upload_and_analyze()
     print("  [PASSED] test_api_upload_and_analyze")
     test_api_geospatial_feature_collection()

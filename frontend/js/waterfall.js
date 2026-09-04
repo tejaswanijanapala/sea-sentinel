@@ -1,6 +1,7 @@
 /**
  * Sea Sentinel: Interactive Sonar Waterfall Viewer
  * Renders acoustic waterfall scans with Port/Starboard channels, nadir line, and target bounding overlays.
+ * Supports multi-mode inspection: Raw Scan, Enhanced (Lee+CLAHE), and Detections & Shadows.
  */
 
 class WaterfallViewer {
@@ -9,7 +10,11 @@ class WaterfallViewer {
     this.ctx = this.canvas.getContext('2d');
     this.targets = [];
     this.selectedTargetId = null;
-    this.sonarImage = new Image();
+    this.currentMode = "overlay"; // "raw" | "enhanced" | "overlay"
+
+    this.rawImage = null;
+    this.enhancedImage = null;
+    this.annotatedImage = null;
 
     // Default acoustic waterfall canvas size
     this.canvas.width = 1200;
@@ -20,7 +25,6 @@ class WaterfallViewer {
   }
 
   _generateSyntheticWaterfall() {
-    // Generates realistic textured seafloor backscatter (sand ripples, speckle noise)
     const w = this.canvas.width;
     const h = this.canvas.height;
     const imgData = this.ctx.createImageData(w, h);
@@ -30,10 +34,10 @@ class WaterfallViewer {
       for (let x = 0; x < w; x++) {
         const idx = (y * w + x) * 4;
         const distFromNadir = Math.abs(x - w / 2);
-        
-        // Nadir blind zone (dark acoustic void near center)
+
+        // Nadir blind zone (dark acoustic void near center trackline)
         if (distFromNadir < 18) {
-          const nadirDark = Math.floor(Math.random() * 20);
+          const nadirDark = Math.floor(Math.random() * 18);
           data[idx] = nadirDark;
           data[idx + 1] = nadirDark + 5;
           data[idx + 2] = nadirDark + 10;
@@ -64,17 +68,77 @@ class WaterfallViewer {
     this.render();
   }
 
-  render() {
-    this._generateSyntheticWaterfall();
-    const ctx = this.ctx;
+  setViewMode(mode) {
+    this.currentMode = mode;
+    this.render();
+  }
 
-    // Draw Targets Bounding Boxes
+  loadSonarImages({ rawUrl, enhancedUrl, annotatedUrl }) {
+    if (rawUrl) {
+      this.rawImage = new Image();
+      this.rawImage.crossOrigin = "anonymous";
+      this.rawImage.onload = () => this.render();
+      this.rawImage.src = rawUrl;
+    } else {
+      this.rawImage = null;
+    }
+
+    if (enhancedUrl) {
+      this.enhancedImage = new Image();
+      this.enhancedImage.crossOrigin = "anonymous";
+      this.enhancedImage.onload = () => this.render();
+      this.enhancedImage.src = enhancedUrl;
+    } else {
+      this.enhancedImage = null;
+    }
+
+    if (annotatedUrl) {
+      this.annotatedImage = new Image();
+      this.annotatedImage.crossOrigin = "anonymous";
+      this.annotatedImage.onload = () => this.render();
+      this.annotatedImage.src = annotatedUrl;
+    } else {
+      this.annotatedImage = null;
+    }
+  }
+
+  render() {
+    const ctx = this.ctx;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+
+    // 1. Draw Base Background (Real Sonar Image or Synthetic)
+    let activeImg = null;
+    if (this.currentMode === "raw" && this.rawImage && this.rawImage.complete) {
+      activeImg = this.rawImage;
+    } else if (this.currentMode === "enhanced" && this.enhancedImage && this.enhancedImage.complete) {
+      activeImg = this.enhancedImage;
+    } else if (this.currentMode === "overlay") {
+      activeImg = (this.enhancedImage && this.enhancedImage.complete) ? this.enhancedImage :
+                  (this.rawImage && this.rawImage.complete) ? this.rawImage : null;
+    }
+
+    if (activeImg) {
+      ctx.drawImage(activeImg, 0, 0, w, h);
+      // Subtle oceanographic tone filter
+      ctx.fillStyle = "rgba(0, 240, 255, 0.04)";
+      ctx.fillRect(0, 0, w, h);
+    } else {
+      this._generateSyntheticWaterfall();
+    }
+
+    // If in Raw or Enhanced pure mode without overlays, don't draw bounding boxes
+    if (this.currentMode !== "overlay") {
+      return;
+    }
+
+    // 2. Draw Targets Bounding Boxes & Overlays
     this.targets.forEach(t => {
       const bbox = t.pixel_bbox || {};
       const x1 = bbox.x1 || 0;
       const y1 = bbox.y1 || 0;
-      const w = (bbox.x2 || x1 + 80) - x1;
-      const h = (bbox.y2 || y1 + 60) - y1;
+      const bw = (bbox.x2 || x1 + 80) - x1;
+      const bh = (bbox.y2 || y1 + 60) - y1;
 
       const isSelected = (t.object_id === this.selectedTargetId);
 
@@ -90,14 +154,14 @@ class WaterfallViewer {
       // Glow effect if selected
       if (isSelected) {
         ctx.shadowColor = color;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 14;
       }
 
-      ctx.strokeRect(x1, y1, w, h);
+      ctx.strokeRect(x1, y1, bw, bh);
 
       // Background fill tint
-      ctx.fillStyle = isSelected ? "rgba(0, 240, 255, 0.15)" : "rgba(0, 0, 0, 0.3)";
-      ctx.fillRect(x1, y1, w, h);
+      ctx.fillStyle = isSelected ? "rgba(0, 240, 255, 0.18)" : "rgba(0, 0, 0, 0.35)";
+      ctx.fillRect(x1, y1, bw, bh);
 
       // Target Label
       const confPct = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
@@ -105,6 +169,16 @@ class WaterfallViewer {
       ctx.font = "bold 11px 'JetBrains Mono', monospace";
       ctx.fillStyle = color;
       ctx.fillText(label, x1, Math.max(14, y1 - 4));
+
+      // Draw acoustic shadow trailing direction hint if shadow verified
+      if (t.shadow_verified) {
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.6)";
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x1 + bw, y1 + bh / 2);
+        ctx.lineTo(x1 + bw + 20, y1 + bh / 2);
+        ctx.stroke();
+      }
 
       ctx.restore();
     });

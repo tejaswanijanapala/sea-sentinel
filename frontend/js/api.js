@@ -106,9 +106,13 @@ const BENCHMARK_TARGETS = [
 ];
 
 class SeaSentinelAPI {
+  constructor() {
+    this.baseUrl = API_BASE_URL;
+  }
+
   async checkHealth() {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/health`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${this.baseUrl}/api/health`, { signal: AbortSignal.timeout(2000) });
       if (res.ok) return await res.json();
     } catch (e) {
       // Backend offline
@@ -116,9 +120,104 @@ class SeaSentinelAPI {
     return { status: "offline", fallback_mode: true };
   }
 
+  async fetchSamples() {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/samples`, { signal: AbortSignal.timeout(2500) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.samples && data.samples.length > 0) {
+          return data.samples;
+        }
+      }
+    } catch (e) {
+      console.warn("Backend /api/samples unreachable, using fallback sample catalog.");
+    }
+
+    return [
+      {
+        id: "ghost_net_01",
+        name: "Ghost Fishing Net Mesh",
+        category: "fishing_net",
+        risk_hint: "HIGH",
+        filename: "quanzhou_HN_004.jpg",
+        description: "Dispersed synthetic polymer netting with high acoustic backscatter highlight and acoustic void shadow.",
+        georef_case: "A",
+        simulated_coords: { lat: 42.747402, lon: -73.794567 }
+      },
+      {
+        id: "pipeline_cable_01",
+        name: "Subsea Pipeline / Cable",
+        category: "pipeline_or_cable",
+        risk_hint: "HIGH",
+        filename: "dongying_POC_017.jpg",
+        description: "Continuous linear acoustic signature with prominent relief shadow across seabed corridor.",
+        georef_case: "A",
+        simulated_coords: { lat: 42.748950, lon: -73.792840 }
+      },
+      {
+        id: "rock_cluster_01",
+        name: "Natural Seabed Moraine / Riprap",
+        category: "riprap_debris",
+        risk_hint: "LOW",
+        filename: "quanzhou_RP_002.jpg",
+        description: "Dense clustered geological rock formation; filtered and suppressed by DBSCAN spatial clustering.",
+        georef_case: "A",
+        simulated_coords: { lat: 42.746120, lon: -73.796100 }
+      },
+      {
+        id: "engine_part_01",
+        name: "Heavy Metallic Engine Debris",
+        category: "engine_part",
+        risk_hint: "HIGH",
+        filename: "dongying_EP_008.jpg",
+        description: "High-density specular acoustic reflector with sharp boundary and distinct acoustic shadow trailing down-range.",
+        georef_case: "A",
+        simulated_coords: { lat: 42.745500, lon: -73.791500 }
+      }
+    ];
+  }
+
+  async uploadFile(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${this.baseUrl}/api/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+      throw new Error(err.detail || `Upload failed with status ${res.status}`);
+    }
+
+    return await res.json();
+  }
+
+  async analyzeImage(imagePath, rasterMeta = null, navLog = null) {
+    const payload = {
+      image_path: imagePath,
+      raster_meta: rasterMeta,
+      nav_log: navLog
+    };
+
+    const res = await fetch(`${this.baseUrl}/api/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Analysis failed" }));
+      throw new Error(err.detail || `Analysis failed with status ${res.status}`);
+    }
+
+    return await res.json();
+  }
+
   async getSurveyTargets() {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/geospatial`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${this.baseUrl}/api/geospatial`, { signal: AbortSignal.timeout(2000) });
       if (res.ok) {
         const data = await res.json();
         if (data && data.targets && data.targets.length > 0) {
@@ -126,10 +225,11 @@ class SeaSentinelAPI {
         }
       }
     } catch (e) {
-      // Use benchmark dataset
+      // Backend offline
     }
     return BENCHMARK_TARGETS;
   }
 }
 
 window.apiService = new SeaSentinelAPI();
+window.BENCHMARK_TARGETS = BENCHMARK_TARGETS;

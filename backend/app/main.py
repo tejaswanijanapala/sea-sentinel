@@ -21,6 +21,7 @@ from datetime import datetime
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Ensure backend root is in python path
@@ -52,11 +53,21 @@ app.add_middleware(
 agent = SIHPipelineAgent()
 geotagger = GeospatialEngine()
 
-# Ensure Uploads Directory
+# Ensure Output and Static Directories
 UPLOADS_DIR = os.path.join(PROJECT_ROOT, "outputs", "uploads")
+PREPROCESSED_DIR = os.path.join(PROJECT_ROOT, "outputs", "preprocessed")
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "outputs", "reports")
+SAMPLES_DIR = os.path.join(PROJECT_ROOT, "datasets", "processed", "yolo_dataset", "images", "test")
+
 os.makedirs(UPLOADS_DIR, exist_ok=True)
+os.makedirs(PREPROCESSED_DIR, exist_ok=True)
 os.makedirs(REPORTS_DIR, exist_ok=True)
+
+# Mount Static File Routes
+app.mount("/static/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+app.mount("/static/preprocessed", StaticFiles(directory=PREPROCESSED_DIR), name="preprocessed")
+if os.path.exists(SAMPLES_DIR):
+    app.mount("/static/samples", StaticFiles(directory=SAMPLES_DIR), name="samples")
 
 
 # -----------------------------------------------------------------
@@ -82,6 +93,8 @@ def root():
         "timestamp": datetime.utcnow().isoformat(),
         "endpoints": {
             "health": "/api/health",
+            "samples": "/api/samples",
+            "image": "/api/image?path=...",
             "upload": "POST /api/upload",
             "analyze": "POST /api/analyze",
             "results": "/api/results/{analysis_id}",
@@ -115,6 +128,88 @@ def health_check():
     }
 
 
+@app.get("/api/samples")
+def get_sample_missions():
+    """Returns curated benchmark acoustic sonar scans for immediate 1-click survey analysis."""
+    samples = [
+        {
+            "id": "ghost_net_01",
+            "name": "Ghost Fishing Net Mesh",
+            "category": "fishing_net",
+            "risk_hint": "HIGH",
+            "filename": "quanzhou_HN_004.jpg",
+            "description": "Dispersed synthetic polymer netting with high acoustic backscatter highlight and acoustic void shadow.",
+            "path": os.path.join(SAMPLES_DIR, "quanzhou_HN_004.jpg"),
+            "url": "/static/samples/quanzhou_HN_004.jpg",
+            "georef_case": "A",
+            "simulated_coords": {"lat": 42.747402, "lon": -73.794567}
+        },
+        {
+            "id": "pipeline_cable_01",
+            "name": "Subsea Pipeline / Power Cable",
+            "category": "pipeline_or_cable",
+            "risk_hint": "HIGH",
+            "filename": "dongying_POC_017.jpg",
+            "description": "Continuous linear acoustic signature with prominent relief shadow across seabed corridor.",
+            "path": os.path.join(SAMPLES_DIR, "dongying_POC_017.jpg"),
+            "url": "/static/samples/dongying_POC_017.jpg",
+            "georef_case": "A",
+            "simulated_coords": {"lat": 42.748950, "lon": -73.792840}
+        },
+        {
+            "id": "rock_cluster_01",
+            "name": "Natural Seabed Moraine / Riprap",
+            "category": "riprap_debris",
+            "risk_hint": "LOW",
+            "filename": "quanzhou_RP_002.jpg",
+            "description": "Dense clustered geological rock formation; filtered and suppressed by DBSCAN spatial clustering.",
+            "path": os.path.join(SAMPLES_DIR, "quanzhou_RP_002.jpg"),
+            "url": "/static/samples/quanzhou_RP_002.jpg",
+            "georef_case": "A",
+            "simulated_coords": {"lat": 42.746120, "lon": -73.796100}
+        },
+        {
+            "id": "engine_part_01",
+            "name": "Heavy Metallic Engine Debris",
+            "category": "engine_part",
+            "risk_hint": "HIGH",
+            "filename": "dongying_EP_008.jpg",
+            "description": "High-density specular acoustic reflector with sharp boundary and distinct acoustic shadow trailing down-range.",
+            "path": os.path.join(SAMPLES_DIR, "dongying_EP_008.jpg"),
+            "url": "/static/samples/dongying_EP_008.jpg",
+            "georef_case": "A",
+            "simulated_coords": {"lat": 42.745500, "lon": -73.791500}
+        }
+    ]
+    valid_samples = [s for s in samples if os.path.exists(s["path"])]
+    return {
+        "status": "success",
+        "total_samples": len(valid_samples),
+        "samples": valid_samples
+    }
+
+
+@app.get("/api/image")
+def get_image_file(path: str = Query(...)):
+    """Safely streams image files to the frontend UI."""
+    real_path = os.path.abspath(path)
+    if not real_path.startswith(PROJECT_ROOT):
+        raise HTTPException(status_code=403, detail="Access denied: path outside project root.")
+    if not os.path.exists(real_path):
+        raise HTTPException(status_code=404, detail="Image file not found.")
+
+    ext = os.path.splitext(real_path)[1].lower()
+    media_types = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".tif": "image/tiff",
+        ".tiff": "image/tiff",
+        ".bmp": "image/bmp"
+    }
+    return FileResponse(real_path, media_type=media_types.get(ext, "image/jpeg"))
+
+
 @app.post("/api/upload")
 async def upload_sonar_file(file: UploadFile = File(...)):
     """
@@ -143,7 +238,8 @@ async def upload_sonar_file(file: UploadFile = File(...)):
         "size_bytes": os.path.getsize(destination),
         "valid_image": val_res.get("valid", False),
         "georeferencing_case": georef_case,
-        "raster_metadata": raster_meta
+        "raster_metadata": raster_meta,
+        "image_url": f"/static/uploads/{safe_name}"
     }
 
 
@@ -159,6 +255,19 @@ def analyze_survey(req: AnalyzeRequest):
         image_path=req.image_path,
         raster_meta_override=req.raster_meta
     )
+
+    # Attach convenient relative URLs for frontend display
+    analysis_id = res.get("analysis_id", "")
+    res["raw_image_url"] = f"/api/image?path={os.path.abspath(req.image_path)}"
+    
+    enhanced_p = res.get("enhanced_image_path")
+    if enhanced_p and os.path.exists(enhanced_p):
+        res["enhanced_image_url"] = f"/static/preprocessed/{os.path.basename(enhanced_p)}"
+
+    annotated_p = res.get("annotated_image_path")
+    if annotated_p and os.path.exists(annotated_p):
+        res["annotated_image_url"] = f"/static/preprocessed/{os.path.basename(annotated_p)}"
+
     return res
 
 
