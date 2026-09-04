@@ -22,18 +22,30 @@
 </head>
 <body>
 
+  <!-- Cinematic Splash Screen Intro -->
+  <div class="splash-screen" id="appSplashScreen">
+    <div class="splash-content">
+      <div class="splash-logo-wrap">
+        <img src="assets/sea_sentinel_splash.png" alt="Sea Sentinel Logo" class="splash-logo-img" />
+      </div>
+      <div class="splash-loader-wrap">
+        <div class="splash-loading-bar">
+          <div class="splash-loading-progress" id="splashLoadingProgress"></div>
+        </div>
+        <div class="splash-loading-text" id="splashLoadingText">INITIALIZING ACOUSTIC NEURAL SENSORS...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation Header -->
   <header class="navbar">
     <div class="nav-left">
       <div class="logo-mark">
-        <i class="fa-solid fa-radar"></i>
+        <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="logo-img" />
       </div>
       <div>
-        <div class="logo-title">
-          SEA SENTINEL
-          <span class="badge-tag">SIH26057</span>
-        </div>
-        <div class="logo-sub">Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology (NIOT)</div>
+        <div class="logo-title">SEA SENTINEL</div>
+        <div class="logo-sub">AI POWERED UNDERWATER DETECTION</div>
       </div>
     </div>
 
@@ -279,7 +291,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-header-left">
-          <div class="modal-subtitle">MINISTRY OF EARTH SCIENCES (MoES) — NATIONAL INSTITUTE OF OCEAN TECHNOLOGY (NIOT)</div>
+          <div class="modal-subtitle">AI POWERED UNDERWATER DETECTION SYSTEM</div>
           <h2 class="modal-title"><i class="fa-solid fa-file-waveform" style="color: var(--cyan-beam);"></i> Hydrographic Survey Mission Report</h2>
         </div>
         <div class="modal-header-actions">

@@ -20,6 +20,9 @@ class DashboardApp {
   }
 
   async _init() {
+    // 0. Initialize Splash Screen Intro
+    this._initSplashScreen();
+
     // 1. Initialize Visual Engines
     this.waterfall = new WaterfallViewer('sonarCanvas');
     this.map = new GISMap('leafletMap');
@@ -37,6 +40,54 @@ class DashboardApp {
     if (this.samples && this.samples.length > 0) {
       await this.selectSampleMission(this.samples[0].id, { autoRun: true });
     }
+  }
+
+  _initSplashScreen() {
+    const splash = document.getElementById('appSplashScreen');
+    const progressBar = document.getElementById('splashLoadingProgress');
+    const statusText = document.getElementById('splashLoadingText');
+
+    if (!splash) return;
+
+    let dismissed = false;
+    const dismissSplash = () => {
+      if (dismissed) return;
+      dismissed = true;
+      splash.classList.add('fade-out');
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 850);
+    };
+
+    // Allow user click or keypress to skip splash instantly
+    splash.addEventListener('click', dismissSplash);
+    const keyHandler = () => {
+      dismissSplash();
+      window.removeEventListener('keydown', keyHandler);
+    };
+    window.addEventListener('keydown', keyHandler);
+
+    // Dynamic loading sequence: shows logo, fills bar, transitions to dashboard
+    const steps = [
+      { progress: 25, text: 'INITIALIZING ACOUSTIC NEURAL SENSORS...', delay: 250 },
+      { progress: 55, text: 'CALIBRATING SIDE-SCAN SONAR INTERFACES...', delay: 750 },
+      { progress: 85, text: 'LOADING AI ENSEMBLE & GEOMATICS...', delay: 1300 },
+      { progress: 100, text: 'SYSTEMS ONLINE · ENTERING DASHBOARD...', delay: 1850 },
+    ];
+
+    steps.forEach(({ progress, text, delay }) => {
+      setTimeout(() => {
+        if (!dismissed) {
+          if (progressBar) progressBar.style.width = `${progress}%`;
+          if (statusText) statusText.textContent = text;
+        }
+      }, delay);
+    });
+
+    // Automatically transition to dashboard after splash completion
+    setTimeout(() => {
+      dismissSplash();
+    }, 2350);
   }
 
   async checkBackendStatus() {
