@@ -73,30 +73,58 @@ class WaterfallViewer {
     this.render();
   }
 
+  _isImageValid(img) {
+    return Boolean(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
+  }
+
   loadSonarImages({ rawUrl, enhancedUrl, annotatedUrl }) {
     if (rawUrl) {
-      this.rawImage = new Image();
-      this.rawImage.crossOrigin = "anonymous";
-      this.rawImage.onload = () => this.render();
-      this.rawImage.src = rawUrl;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        this.rawImage = img;
+        this.render();
+      };
+      img.onerror = () => {
+        console.warn("Raw sonar image could not be decoded by browser:", rawUrl);
+        this.rawImage = null;
+        this.render();
+      };
+      img.src = rawUrl;
     } else {
       this.rawImage = null;
     }
 
     if (enhancedUrl) {
-      this.enhancedImage = new Image();
-      this.enhancedImage.crossOrigin = "anonymous";
-      this.enhancedImage.onload = () => this.render();
-      this.enhancedImage.src = enhancedUrl;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        this.enhancedImage = img;
+        this.render();
+      };
+      img.onerror = () => {
+        console.warn("Enhanced sonar image could not be decoded:", enhancedUrl);
+        this.enhancedImage = null;
+        this.render();
+      };
+      img.src = enhancedUrl;
     } else {
       this.enhancedImage = null;
     }
 
     if (annotatedUrl) {
-      this.annotatedImage = new Image();
-      this.annotatedImage.crossOrigin = "anonymous";
-      this.annotatedImage.onload = () => this.render();
-      this.annotatedImage.src = annotatedUrl;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        this.annotatedImage = img;
+        this.render();
+      };
+      img.onerror = () => {
+        console.warn("Annotated sonar image could not be decoded:", annotatedUrl);
+        this.annotatedImage = null;
+        this.render();
+      };
+      img.src = annotatedUrl;
     } else {
       this.annotatedImage = null;
     }
@@ -130,21 +158,25 @@ class WaterfallViewer {
 
     // 1. Draw Base Background (Real Sonar Image or Synthetic)
     let activeImg = null;
-    if (this.currentMode === "raw" && this.rawImage && this.rawImage.complete) {
+    if (this.currentMode === "raw" && this._isImageValid(this.rawImage)) {
       activeImg = this.rawImage;
-    } else if (this.currentMode === "enhanced" && this.enhancedImage && this.enhancedImage.complete) {
+    } else if (this.currentMode === "enhanced" && this._isImageValid(this.enhancedImage)) {
       activeImg = this.enhancedImage;
     } else if (this.currentMode === "overlay") {
-      activeImg = (this.annotatedImage && this.annotatedImage.complete) ? this.annotatedImage :
-                  (this.enhancedImage && this.enhancedImage.complete) ? this.enhancedImage :
-                  (this.rawImage && this.rawImage.complete) ? this.rawImage : null;
+      activeImg = this._isImageValid(this.annotatedImage) ? this.annotatedImage :
+                  this._isImageValid(this.enhancedImage) ? this.enhancedImage :
+                  this._isImageValid(this.rawImage) ? this.rawImage : null;
     }
 
-    if (activeImg) {
-      ctx.drawImage(activeImg, 0, 0, w, h);
-      // Subtle oceanographic tone filter
-      ctx.fillStyle = "rgba(0, 240, 255, 0.03)";
-      ctx.fillRect(0, 0, w, h);
+    if (activeImg && this._isImageValid(activeImg)) {
+      try {
+        ctx.drawImage(activeImg, 0, 0, w, h);
+        ctx.fillStyle = "rgba(0, 240, 255, 0.03)";
+        ctx.fillRect(0, 0, w, h);
+      } catch (err) {
+        console.warn("Waterfall drawImage failed safely:", err);
+        this._generateSyntheticWaterfall();
+      }
     } else {
       this._generateSyntheticWaterfall();
     }
@@ -154,7 +186,7 @@ class WaterfallViewer {
       return;
     }
 
-    const hasAnnotatedRaster = (activeImg === this.annotatedImage && this.annotatedImage && this.annotatedImage.complete);
+    const hasAnnotatedRaster = (activeImg === this.annotatedImage && this._isImageValid(this.annotatedImage));
 
     // 2. Draw Targets Bounding Boxes, Overlays & Selection Highlights
     this.targets.forEach(t => {

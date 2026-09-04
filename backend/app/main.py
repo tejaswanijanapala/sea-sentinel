@@ -190,22 +190,45 @@ def get_sample_missions():
     }
 
 
+import cv2
+import numpy as np
+
+
 @app.get("/api/image")
 def get_image_file(path: str = Query(...)):
-    """Safely streams image files to the frontend UI."""
+    """Safely streams image files to the frontend UI, converting TIFF/GeoTIFF to PNG for browser compatibility."""
     real_path = os.path.abspath(path)
-    if not real_path.startswith(PROJECT_ROOT):
+    if not real_path.lower().startswith(PROJECT_ROOT.lower()):
         raise HTTPException(status_code=403, detail="Access denied: path outside project root.")
     if not os.path.exists(real_path):
         raise HTTPException(status_code=404, detail="Image file not found.")
 
     ext = os.path.splitext(real_path)[1].lower()
+
+    # If the image is a TIFF/GeoTIFF, modern web browsers cannot render it natively.
+    # Convert on-the-fly to a standard PNG stream for instant high-quality browser rendering.
+    if ext in [".tif", ".tiff"]:
+        img = cv2.imread(real_path, cv2.IMREAD_UNCHANGED)
+        if img is None:
+            try:
+                import rasterio
+                with rasterio.open(real_path) as src:
+                    arr = src.read(1)
+                    img = cv2.normalize(arr, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            except Exception:
+                pass
+
+        if img is not None:
+            if img.dtype != np.uint8:
+                img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+            success, encoded = cv2.imencode(".png", img)
+            if success:
+                return Response(content=encoded.tobytes(), media_type="image/png")
+
     media_types = {
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
         ".png": "image/png",
-        ".tif": "image/tiff",
-        ".tiff": "image/tiff",
         ".bmp": "image/bmp"
     }
     return FileResponse(real_path, media_type=media_types.get(ext, "image/jpeg"))

@@ -893,13 +893,20 @@ class DashboardApp {
     if (fileInfo) fileInfo.style.display = 'flex';
     if (fileName) fileName.textContent = file.name;
 
-    // Preview image locally via FileReader in waterfall canvas and auto-trigger analysis
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      this.waterfall.loadSonarImages({ rawUrl: e.target.result });
-      await this.executeAIPipeline();
-    };
-    reader.readAsDataURL(file);
+    const isTiff = file.name.toLowerCase().endsWith('.tif') || file.name.toLowerCase().endsWith('.tiff');
+    if (!isTiff) {
+      // Preview standard web formats (JPG, PNG) locally via FileReader
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        this.waterfall.loadSonarImages({ rawUrl: e.target.result });
+        await this.executeAIPipeline();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // For GeoTIFF/TIFF files, browsers cannot decode local data URLs.
+      // Directly execute pipeline: the backend converts the TIFF to a web-compatible PNG stream!
+      this.executeAIPipeline();
+    }
   }
 
   _downloadFile(content, fileName, contentType) {
