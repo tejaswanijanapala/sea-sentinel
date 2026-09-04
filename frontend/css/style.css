@@ -1000,3 +1000,305 @@ body {
 .leaflet-container .leaflet-control-attribution a {
   color: #38bdf8 !important;
 }
+
+/* -------------------------------------------------------------
+   Mission Report Button & Priority Badges
+   ------------------------------------------------------------- */
+.btn-report {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.25), rgba(2, 132, 199, 0.35));
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  color: #38bdf8;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
+}
+
+.btn-report:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(2, 132, 199, 0.5));
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+  transform: translateY(-1px);
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.priority-badge.higher {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+}
+
+.priority-badge.lower {
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+}
+
+/* -------------------------------------------------------------
+   Hydrographic Mission Report Modal
+   ------------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modal-card {
+  background: #090f20;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 1060px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.15);
+  overflow: hidden;
+  animation: modalEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: rgba(13, 25, 48, 0.7);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-subtitle {
+  font-size: 0.68rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--cyan-beam);
+  margin-bottom: 3px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  border-color: var(--coral-danger);
+  color: var(--coral-danger);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Report Sections inside Modal */
+.report-standard-banner {
+  background: rgba(6, 182, 212, 0.08);
+  border-left: 4px solid var(--cyan-beam);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.report-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.report-stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  position: relative;
+}
+
+.report-stat-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.report-stat-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  color: #ffffff;
+}
+
+.report-section-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-imagery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.report-img-box {
+  background: #020617;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-align: center;
+}
+
+.report-img-label {
+  background: rgba(15, 23, 42, 0.85);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cyan-beam);
+  padding: 6px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.report-img-box img {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+#reportMapContainer {
+  height: 260px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.report-table th {
+  background: rgba(13, 25, 48, 0.8);
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.72rem;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.report-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.report-table tr:last-child td {
+  border-bottom: none;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #missionReportModal, #missionReportModal * { visibility: visible; }
+  #missionReportModal {
+    position: absolute;
+    inset: 0;
+    background: #ffffff !important;
+    padding: 0;
+    color: #000000 !important;
+  }
+  .modal-card {
+    max-width: 100% !important;
+    max-height: none !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  .modal-header-actions, .modal-close { display: none !important; }
+  .modal-title, .report-stat-value, .report-section-header { color: #000000 !important; }
+  .report-table { border: 1px solid #ccc !important; }
+  .report-table th { background: #eee !important; color: #000 !important; }
+  .report-table td { color: #000 !important; border-bottom: 1px solid #ddd !important; }
+}

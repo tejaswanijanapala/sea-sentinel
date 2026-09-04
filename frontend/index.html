@@ -56,11 +56,20 @@
         <span class="pulse-dot"></span>
         <span id="surveyStatusBadge">API ACTIVE</span>
       </div>
+      <button class="btn-report" id="btnOpenReport" title="View Hydrographic Mission Report">
+        <i class="fa-solid fa-file-lines"></i> Mission Report
+      </button>
       <div class="export-dropdown">
         <button class="btn-ghost" id="btnExportMenu">
           <i class="fa-solid fa-download"></i> Export <i class="fa-solid fa-chevron-down fa-xs"></i>
         </button>
         <div class="dropdown-menu" id="exportDropdownMenu">
+          <button class="dropdown-item" id="btnExportFullReport">
+            <i class="fa-solid fa-file-waveform"></i> View & Print Mission Report
+          </button>
+          <button class="dropdown-item" id="btnDownloadReportHTML">
+            <i class="fa-solid fa-file-code"></i> Download HTML Report
+          </button>
           <button class="dropdown-item" id="btnExportGeoJSON">
             <i class="fa-solid fa-earth-americas"></i> GeoJSON FeatureCollection
           </button>
@@ -266,6 +275,29 @@
     </aside>
 
   </main>
+
+  <!-- =========================================================
+       Hydrographic Mission Report Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="missionReportModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-subtitle">MINISTRY OF EARTH SCIENCES (MoES) — NATIONAL INSTITUTE OF OCEAN TECHNOLOGY (NIOT)</div>
+          <h2 class="modal-title"><i class="fa-solid fa-file-waveform" style="color: var(--cyan-beam);"></i> Hydrographic Survey Mission Report</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn-ghost" id="btnPrintReport"><i class="fa-solid fa-print"></i> Print / PDF</button>
+          <button class="btn-ghost" id="btnDownloadHTML"><i class="fa-solid fa-file-arrow-down"></i> Save HTML</button>
+          <button class="modal-close" id="btnCloseReportModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <div class="modal-body" id="modalReportContent">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+  </div>
 
   <!-- Leaflet GIS JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
