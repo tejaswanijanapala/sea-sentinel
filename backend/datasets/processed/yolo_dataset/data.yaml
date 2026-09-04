@@ -1,5 +1,5 @@
 # YOLOv11 Sonar Debris Detection Dataset
-path: C:\Users\santo\.gemini\antigravity-ide\scratch\SIH57\datasets\processed\yolo_dataset
+path: .
 train: images/train
 val: images/val
 test: images/test

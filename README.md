@@ -29,8 +29,8 @@ This project delivers an end-to-end, production-quality system built around four
 | **Stage 5** | **Anomaly Detection & Rock Suppression** | **COMPLETED** | CNN Autoencoder (Algorithms 1-9), 3-sigma threshold calibration ($T=0.094049$), DBSCAN rock field filter, Platt confidence calibration. |
 | **Stage 6** | **AI Agent / Orchestrator** | **COMPLETED** | Central SIHPipelineAgent coordinator, execution tracing with microsecond metrics, explainability narratives, SQLite audit persistence. |
 | **Stage 7** | **Dimension Estimation & Geotagging** | **COMPLETED** | Module 5 five-stage geotagging (Case A Affine & Case B Navigation math), PyProj WGS84 conversion, oriented contour dimension estimation. |
-| **Stage 8** | **Interactive UI Dashboard** | *Up Next* | Dual waterfall viewer, Leaflet GIS map, split-view detector/segmenter overlays, report exporter. |
-| **Stage 9** | **End-to-End System Verification** | *Pending* | Edge-case verification, FastAPI integration, final documentation. |
+| **Stage 8** | **Interactive UI Dashboard** | **COMPLETED** | Dual waterfall viewer, Leaflet GIS map, split-view detector/segmenter overlays, report exporter. |
+| **Stage 9** | **End-to-End System Verification** | *Up Next* | Edge-case verification, FastAPI integration, final documentation. |
 
 ---
 
@@ -174,7 +174,44 @@ python scripts/run_pipeline.py --input datasets/processed/yolo_dataset/images/te
 
 ```bash
 # Export georeferenced targets to GeoJSON (Leaflet/QGIS) and tabular CSV
-python scripts/export_geospatial_report.py --db-path outputs/audit/survey_audit.db --output-dir outputs/geospatial/
+python backend/scripts/export_geospatial_report.py --db-path backend/outputs/audit/survey_audit.db --output-dir backend/outputs/geospatial/
+```
+
+### Stage 8: Interactive Web UI Dashboard
+
+```bash
+# Launch interactive oceanographic visualization dashboard (zero-install)
+python -m http.server 3000 --directory frontend
+
+# Open in browser at: http://localhost:3000
+```
+
+---
+
+## 4. Repository Structure
+
+```text
+sea-sentinel/
+├── backend/
+│   ├── agent/             # Orchestrator, explainability, SQLite audit logger
+│   ├── ai/                # Preprocessing, YOLO, U-Net, Anomaly Autoencoder, Geotagger, Estimator
+│   ├── app/               # FastAPI backend application
+│   ├── configs/           # YAML pipeline & model configurations
+│   ├── datasets/          # Zenodo acoustic chips & NOAA Hudson River GeoTIFFs
+│   ├── evaluation/        # mAP, IoU/Dice, separation evaluation scripts
+│   ├── inference/         # Batch inference CLIs
+│   ├── models/            # Checkpoints (Autoencoder, Attention U-Net, YOLO)
+│   ├── outputs/           # Reports, audit DB, geospatial GeoJSON/CSV exports
+│   ├── scripts/           # Execution scripts & CLI runners
+│   ├── tests/             # Comprehensive 8-stage automated test suites
+│   └── training/          # Training pipelines
+├── frontend/
+│   ├── index.html         # Interactive Dashboard UI
+│   ├── css/style.css      # Oceanographic glassmorphism design system
+│   ├── js/                # Waterfall viewer, Leaflet GIS map, API service, App controller
+│   └── README.md          # Frontend quickstart
+├── README.md              # Project documentation
+└── .gitignore
 ```
 
 ---

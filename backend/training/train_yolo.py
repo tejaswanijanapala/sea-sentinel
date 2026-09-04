@@ -34,7 +34,13 @@ def validate_dataset_compatibility(data_yaml_path: str) -> Dict[str, Any]:
         data_cfg = yaml.safe_load(f)
 
     report["classes"] = data_cfg.get("names", {})
-    base_dir = data_cfg.get("path", os.path.dirname(data_yaml_path))
+    raw_path = data_cfg.get("path")
+    if raw_path and os.path.isabs(raw_path) and os.path.exists(raw_path):
+        base_dir = raw_path
+    elif raw_path and not os.path.isabs(raw_path):
+        base_dir = os.path.normpath(os.path.join(os.path.dirname(data_yaml_path), raw_path))
+    else:
+        base_dir = os.path.dirname(data_yaml_path)
 
     for split in ["train", "val"]:
         split_rel = data_cfg.get(split, f"images/{split}")
