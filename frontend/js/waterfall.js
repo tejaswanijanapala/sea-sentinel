@@ -185,21 +185,37 @@ class WaterfallViewer {
   }
 
   _initEvents() {
-    this.canvas.addEventListener('click', (e) => {
+    const findHitTarget = (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = this.canvas.width / rect.width;
       const scaleY = this.canvas.height / rect.height;
       const clickX = (e.clientX - rect.left) * scaleX;
       const clickY = (e.clientY - rect.top) * scaleY;
 
-      // Find clicked target
-      const clicked = this.targets.find(t => {
+      return this.targets.find(t => {
         const b = t.pixel_bbox || {};
         return clickX >= b.x1 && clickX <= b.x2 && clickY >= b.y1 && clickY <= b.y2;
       });
+    };
 
+    // Click selection (centers target on map)
+    this.canvas.addEventListener('click', (e) => {
+      const clicked = findHitTarget(e);
       if (clicked && window.app) {
-        window.app.onTargetSelected(clicked.object_id);
+        window.app.onTargetSelected(clicked.object_id, { fly: true, force: true });
+      }
+    });
+
+    // Hover / Pointing out detection
+    this.canvas.addEventListener('mousemove', (e) => {
+      const hit = findHitTarget(e);
+      if (hit) {
+        this.canvas.style.cursor = 'pointer';
+        if (window.app && window.app.selectedTargetId !== hit.object_id) {
+          window.app.onTargetSelected(hit.object_id, { fly: false });
+        }
+      } else {
+        this.canvas.style.cursor = 'default';
       }
     });
   }

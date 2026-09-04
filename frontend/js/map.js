@@ -59,6 +59,13 @@ class GISMap {
     };
 
     L.control.layers(baseLayers, null, { position: 'topright' }).addTo(this.map);
+
+    // Global popupopen listener to ensure target synchronization
+    this.map.on('popupopen', (e) => {
+      if (e.popup && e.popup._source && e.popup._source._targetObjectId && window.app) {
+        window.app.onTargetSelected(e.popup._source._targetObjectId, { fly: false });
+      }
+    });
   }
 
   setTargets(targets) {
@@ -93,6 +100,7 @@ class GISMap {
               background: ${color};
               box-shadow: 0 0 10px ${color}, 0 0 20px ${color};
               border: 2px solid #ffffff;
+              cursor: pointer;
             "></div>
           `,
           iconSize: [16, 16],
@@ -100,23 +108,50 @@ class GISMap {
         });
 
         const marker = L.marker([lat, lon], { icon }).addTo(this.map);
+        marker._targetObjectId = t.object_id;
 
         const dims = (t.length_m && t.width_m) ? `${t.length_m}m × ${t.width_m}m` : "Unavailable";
+        const conf = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
+        const isHigher = conf > 75;
+        const prioTag = isHigher 
+          ? '<span style="background:rgba(0,240,255,0.18); color:#00f0ff; border:1px solid rgba(0,240,255,0.4); padding:2px 6px; border-radius:4px; font-size:0.68rem; font-weight:700;">▲ HIGHER (&gt;75%)</span>'
+          : '<span style="background:rgba(148,163,184,0.18); color:#94a3b8; border:1px solid rgba(148,163,184,0.3); padding:2px 6px; border-radius:4px; font-size:0.68rem; font-weight:700;">▼ LOWER (≤75%)</span>';
+        const formattedClass = (t.class || "Unknown").replace(/_/g, " ");
+
         const popupContent = `
-          <div style="font-family: 'Outfit', sans-serif; color: #060b18; min-width: 180px;">
-            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: ${color};">
-              ${t.object_id}
+          <div style="font-family: 'Outfit', sans-serif; color: #060b18; min-width: 210px; padding: 4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; gap:8px;">
+              <div style="font-weight: 700; font-size: 0.95rem; color: ${color}; font-family: 'JetBrains Mono', monospace;">
+                ${t.object_id}
+              </div>
+              ${prioTag}
             </div>
-            <div style="font-size: 0.8rem; margin-bottom: 2px;"><b>Class:</b> ${t.class}</div>
-            <div style="font-size: 0.8rem; margin-bottom: 2px;"><b>Dimensions:</b> ${dims}</div>
-            <div style="font-size: 0.8rem; margin-bottom: 2px;"><b>Risk:</b> <span style="font-weight:600; color:${color};">${t.risk_score}</span></div>
-            <div style="font-size: 0.72rem; color: #555; margin-top: 4px;">(${lat.toFixed(5)}°N, ${lon.toFixed(5)}°W)</div>
+            <div style="font-size: 0.85rem; margin-bottom: 3px;"><b>Class:</b> <span style="font-weight:700; color:#0f172a; text-transform:capitalize;">${formattedClass}</span></div>
+            <div style="font-size: 0.8rem; margin-bottom: 3px;"><b>Confidence:</b> <span style="font-weight:600; font-family:'JetBrains Mono',monospace;">${conf}%</span></div>
+            <div style="font-size: 0.8rem; margin-bottom: 3px;"><b>Dimensions:</b> ${dims}</div>
+            <div style="font-size: 0.8rem; margin-bottom: 3px;"><b>Risk Level:</b> <span style="font-weight:700; color:${color}; font-family:'JetBrains Mono',monospace;">${t.risk_score || 'LOW'}</span></div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 4px; border-top:1px solid #e2e8f0; padding-top:4px;">
+              <i class="fa-solid fa-location-dot"></i> ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°W (WGS84)
+            </div>
           </div>
         `;
 
         marker.bindPopup(popupContent);
+
+        // 1. Click selection
         marker.on('click', () => {
-          if (window.app) window.app.onTargetSelected(t.object_id);
+          if (window.app) window.app.onTargetSelected(t.object_id, { fly: false });
+        });
+
+        // 2. Popup open synchronization
+        marker.on('popupopen', () => {
+          if (window.app) window.app.onTargetSelected(t.object_id, { fly: false });
+        });
+
+        // 3. Mouseover / Pointing out synchronization
+        marker.on('mouseover', () => {
+          marker.openPopup();
+          if (window.app) window.app.onTargetSelected(t.object_id, { fly: false });
         });
 
         this.markers[t.object_id] = marker;
@@ -136,6 +171,13 @@ class GISMap {
     const marker = this.markers[targetId];
     if (marker) {
       this.map.flyTo(marker.getLatLng(), 17, { duration: 1.2 });
+      marker.openPopup();
+    }
+  }
+
+  highlightTarget(targetId) {
+    const marker = this.markers[targetId];
+    if (marker && !marker.isPopupOpen()) {
       marker.openPopup();
     }
   }

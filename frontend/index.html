@@ -247,12 +247,33 @@
         <div class="inspector-title">
           <i class="fa-solid fa-crosshairs"></i> Target Inspector
         </div>
-        <span class="badge-subtle">CALIBRATED</span>
+        <span class="badge-subtle" id="inspectorStatusBadge">CALIBRATED</span>
       </div>
 
-      <!-- Target List -->
-      <div class="target-card-list" id="targetListContainer">
-        <!-- Rendered dynamically by app.js -->
+      <!-- Active Inspected Target Hero Banner (Prominently shows target ID & class) -->
+      <div class="active-target-hero" id="activeTargetHero">
+        <div class="hero-top-row">
+          <span class="hero-target-id" id="inspectorTargetId">TGT_001</span>
+          <span class="priority-badge higher" id="inspectorPriorityBadge">▲ HIGHER PRIORITY (&gt;75%)</span>
+        </div>
+        <div class="hero-class-row">
+          <span class="hero-class-label">Target Class:</span>
+          <span class="hero-class-name" id="inspectorTargetClass">fishing_net</span>
+        </div>
+        <div class="hero-stats-row">
+          <div class="hero-stat">
+            <span class="hero-stat-label">Confidence</span>
+            <span class="hero-stat-val" id="inspectorTargetConf">81%</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Risk Level</span>
+            <span class="risk-pill HIGH" id="inspectorTargetRisk">HIGH</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Dimensions</span>
+            <span class="hero-stat-val" id="inspectorTargetDims">14.2m × 5.8m</span>
+          </div>
+        </div>
       </div>
 
       <!-- Hydrographic Explainability Box -->
@@ -261,7 +282,7 @@
           <i class="fa-solid fa-brain"></i> AI Hydrographic Explainability
         </div>
         <p class="explanation-text" id="targetNarrative">
-          Select a target above or on the waterfall canvas to view its acoustic morphology, Autoencoder anomaly score, and recommended intervention.
+          Select or point to any target on the map or waterfall scan to inspect its acoustic morphology, Autoencoder anomaly score, and recommended intervention.
         </p>
 
         <div class="physics-grid" id="targetPhysicsDetails">
@@ -270,6 +291,17 @@
 
         <div class="action-rec-pill" id="targetActionRec">
           Awaiting target selection.
+        </div>
+      </div>
+
+      <!-- All Detected Targets List -->
+      <div class="target-list-section">
+        <div class="target-list-header">
+          <span><i class="fa-solid fa-list-check"></i> All Survey Targets</span>
+          <span class="target-count-badge" id="targetListCount">0 Targets</span>
+        </div>
+        <div class="target-card-list" id="targetListContainer">
+          <!-- Rendered dynamically by app.js -->
         </div>
       </div>
     </aside>

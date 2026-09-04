@@ -107,7 +107,7 @@ class DashboardApp {
     this.renderTargetList();
 
     if (this.targets.length > 0) {
-      this.onTargetSelected(this.targets[0].object_id);
+      this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
     }
   }
 
@@ -244,7 +244,7 @@ class DashboardApp {
     this.renderTargetList();
 
     if (this.targets.length > 0) {
-      this.onTargetSelected(this.targets[0].object_id);
+      this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
     }
   }
 
@@ -300,7 +300,7 @@ class DashboardApp {
     this.renderTargetList();
 
     if (this.targets.length > 0) {
-      this.onTargetSelected(this.targets[0].object_id);
+      this.onTargetSelected(this.targets[0].object_id, { fly: false, force: true });
     }
   }
 
@@ -333,14 +333,25 @@ class DashboardApp {
     if (!container) return;
     container.innerHTML = '';
 
+    const countEl = document.getElementById('targetListCount');
+    if (countEl) {
+      countEl.textContent = `${this.targets.length} Targets`;
+    }
+
     this.targets.forEach(t => {
       const item = document.createElement('div');
       item.className = `target-card ${t.object_id === this.selectedTargetId ? 'active' : ''}`;
-      item.onclick = () => this.onTargetSelected(t.object_id);
+      
+      // Click selection (flies to target on map)
+      item.onclick = () => this.onTargetSelected(t.object_id, { fly: true, force: true });
+      
+      // Hover / Pointing selection (instant inspector update without moving map)
+      item.onmouseenter = () => this.onTargetSelected(t.object_id, { fly: false });
 
       const conf = Math.round((t.calibrated_confidence || t.confidence || 0) * 100);
       const isHigher = conf > 75;
       const dims = (t.length_m && t.width_m) ? `${t.length_m}m × ${t.width_m}m` : "Estimated";
+      const cleanClass = (t.class || 'Unknown').replace(/_/g, ' ');
 
       item.innerHTML = `
         <div class="target-card-top">
@@ -349,7 +360,7 @@ class DashboardApp {
           <span class="risk-pill ${t.risk_score || 'LOW'}">${t.risk_score || 'LOW'}</span>
         </div>
         <div class="target-card-row">
-          <span><b>Class:</b> ${t.class ? t.class.replace(/_/g, ' ') : 'N/A'}</span>
+          <span><b>Class:</b> <span style="text-transform:capitalize;">${cleanClass}</span></span>
           <span><b>Conf:</b> ${conf}%</span>
         </div>
         <div class="target-card-row">
@@ -361,17 +372,28 @@ class DashboardApp {
     });
   }
 
-  onTargetSelected(targetId) {
+  onTargetSelected(targetId, options = {}) {
+    if (!targetId) return;
+    if (this.selectedTargetId === targetId && !options.force) {
+      return;
+    }
     this.selectedTargetId = targetId;
     const target = this.targets.find(t => t.object_id === targetId);
     if (!target) return;
 
-    this.waterfall.selectTarget(targetId);
-    this.map.flyToTarget(targetId);
+    if (this.waterfall) {
+      this.waterfall.selectTarget(targetId);
+    }
+
+    if (options.fly && this.map) {
+      this.map.flyToTarget(targetId);
+    } else if (this.map) {
+      this.map.highlightTarget(targetId);
+    }
 
     document.querySelectorAll('.target-card').forEach(el => {
       const idEl = el.querySelector('.target-id');
-      if (idEl && idEl.textContent === targetId) {
+      if (idEl && idEl.textContent.trim() === targetId) {
         el.classList.add('active');
         el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
@@ -387,27 +409,65 @@ class DashboardApp {
     const recEl = document.getElementById('targetActionRec');
     const physicsEl = document.getElementById('targetPhysicsDetails');
 
-    const exp = target.explanation || {};
-    if (narrativeEl) narrativeEl.textContent = exp.executive_narrative || "Target evaluated by Sea Sentinel pipeline.";
-    if (recEl) recEl.textContent = exp.action_recommendation || "Maintain monitoring.";
-
+    const cleanClass = (target.class || 'Unknown').replace(/_/g, ' ');
     const conf = Math.round((target.calibrated_confidence || target.confidence || 0) * 100);
     const isHigher = conf > 75;
-    const prioBadge = isHigher 
-      ? '<span class="priority-badge higher">▲ HIGHER PRIORITY (&gt;75%)</span>' 
-      : '<span class="priority-badge lower">▼ LOWER PRIORITY (≤75%)</span>';
+    const dims = (target.length_m && target.width_m) ? `${target.length_m}m × ${target.width_m}m` : (target.dimensions ? `${target.dimensions.length_m}m × ${target.dimensions.width_m}m` : "Estimated");
+
+    // 1. Update Active Inspected Target Hero Banner
+    const heroId = document.getElementById('inspectorTargetId');
+    if (heroId) heroId.textContent = target.object_id;
+
+    const heroClass = document.getElementById('inspectorTargetClass');
+    if (heroClass) heroClass.textContent = cleanClass;
+
+    const heroConf = document.getElementById('inspectorTargetConf');
+    if (heroConf) heroConf.textContent = `${conf}%`;
+
+    const heroPrio = document.getElementById('inspectorPriorityBadge');
+    if (heroPrio) {
+      heroPrio.className = `priority-badge ${isHigher ? 'higher' : 'lower'}`;
+      heroPrio.textContent = isHigher ? '▲ HIGHER PRIORITY (>75%)' : '▼ LOWER PRIORITY (≤75%)';
+    }
+
+    const heroRisk = document.getElementById('inspectorTargetRisk');
+    if (heroRisk) {
+      const risk = target.risk_score || 'LOW';
+      heroRisk.className = `risk-pill ${risk}`;
+      heroRisk.textContent = risk;
+    }
+
+    const heroDims = document.getElementById('inspectorTargetDims');
+    if (heroDims) heroDims.textContent = dims;
+
+    // 2. Update Hydrographic Explainability Card
+    const exp = target.explanation || {};
+    if (narrativeEl) {
+      narrativeEl.textContent = exp.executive_narrative || `Target ${target.object_id} identified as '${cleanClass}' with ${conf}% calibrated confidence.`;
+    }
+    if (recEl) {
+      recEl.textContent = exp.action_recommendation || "Maintain acoustic survey monitoring.";
+    }
 
     const shadowStr = target.shadow_verified ? "Verified (down-range void)" : "Unverified / low relief";
     const mseStr = target.reconstruction_error ? target.reconstruction_error.toFixed(4) : "N/A";
-    const coordsStr = (target.latitude && target.longitude) ? `${target.latitude.toFixed(5)}°N, ${target.longitude.toFixed(5)}°W (WGS84)` : "Unreferenced (Case C)";
+    let lat = target.latitude;
+    let lon = target.longitude;
+    if (!lat && target.simulated_coords) {
+      lat = target.simulated_coords.lat;
+      lon = target.simulated_coords.lon;
+    }
+    const coordsStr = (lat && lon) ? `${lat.toFixed(5)}°N, ${lon.toFixed(5)}°W (WGS84)` : "Unreferenced (Case C)";
+    const geoStr = target.is_rock_cluster ? 'Rock Moraine (Suppressed)' : (target.class === 'riprap_debris' ? 'Geological Seabed Feature' : 'Isolated Anthropogenic Target');
 
     if (physicsEl) {
       physicsEl.innerHTML = `
-        <div style="margin-bottom: 4px;"><b>Priority:</b> ${prioBadge}</div>
+        <div style="margin-bottom: 4px;"><b>Detected Class:</b> <span style="font-weight:700; color:var(--cyan-beam); text-transform:capitalize;">${cleanClass}</span></div>
+        <div><b>Priority Level:</b> ${isHigher ? '<span class="priority-badge higher">▲ HIGHER PRIORITY (&gt;75%)</span>' : '<span class="priority-badge lower">▼ LOWER PRIORITY (≤75%)</span>'}</div>
         <div><b>Acoustic Shadow:</b> ${shadowStr}</div>
         <div><b>Autoencoder MSE:</b> ${mseStr} (Baseline T: 0.106)</div>
         <div><b>GPS Coordinates:</b> ${coordsStr}</div>
-        <div><b>Geology:</b> ${target.is_rock_cluster ? 'Rock Moraine (Suppressed)' : 'Isolated Anthropogenic Target'}</div>
+        <div><b>Geology:</b> ${geoStr}</div>
       `;
     }
   }
