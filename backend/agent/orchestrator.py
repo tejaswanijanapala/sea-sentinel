@@ -99,16 +99,14 @@ class SIHPipelineAgent:
             "dimensions": val_res.get("dimensions")
         })
 
-        # Load raw image
-        raw_img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-        if raw_img is None:
-            raw_img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+        # Load raw image safely via preprocessor (handles standard acoustic chips & gigapixel GeoTIFFs)
+        raw_img, img_meta = self.preprocessor.load_image_as_grayscale(image_path)
 
         # -------------------------------------------------------------
         # Stage 2: Sonar Preprocessing (Lee filter, CLAHE)
         # -------------------------------------------------------------
         t0 = time.perf_counter()
-        prep_res = self.preprocessor.preprocess(image_path)
+        prep_res = self.preprocessor.preprocess(raw_img)
         t_prep = round((time.perf_counter() - t0) * 1000, 2)
         execution_trace.append({
             "stage": "preprocessing",
@@ -185,6 +183,9 @@ class SIHPipelineAgent:
         # Stage 6: Synthesis, Segmentation, Anomaly Calibration & Risk
         # -------------------------------------------------------------
         t0 = time.perf_counter()
+        t_unet_total = 0.0
+        t_auto_total = 0.0
+        t_geo_total = 0.0
         final_objects = []
 
         for det in clustered_detections:
@@ -199,22 +200,35 @@ class SIHPipelineAgent:
             patch_crop = raw_img[y1:y2, x1:x2]
 
             # 6a: U-Net Region Segmentation
+            t_u0 = time.perf_counter()
             seg_res = self.segmenter.segment_roi(patch_crop)
+            t_unet_total += (time.perf_counter() - t_u0)
             has_mask = seg_res.get("mask_available", False)
             pixel_area = seg_res.get("total_area_px") if has_mask else None
 
             # 6b: Autoencoder Anomaly & Shadow Verification
+            t_a0 = time.perf_counter()
             anomaly_res = self.anomaly_detector.evaluate_detection(det, image_context=raw_img)
+            t_auto_total += (time.perf_counter() - t_a0)
 
             # 6c: Physical Metric Dimension Estimation
             dims = self.measurer.estimate_dimensions(bbox, raster_meta.get("res"))
 
             # 6d: Real-World Coordinates (Case A Affine or Case B Dead Reckoning)
+            t_g0 = time.perf_counter()
             lat, lon = None, None
             if georef_case == "A":
-                center = self.geotagger.get_object_center(bbox)
+                scale_f = img_meta.get("scale_factor", 1.0)
+                full_bbox = {
+                    "x1": float(bbox.get("x1", 0)) / scale_f,
+                    "y1": float(bbox.get("y1", 0)) / scale_f,
+                    "x2": float(bbox.get("x2", 0)) / scale_f,
+                    "y2": float(bbox.get("y2", 0)) / scale_f
+                }
+                center = self.geotagger.get_object_center(full_bbox)
                 x_map, y_map = self.geotagger.locate_case_a(center, raster_meta)
                 lat, lon = self.geotagger.to_lat_lon(x_map, y_map, raster_meta.get("crs"))
+            t_geo_total += (time.perf_counter() - t_g0)
 
             # 6e: Multi-Factor Risk Assessment
             risk_score = self._calculate_risk(
@@ -258,12 +272,23 @@ class SIHPipelineAgent:
             rec["explanation"] = explanation
             final_objects.append(rec)
 
-        t_synth = round((time.perf_counter() - t0) * 1000, 2)
         execution_trace.append({
-            "stage": "synthesis_and_calibration",
+            "stage": "unet_segmentation",
             "status": "completed",
-            "duration_ms": t_synth,
-            "objects_analyzed": len(final_objects)
+            "duration_ms": round(t_unet_total * 1000, 2),
+            "masks_generated": sum(1 for d in final_objects if d.get("segmentation_mask_available"))
+        })
+        execution_trace.append({
+            "stage": "anomaly_filtering",
+            "status": "completed",
+            "duration_ms": round(t_auto_total * 1000, 2),
+            "calibrated_anomalies": sum(1 for d in final_objects if d.get("anomaly_status") in ["confirmed_debris", "suspicious_anomaly"])
+        })
+        execution_trace.append({
+            "stage": "geospatial_geotagging",
+            "status": "completed",
+            "duration_ms": round(t_geo_total * 1000, 2),
+            "georeferenced_targets": sum(1 for d in final_objects if d.get("latitude") is not None)
         })
 
         total_duration = round((time.perf_counter() - start_time) * 1000, 2)

@@ -190,6 +190,10 @@ class DashboardApp {
     } catch (err) {
       clearInterval(stepInterval);
       console.error("Pipeline execution error:", err);
+      steps.forEach(s => {
+        const el = document.getElementById(s.id);
+        if (el) el.className = "ribbon-step completed";
+      });
       this.applySimulatedResult();
     } finally {
       btn.disabled = false;
@@ -219,16 +223,16 @@ class DashboardApp {
         } else if (tr.stage === "candidate_detection") {
           const ms = document.getElementById("stepYoloMs");
           if (ms) ms.textContent = `${tr.duration_ms}ms`;
-        } else if (tr.stage === "geological_clustering") {
+        } else if (tr.stage === "geological_clustering" || tr.stage === "rock_cluster_filtering") {
           const ms = document.getElementById("stepRockMs");
           if (ms) ms.textContent = `${tr.duration_ms}ms`;
         } else if (tr.stage === "unet_segmentation") {
           const ms = document.getElementById("stepUnetMs");
           if (ms) ms.textContent = `${tr.duration_ms}ms`;
-        } else if (tr.stage === "anomaly_filtering") {
+        } else if (tr.stage === "anomaly_filtering" || tr.stage === "autoencoder_anomaly") {
           const ms = document.getElementById("stepAutoMs");
           if (ms) ms.textContent = `${tr.duration_ms}ms`;
-        } else if (tr.stage === "synthesis_and_calibration") {
+        } else if (tr.stage === "synthesis_and_calibration" || tr.stage === "geospatial_geotagging" || tr.stage === "georeference_check") {
           const ms = document.getElementById("stepGeoMs");
           if (ms) ms.textContent = `${tr.duration_ms}ms`;
         }

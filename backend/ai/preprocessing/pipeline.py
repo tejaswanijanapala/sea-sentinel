@@ -59,16 +59,44 @@ class SonarPreprocessor:
     def load_image_as_grayscale(self, image_input: Any) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
         Loads image from filepath or numpy array, ensuring 8-bit single-channel acoustic backscatter.
+        Supports standard chips as well as massive multi-gigapixel survey mosaics via PIL fallback.
         """
         meta = {}
         if isinstance(image_input, str):
             if not os.path.exists(image_input):
                 raise FileNotFoundError(f"Sonar image not found: {image_input}")
-            img = cv2.imread(image_input, cv2.IMREAD_UNCHANGED)
+            
+            img = None
+            is_tiff = image_input.lower().endswith(('.tif', '.tiff'))
+            if not is_tiff:
+                try:
+                    img = cv2.imread(image_input, cv2.IMREAD_UNCHANGED)
+                except Exception:
+                    img = None
+
+            # Fallback for massive GeoTIFF mosaics exceeding OpenCV CV_IO_MAX_IMAGE_PIXELS
             if img is None:
-                raise ValueError(f"Failed to decode image: {image_input}")
+                try:
+                    from PIL import Image
+                    Image.MAX_IMAGE_PIXELS = None
+                    with Image.open(image_input) as pil_im:
+                        w, h = pil_im.size
+                        meta["original_shape"] = (h, w)
+                        max_dim = 2048
+                        if max(w, h) > max_dim:
+                            scale = max_dim / float(max(w, h))
+                            new_w = max(1, int(w * scale))
+                            new_h = max(1, int(h * scale))
+                            pil_im = pil_im.resize((new_w, new_h), Image.Resampling.BILINEAR)
+                            meta["mosaic_downsampled"] = True
+                            meta["scale_factor"] = scale
+                        img = np.array(pil_im.convert("L"))
+                except Exception as err:
+                    raise ValueError(f"Failed to decode image {image_input}: {err}")
+
             meta["source_path"] = image_input
-            meta["original_shape"] = img.shape
+            if "original_shape" not in meta:
+                meta["original_shape"] = img.shape
             meta["original_dtype"] = str(img.dtype)
         elif isinstance(image_input, np.ndarray):
             img = image_input.copy()
