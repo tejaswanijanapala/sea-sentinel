@@ -19,7 +19,7 @@ class ExplainabilitySynthesizer:
             "fishing_net": "High ecological entanglement hazard (ghost fishing gear) threatening marine wildlife and benthic ecosystems.",
             "pipeline_or_cable": "Subsea infrastructure asset; potential snag hazard for bottom-trawling fishing gear and anchors.",
             "shipwreck_fragment": "Navigational obstruction hazard to shallow-draft vessels and marine traffic.",
-            "engineering_platform": "Artificial seafloor superstructure; potential hazard to navigation or decommissioning artifact.",
+            "engine_debris": "Heavy metallic engine parts, machinery, or discarded hardware presenting snag and navigation risks.",
             "riprap_debris": "Erosion control or dumped quarry rock; potential obstacle for benthic sampling and ROV operations.",
             "seabed_surface": "Natural seafloor sedimentary backscatter."
         }

@@ -66,7 +66,7 @@ def main():
     out_dir = os.path.abspath(os.path.join(PROJECT_ROOT, args.output_dir))
     os.makedirs(out_dir, exist_ok=True)
 
-    classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engineering_platform", "riprap_debris"]
+    classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engine_debris", "riprap_debris"]
 
     if args.weights and os.path.exists(args.weights):
         print(f"\n[1/2] Loading checkpoint: {args.weights}")

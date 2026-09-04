@@ -172,7 +172,7 @@ def get_sample_missions():
         {
             "id": "engine_part_01",
             "name": "Heavy Metallic Engine Debris",
-            "category": "engine_part",
+            "category": "engine_debris",
             "risk_hint": "HIGH",
             "filename": "dongying_EP_008.jpg",
             "description": "High-density specular acoustic reflector with sharp boundary and distinct acoustic shadow trailing down-range.",
@@ -208,13 +208,23 @@ def get_image_file(path: str = Query(...)):
     # If the image is a TIFF/GeoTIFF, modern web browsers cannot render it natively.
     # Convert on-the-fly to a standard PNG stream for instant high-quality browser rendering.
     if ext in [".tif", ".tiff"]:
-        img = cv2.imread(real_path, cv2.IMREAD_UNCHANGED)
+        img = None
+        try:
+            img = cv2.imread(real_path, cv2.IMREAD_UNCHANGED)
+        except Exception:
+            img = None
+
         if img is None:
             try:
-                import rasterio
-                with rasterio.open(real_path) as src:
-                    arr = src.read(1)
-                    img = cv2.normalize(arr, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+                from PIL import Image
+                Image.MAX_IMAGE_PIXELS = None
+                with Image.open(real_path) as pil_im:
+                    w, h = pil_im.size
+                    max_dim = 2048
+                    if max(w, h) > max_dim:
+                        scale = max_dim / float(max(w, h))
+                        pil_im = pil_im.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.Resampling.BILINEAR)
+                    img = np.array(pil_im.convert("L"))
             except Exception:
                 pass
 

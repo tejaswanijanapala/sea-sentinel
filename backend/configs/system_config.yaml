@@ -51,10 +51,10 @@ classes:
     description: "Sunken vessel debris, metal hulls, or structural wreckage"
     risk_level: "HIGH"
   - id: 3
-    name: "engineering_platform"
+    name: "engine_debris"
     benchmark_code: "EP"
-    description: "Man-made pile legs, subsea structures, or concrete blocks"
-    risk_level: "MEDIUM"
+    description: "Heavy metallic engine parts, machinery, or discarded hardware"
+    risk_level: "HIGH"
   - id: 4
     name: "riprap_debris"
     benchmark_code: "RP"

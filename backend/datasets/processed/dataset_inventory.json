@@ -101,7 +101,7 @@
     },
     "class_distribution": {
       "seabed_surface": 1987,
-      "engineering_platform": 146,
+      "engine_debris": 146,
       "pipeline_or_cable": 691,
       "riprap_debris": 355,
       "fishing_net": 73,
@@ -131,7 +131,7 @@
     },
     "class_samples": {
       "seabed_surface": 40,
-      "engineering_platform": 40,
+      "engine_debris": 40,
       "pipeline_or_cable": 40,
       "riprap_debris": 40,
       "fishing_net": 40,

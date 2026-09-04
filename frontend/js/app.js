@@ -67,7 +67,7 @@ class DashboardApp {
       let icon = "fa-network-wired";
       if (s.category === "pipeline_or_cable") icon = "fa-bolt";
       else if (s.category === "riprap_debris") icon = "fa-mountain";
-      else if (s.category === "engine_part") icon = "fa-gears";
+      else if (s.category === "engine_part" || s.category === "engine_debris") icon = "fa-gears";
 
       btn.innerHTML = `<i class="fa-solid ${icon}"></i> ${s.name.split(' ')[0]} ${s.name.split(' ')[1] || ''}`;
       btn.title = s.description || s.name;
@@ -681,7 +681,7 @@ class DashboardApp {
     // Multi-class breakdown
     let candidateClasses = rep.candidate_classes_breakdown;
     if (!candidateClasses || candidateClasses.length === 0) {
-      const classPool = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engine_debris", "engineering_platform", "riprap_debris"];
+      const classPool = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engine_debris", "riprap_debris"];
       candidateClasses = classPool.map(cName => {
         let sc = cName === primaryClass ? confVal : Math.round(Math.max(18, confVal * (cName.includes('pipe') ? 0.85 : (cName.includes('ship') ? 0.72 : 0.52))));
         let p = sc > 75 ? "HIGHER" : "LOWER";

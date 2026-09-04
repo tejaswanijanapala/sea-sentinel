@@ -26,7 +26,7 @@ class DatasetPreparationPipeline:
             "fishing_net": 0,
             "pipeline_or_cable": 1,
             "shipwreck_fragment": 2,
-            "engineering_platform": 3,
+            "engine_debris": 3,
             "riprap_debris": 4,
             "seabed_surface": 5
         }
@@ -36,7 +36,7 @@ class DatasetPreparationPipeline:
             "HN": "fishing_net",            # Hard negative / ghost fishing nets
             "POC": "pipeline_or_cable",     # Pipelines and cables
             "RO": "shipwreck_fragment",     # Rare objects (shipwrecks, buoy anchors)
-            "EP": "engineering_platform",   # Engineering platforms, pile legs
+            "EP": "engine_debris",          # Heavy metallic engine debris
             "RP": "riprap_debris",          # Riprap armor, dropped blocks
             "SS": "seabed_surface",         # Normal seafloor backscatter
             "URM": "seabed_surface",        # Underwater residual mounds (geological)
@@ -265,7 +265,7 @@ names:
   0: fishing_net
   1: pipeline_or_cable
   2: shipwreck_fragment
-  3: engineering_platform
+  3: engine_debris
   4: riprap_debris
 """
         with open(data_yaml_path, "w") as f:

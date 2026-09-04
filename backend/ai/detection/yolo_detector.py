@@ -37,7 +37,7 @@ class YOLODetector:
             0: "fishing_net",
             1: "pipeline_or_cable",
             2: "shipwreck_fragment",
-            3: "engineering_platform",
+            3: "engine_debris",
             4: "riprap_debris"
         }
 
@@ -99,32 +99,33 @@ class YOLODetector:
 
         for r in results:
             boxes = r.boxes
+            if boxes is None:
+                continue
+
             for box in boxes:
-                xyxy = box.xyxy[0].tolist() # [x1, y1, x2, y2]
-                score = float(box.conf[0])
-                cls_id = int(box.cls[0])
-                cls_name = self.classes.get(cls_id, f"class_{cls_id}")
+                xyxy = box.xyxy[0].cpu().numpy()
+                conf_val = float(box.conf[0].cpu().numpy())
+                cls_idx = int(box.cls[0].cpu().numpy())
+                cls_name = self.classes.get(cls_idx, "unknown_debris")
 
                 detections.append({
-                    "object_id": f"DEBRIS_{det_id:04d}",
-                    "class_id": cls_id,
-                    "class": cls_name,
-                    "confidence": round(score, 3),
+                    "object_id": f"TGT_{det_id:03d}",
                     "bbox": {
-                        "x1": round(xyxy[0], 1),
-                        "y1": round(xyxy[1], 1),
-                        "x2": round(xyxy[2], 1),
-                        "y2": round(xyxy[3], 1)
-                    }
+                        "x1": round(float(xyxy[0]), 1),
+                        "y1": round(float(xyxy[1]), 1),
+                        "x2": round(float(xyxy[2]), 1),
+                        "y2": round(float(xyxy[3]), 1)
+                    },
+                    "confidence": round(conf_val, 3),
+                    "class": cls_name,
+                    "class_id": cls_idx
                 })
                 det_id += 1
 
         return {
             "status": "success",
             "model_loaded": True,
-            "model_path": self.model_path,
             "confidence_threshold": conf,
-            "total_detections": len(detections),
             "detections": detections
         }
 
@@ -135,7 +136,7 @@ class YOLODetector:
         color_map: Optional[Dict[str, Tuple[int, int, int]]] = None
     ) -> np.ndarray:
         """
-        Renders visual bounding box overlays with class tags and confidence scores.
+        Draws bounding boxes and class labels directly onto the image canvas.
         """
         annotated = image.copy()
         if len(annotated.shape) == 2:
@@ -145,7 +146,7 @@ class YOLODetector:
             "fishing_net": (0, 0, 255),          # Red
             "pipeline_or_cable": (255, 165, 0),  # Orange
             "shipwreck_fragment": (0, 140, 255), # Deep Orange
-            "engineering_platform": (0, 255, 255),# Yellow
+            "engine_debris": (0, 255, 255),      # Yellow / Gold
             "riprap_debris": (255, 0, 255)       # Magenta
         }
         colors = color_map or default_colors

@@ -167,7 +167,7 @@ class SeaSentinelAPI {
       {
         id: "engine_part_01",
         name: "Heavy Metallic Engine Debris",
-        category: "engine_part",
+        category: "engine_debris",
         risk_hint: "HIGH",
         filename: "dongying_EP_008.jpg",
         description: "High-density specular acoustic reflector with sharp boundary and distinct acoustic shadow trailing down-range.",

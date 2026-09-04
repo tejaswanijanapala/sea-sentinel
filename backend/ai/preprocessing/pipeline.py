@@ -216,15 +216,20 @@ class SonarPreprocessor:
         num_shadow_labels, shadow_labels, shadow_stats, _ = cv2.connectedComponentsWithStats(shadow_clean)
         num_hl_labels, hl_labels, hl_stats, _ = cv2.connectedComponentsWithStats(highlight_clean)
 
+        img_h, img_w = img.shape[:2]
+        max_area_px = max(5000, int(img_h * img_w * 0.12))
+        max_w = max(100, int(img_w * 0.35))
+        max_h = max(100, int(img_h * 0.35))
+
         valid_highlights = []
         for i in range(1, num_hl_labels):
             area = hl_stats[i, cv2.CC_STAT_AREA]
-            if area >= min_area_px:
-                x, y, w, h = (
+            w = hl_stats[i, cv2.CC_STAT_WIDTH]
+            h = hl_stats[i, cv2.CC_STAT_HEIGHT]
+            if min_area_px <= area <= max_area_px and w <= max_w and h <= max_h:
+                x, y = (
                     hl_stats[i, cv2.CC_STAT_LEFT],
-                    hl_stats[i, cv2.CC_STAT_TOP],
-                    hl_stats[i, cv2.CC_STAT_WIDTH],
-                    hl_stats[i, cv2.CC_STAT_HEIGHT]
+                    hl_stats[i, cv2.CC_STAT_TOP]
                 )
                 valid_highlights.append({
                     "bbox": {"x1": x, "y1": y, "x2": x + w, "y2": y + h},

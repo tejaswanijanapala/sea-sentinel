@@ -52,7 +52,7 @@ def test_draw_detections():
 
 def test_confusion_matrix_generation():
     out_cm = os.path.join(PROJECT_ROOT, "outputs", "evaluation", "test_cm.png")
-    classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engineering_platform", "riprap_debris"]
+    classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engine_debris", "riprap_debris"]
     res_path = compute_synthetic_confusion_matrix(classes, out_cm)
     assert os.path.exists(res_path)
     assert os.path.getsize(res_path) > 1000
