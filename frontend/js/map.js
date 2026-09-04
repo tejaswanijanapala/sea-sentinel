@@ -12,21 +12,53 @@ class GISMap {
   }
 
   _initMap() {
-    // Default center: Hudson River / Albany survey area (42.747°N, -73.794°W)
+    // Default center: Hudson River / Albany survey corridor (42.747°N, -73.794°W)
     this.map = L.map(this.containerId, {
       center: [42.7474, -73.7945],
-      zoom: 15,
+      zoom: 13,
       zoomControl: false
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-    // Dark Matter Nautical Basemap
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap & CartoDB | NIOT Sea Sentinel',
-      subdomains: 'abcd',
+    // 1. ESRI World Dark Gray Canvas (Default: Clean dark tactical basemap, ZERO API key, NO watermark)
+    const darkBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri &mdash; NIOT Sea Sentinel',
+      maxZoom: 16
+    });
+    const darkRef = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '',
+      maxZoom: 16
+    });
+    const darkTactical = L.layerGroup([darkBase, darkRef]).addTo(this.map);
+
+    // 2. ESRI World Ocean Basemap (Hydrographic bathymetry & marine depth contours)
+    const oceanBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri, GEBCO, NOAA, National Geographic',
+      maxZoom: 13
+    });
+
+    // 3. ESRI World Imagery (High-res orbital & aerial satellite)
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+      maxZoom: 18
+    });
+
+    // 4. OpenStreetMap Standard
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
-    }).addTo(this.map);
+    });
+
+    // Basemap selector
+    const baseLayers = {
+      "<span style='color:#38bdf8; font-weight:600;'>◈ Dark Tactical</span>": darkTactical,
+      "<span style='color:#06b6d4; font-weight:600;'>🌊 Ocean Bathymetry</span>": oceanBase,
+      "<span style='color:#10b981; font-weight:600;'>🛰️ Satellite Imagery</span>": satellite,
+      "<span style='color:#94a3b8; font-weight:600;'>🗺️ OpenStreetMap</span>": osm
+    };
+
+    L.control.layers(baseLayers, null, { position: 'topright' }).addTo(this.map);
   }
 
   setTargets(targets) {
@@ -37,9 +69,14 @@ class GISMap {
     const validCoords = [];
 
     targets.forEach(t => {
-      if (t.latitude && t.longitude) {
-        const lat = t.latitude;
-        const lon = t.longitude;
+      let lat = t.latitude;
+      let lon = t.longitude;
+      if (!lat && t.simulated_coords) {
+        lat = t.simulated_coords.lat;
+        lon = t.simulated_coords.lon;
+      }
+
+      if (lat && lon) {
         validCoords.push([lat, lon]);
 
         let color = "#00e676";
@@ -87,7 +124,11 @@ class GISMap {
     });
 
     if (validCoords.length > 0) {
-      this.map.fitBounds(L.latLngBounds(validCoords), { padding: [40, 40] });
+      if (validCoords.length === 1) {
+        this.map.setView(validCoords[0], 15);
+      } else {
+        this.map.fitBounds(L.latLngBounds(validCoords), { padding: [40, 40], maxZoom: 16 });
+      }
     }
   }
 

@@ -287,8 +287,14 @@ class DashboardApp {
 
     const mapCount = document.getElementById('mapTargetCount');
     if (mapCount) {
-      const plotted = this.targets.filter(t => t.latitude && t.longitude).length;
-      mapCount.textContent = `${plotted} Targets Plotted`;
+      const plotted = this.targets.filter(t => (t.latitude && t.longitude) || t.simulated_coords).length;
+      if (plotted > 0) {
+        mapCount.textContent = `${plotted} Targets Plotted`;
+      } else if (total > 0) {
+        mapCount.textContent = `Unreferenced Sonar Chip (Case C)`;
+      } else {
+        mapCount.textContent = `0 Targets Plotted`;
+      }
     }
   }
 
