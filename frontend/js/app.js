@@ -66,14 +66,15 @@ class DashboardApp {
       console.warn("Sample catalog loading error:", e);
     }
 
-    // 5. Automatically select and run the first sample
-    try {
-      if (this.samples && this.samples.length > 0) {
-        await this.selectSampleMission(this.samples[0].id, { autoRun: true });
-      }
-    } catch (e) {
-      console.warn("Auto-run mission error:", e);
+    // 5. Initialize in Clean Standby Mode (No bounding boxes before input is analyzed)
+    this.targets = [];
+    if (this.waterfall) {
+      this.waterfall.setTargets([]);
+      this.waterfall.render();
     }
+    this.updateKPIs();
+    this.renderTargetList();
+    this._clearInspector();
   }
 
   _initSplashScreen() {
@@ -231,7 +232,7 @@ class DashboardApp {
       this.waterfall.loadSonarImages({ rawUrl: imgUrl });
     }
 
-    if (options.autoRun !== false) {
+    if (options.autoRun === true) {
       await this.executeAIPipeline();
     }
   }
