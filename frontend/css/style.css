@@ -2560,8 +2560,24 @@ body {
 /* =========================================================
    Hydrographic Survey Mission Intelligence Report Styles
    ========================================================= */
+#missionReportModal .modal-card {
+  max-width: 1260px;
+  width: 95vw;
+  height: 92vh;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#missionReportModal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 26px 40px 26px;
+}
+
 .modal-xl {
-  max-width: 1240px;
+  max-width: 1260px;
   width: 95%;
   max-height: 92vh;
 }
@@ -2604,7 +2620,7 @@ body {
 }
 
 .report-img-card.highlight {
-  border-color: #00e676;
+  border: 1.5px solid #00e676;
   box-shadow: 0 0 16px rgba(0, 230, 118, 0.2);
 }
 
@@ -2624,29 +2640,34 @@ body {
 
 .report-img-tag {
   font-size: 0.62rem;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
-.report-img-tag.input { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
-.report-img-tag.prep { background: rgba(217, 70, 239, 0.2); color: #d946ef; border: 1px solid rgba(217, 70, 239, 0.4); }
-.report-img-tag.output { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.4); }
+.report-img-tag.input { background: rgba(56, 189, 248, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.5); }
+.report-img-tag.prep { background: rgba(217, 70, 239, 0.25); color: #d946ef; border: 1px solid rgba(217, 70, 239, 0.5); }
+.report-img-tag.output { background: rgba(0, 230, 118, 0.25); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.5); }
 
 .report-img-box {
   background: #020712;
-  height: 200px;
+  height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
+  padding: 6px;
 }
 
 .report-img-box img {
   max-width: 100%;
   max-height: 100%;
+  height: 100%;
   object-fit: contain;
   display: block;
+  border-radius: 2px;
 }
 
 /* 2. Executive KPI Meta Grid */
@@ -2720,18 +2741,30 @@ body {
   color: var(--cyan-beam);
 }
 
+.dossier-stat-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  letter-spacing: 0.4px;
+}
+
 .report-metric-pill-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .report-metric-pill {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  padding: 6px 9px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -2742,6 +2775,7 @@ body {
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .report-metric-val {
@@ -2749,11 +2783,14 @@ body {
   font-size: 0.74rem;
   font-weight: 700;
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Confidence Progress Pill */
 .accuracy-bar-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
