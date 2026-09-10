@@ -423,10 +423,26 @@ class GISMap {
     // Determine current scan target IDs
     const currentTargetIds = new Set();
     this.currentScanTargets.forEach(ct => {
-      if (ct.target_id) currentTargetIds.add(ct.target_id);
+      const id = ct.target_id || ct.object_id || ct.id;
+      if (id) currentTargetIds.add(String(id));
     });
 
-    const targetsToRender = this.allTargets.length > 0 ? this.allTargets : this.currentScanTargets;
+    // Merge all historical targets from persistent database with latest current scan targets
+    const targetsMap = new Map();
+    this.allTargets.forEach(t => {
+      const id = t.target_id || t.object_id || t.id;
+      if (id) targetsMap.set(String(id), t);
+    });
+    this.currentScanTargets.forEach((ct, idx) => {
+      const id = ct.target_id || ct.object_id || ct.id || `TGT_SCAN_${idx}`;
+      if (targetsMap.has(String(id))) {
+        targetsMap.set(String(id), { ...targetsMap.get(String(id)), ...ct });
+      } else {
+        targetsMap.set(String(id), ct);
+      }
+    });
+
+    const targetsToRender = Array.from(targetsMap.values());
 
     targetsToRender.forEach(t => {
       const lat = Number(t.latitude);

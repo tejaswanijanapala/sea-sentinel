@@ -25,29 +25,24 @@
   <!-- Floating Toast Notifications -->
   <div class="toast-container" id="appToastContainer"></div>
 
-  <!-- Splash Screen Intro -->
-  <div class="splash-screen" id="appSplashScreen" onclick="this.classList.add('fade-out'); setTimeout(() => { this.style.display='none'; }, 400);" title="Click anywhere to skip intro">
+  <!-- Splash Screen Intro (Shows logo first on opening website, followed by dashboard) -->
+  <div class="splash-screen" id="appSplashScreen" title="Click anywhere to enter dashboard">
     <div class="splash-content">
       <div class="splash-logo-wrap">
-        <img src="assets/sea_sentinel_splash.png" alt="Sea Sentinel Logo" class="splash-logo-img" />
+        <div class="splash-logo-glow"></div>
+        <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="splash-logo-img" />
       </div>
+      <h1 class="splash-brand-name">Sea Sentinel</h1>
+      <div class="splash-tagline">Ocean Geospatial AI & Autonomous Sonar Intelligence</div>
       <div class="splash-loader-wrap">
         <div class="splash-loading-bar">
           <div class="splash-loading-progress" id="splashLoadingProgress"></div>
         </div>
         <div class="splash-loading-text" id="splashLoadingText">INITIALIZING PARALLEL YOLO + U-NET SENSORS...</div>
+        <div class="splash-skip-hint">Click anywhere or press any key to enter</div>
       </div>
     </div>
   </div>
-  <script>
-    setTimeout(function() {
-      var sp = document.getElementById('appSplashScreen');
-      if (sp && !sp.classList.contains('fade-out')) {
-        sp.classList.add('fade-out');
-        setTimeout(function() { sp.style.display = 'none'; }, 500);
-      }
-    }, 1200);
-  </script>
 
   <!-- App Layout Wrapper -->
   <div class="app-layout">
