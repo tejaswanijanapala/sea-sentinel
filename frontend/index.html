@@ -58,8 +58,8 @@
     <aside class="app-sidebar">
       <div>
         <a href="#" class="sidebar-brand">
-          <div class="brand-icon-wrap">
-            <i class="fa-solid fa-water"></i>
+          <div class="brand-icon-wrap" style="width: 44px; height: 44px; background: transparent; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="brand-logo-img" style="width: 100%; height: 100%; object-fit: contain;" />
           </div>
           <div class="brand-text">
             <span class="brand-name">Sea Sentinel</span>
@@ -406,173 +406,69 @@
             </div>
           </div>
 
-          <!-- 5. 2x2 Analytics & Performance Grid -->
-          <div class="analytics-grid-2x2">
-
-            <!-- Card 1: Detection Summary -->
-            <div class="clean-card">
-              <div class="card-header-row">
-                <div>
-                  <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-chart-simple" style="color: var(--emerald-600);"></i> Detection Summary</span>
-                  <div class="card-subtitle">Survey Target Classification</div>
-                </div>
-                <span class="badge-pill confirmed">● Live Survey</span>
+          <!-- 5. Real-Time Detection Summary KPI Strip -->
+          <div class="clean-card detection-summary-bar" style="margin-bottom: 20px;">
+            <div class="card-header-row" style="margin-bottom: 14px;">
+              <div>
+                <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-simple" style="color: var(--emerald-600);"></i> Autonomous Detection Summary &amp; Survey KPIs</span>
+                <div class="card-subtitle">Live dual-path acoustic target inventory and geolocated marine hazards</div>
               </div>
-
-              <div class="stat-kpi-row">
-                <div class="stat-kpi-box">
-                  <span class="stat-kpi-lbl">TOTAL TARGETS</span>
-                  <span class="stat-kpi-val" id="kpiTotal">24</span>
-                  <span class="stat-kpi-trend">↑ 12% vs last</span>
-                </div>
-                <div class="stat-kpi-box">
-                  <span class="stat-kpi-lbl">CONFIRMED</span>
-                  <span class="stat-kpi-val" id="kpiConfirmed" style="color: var(--emerald-700);">18</span>
-                  <span class="stat-kpi-trend">↑ 9% verified</span>
-                </div>
-                <div class="stat-kpi-box">
-                  <span class="stat-kpi-lbl">SUSPICIOUS</span>
-                  <span class="stat-kpi-val" id="kpiSuspicious" style="color: var(--amber-warn);">4</span>
-                  <span class="stat-kpi-trend">↑ 2% audit</span>
-                </div>
-              </div>
-
-              <!-- Hidden KPI storage for compatibility -->
-              <div style="display: none;">
-                <span id="kpiHighRisk">0</span>
-                <span id="kpiBothCount">0</span>
-                <span id="kpiYoloOnlyCount">0</span>
-                <span id="kpiUnetOnlyCount">0</span>
-                <span id="kpiTotalDebris">0</span>
-                <span id="kpiCriticalCount">0</span>
-                <span id="kpiHighCount">0</span>
-                <span id="kpiMedCount">0</span>
-                <span id="kpiLowCount">0</span>
-                <span id="hpDebrisScore">0</span>
-                <span id="hpDebrisLevel">LOW</span>
-                <div id="highestPriorityCard"></div>
-                <span id="telemetryAccuracyVal">98.7%</span>
-                <circle id="accuracyGaugeCircle"></circle>
-                <span id="pillYolo"></span>
-                <span id="pillUnet"></span>
-                <span id="pillAuto"></span>
-                <span id="pillGeo"></span>
-                <button id="btnExportCSV"></button>
-                <button id="btnOpenReport"></button>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge-pill confirmed">● Live Swath Synced</span>
+                <span class="meta-pill"><i class="fa-solid fa-crosshairs"></i> WGS84 Precision</span>
               </div>
             </div>
 
-            <!-- Card 2: Quick Analysis -->
-            <div class="clean-card">
-              <div class="card-header-row">
-                <div>
-                  <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-compass-drafting" style="color: var(--sky-blue);"></i> Quick Analysis</span>
-                  <div class="card-subtitle">Debris &amp; Target Category Breakdown</div>
-                </div>
-                <i class="fa-solid fa-ellipsis-vertical" style="color: var(--text-dim);"></i>
+            <div class="stat-kpi-row summary-full-width" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">TOTAL TARGETS</span>
+                <span class="stat-kpi-val" id="kpiTotal">6</span>
+                <span class="stat-kpi-trend">↑ 100% Ingested</span>
               </div>
-
-              <div class="progress-list">
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Ghost Net / Fishing Gear</span>
-                    <span style="font-family: var(--font-mono); color: var(--emerald-700);">42%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill emerald" style="width: 42%;"></div></div>
-                </div>
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Engine &amp; Cargo Containers</span>
-                    <span style="font-family: var(--font-mono); color: var(--sky-blue);">28%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill sky" style="width: 28%;"></div></div>
-                </div>
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Subsea Cables &amp; Pipelines</span>
-                    <span style="font-family: var(--font-mono); color: var(--amber-warn);">18%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill amber" style="width: 18%;"></div></div>
-                </div>
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Marine Plastics &amp; Drums</span>
-                    <span style="font-family: var(--font-mono); color: var(--purple-accent);">12%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill purple" style="width: 12%;"></div></div>
-                </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">CONFIRMED DEBRIS</span>
+                <span class="stat-kpi-val" id="kpiConfirmed" style="color: var(--emerald-700);">4</span>
+                <span class="stat-kpi-trend" style="color: var(--emerald-600);">✓ Verified Acoustics</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">SUSPICIOUS ANOMALIES</span>
+                <span class="stat-kpi-val" id="kpiSuspicious" style="color: var(--amber-warn);">2</span>
+                <span class="stat-kpi-trend" style="color: var(--amber-warn);">⚠ Flagged for HITL</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">CRITICAL / HIGH RISK</span>
+                <span class="stat-kpi-val" id="kpiHighRisk" style="color: var(--rose-danger);">3</span>
+                <span class="stat-kpi-trend" style="color: var(--rose-danger);">⚡ Urgent Inspection</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">GEODETIC DATUM</span>
+                <span class="stat-kpi-val" id="kpiDatumVal" style="font-size: 1.05rem; color: var(--sky-blue); font-family: var(--font-mono);">WGS84</span>
+                <span class="stat-kpi-trend">EPSG:4326 Water Body</span>
               </div>
             </div>
 
-            <!-- Card 3: Model Performance -->
-            <div class="clean-card">
-              <div class="card-header-row">
-                <div>
-                  <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-microchip" style="color: var(--emerald-600);"></i> Model Performance</span>
-                  <div class="card-subtitle">YOLO11 + Attention U-Net Metrics</div>
-                </div>
-                <span class="badge-pill confirmed">98.7% Accuracy</span>
-              </div>
-
-              <div class="progress-list">
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>YOLOv11 Bounding Box mAP50-95</span>
-                    <span style="font-family: var(--font-mono); color: var(--emerald-700);">92.3%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill emerald" style="width: 92.3%;"></div></div>
-                </div>
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Attention U-Net Mask IoU Overlap</span>
-                    <span style="font-family: var(--font-mono); color: var(--sky-blue);">88.7%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill sky" style="width: 88.7%;"></div></div>
-                </div>
-                <div class="progress-item">
-                  <div class="progress-item-header">
-                    <span>Acoustic Verification Consensus</span>
-                    <span style="font-family: var(--font-mono); color: var(--emerald-700);">94.1%</span>
-                  </div>
-                  <div class="progress-bar-bg"><div class="progress-bar-fill emerald" style="width: 94.1%;"></div></div>
-                </div>
-              </div>
+            <!-- Hidden KPI storage for compatibility -->
+            <div style="display: none;">
+              <span id="kpiBothCount">0</span>
+              <span id="kpiYoloOnlyCount">0</span>
+              <span id="kpiUnetOnlyCount">0</span>
+              <span id="kpiTotalDebris">0</span>
+              <span id="kpiCriticalCount">0</span>
+              <span id="kpiHighCount">0</span>
+              <span id="kpiMedCount">0</span>
+              <span id="kpiLowCount">0</span>
+              <span id="hpDebrisScore">0</span>
+              <span id="hpDebrisLevel">LOW</span>
+              <div id="highestPriorityCard"></div>
+              <span id="telemetryAccuracyVal">98.7%</span>
+              <circle id="accuracyGaugeCircle"></circle>
+              <span id="pillYolo"></span>
+              <span id="pillUnet"></span>
+              <span id="pillAuto"></span>
+              <span id="pillGeo"></span>
+              <button id="btnExportCSV"></button>
+              <button id="btnOpenReport"></button>
             </div>
-
-            <!-- Card 4: Threat Distribution -->
-            <div class="clean-card">
-              <div class="card-header-row">
-                <div>
-                  <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i> Threat Distribution</span>
-                  <div class="card-subtitle">Hazard Priority Segments</div>
-                </div>
-                <span class="badge-pill critical">4 Critical</span>
-              </div>
-
-              <div class="donut-chart-wrap">
-                <div class="donut-graphic">
-                  <div class="donut-inner">
-                    <span class="donut-inner-val">24</span>
-                    <span class="donut-inner-lbl">TARGETS</span>
-                  </div>
-                </div>
-                <div class="donut-legend">
-                  <div class="donut-legend-item">
-                    <div><span class="legend-dot" style="background: var(--emerald-500);"></span> Low Risk</div>
-                    <span style="font-family: var(--font-mono);">75%</span>
-                  </div>
-                  <div class="donut-legend-item">
-                    <div><span class="legend-dot" style="background: var(--amber-warn);"></span> Suspicious / Med</div>
-                    <span style="font-family: var(--font-mono);">17%</span>
-                  </div>
-                  <div class="donut-legend-item">
-                    <div><span class="legend-dot" style="background: var(--rose-danger);"></span> Critical Hazard</div>
-                    <span style="font-family: var(--font-mono);">8%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
 
           <!-- 6. Ocean Debris GIS & Geospatial Intelligence Map Card -->
@@ -814,28 +710,7 @@
             </div>
           </div>
 
-          <!-- 3. Analytics & Verification Summary Card -->
-          <div class="clean-card">
-            <div class="card-header-row" style="margin-bottom: 8px;">
-              <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-chart-line" style="color: var(--emerald-600);"></i> Analytics &amp; Verification</span>
-              <span class="badge-pill confirmed">● Synced</span>
-            </div>
 
-            <table class="explain-kpi-table">
-              <tr>
-                <th>Detection Precision</th>
-                <td style="color: var(--emerald-700);">94.1% <span style="font-size: 0.65rem; color: var(--emerald-600);">↑ 5%</span></td>
-              </tr>
-              <tr>
-                <th>Classification Accuracy</th>
-                <td style="color: var(--emerald-700);">88.7% <span style="font-size: 0.65rem; color: var(--emerald-600);">↑ 3%</span></td>
-              </tr>
-              <tr>
-                <th>Average Pipeline Latency</th>
-                <td style="color: var(--sky-blue);">2.4s <span style="font-size: 0.65rem; color: var(--sky-blue);">↓ 12%</span></td>
-              </tr>
-            </table>
-          </div>
 
           <!-- 4. Recent Activity Stream Card -->
           <div class="clean-card">

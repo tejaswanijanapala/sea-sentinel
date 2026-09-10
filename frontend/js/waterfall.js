@@ -253,16 +253,31 @@ class WaterfallViewer {
         return { x1, y1, x2, y2, bw: Math.max(12, x2 - x1), bh: Math.max(12, y2 - y1) };
       }
     }
-    const bbox = t.pixel_bbox || t.bbox || {};
+    let b = t.pixel_bbox || t.bbox || {};
+    let bx1 = 0, by1 = 0, bx2 = 80, by2 = 60;
+    if (Array.isArray(b)) {
+      if (b.length >= 4) {
+        bx1 = b[0];
+        by1 = b[1];
+        bx2 = b[0] + b[2];
+        by2 = b[1] + b[3];
+      }
+    } else if (typeof b === 'object' && b !== null) {
+      bx1 = b.x1 != null ? b.x1 : (b.x != null ? b.x : 0);
+      by1 = b.y1 != null ? b.y1 : (b.y != null ? b.y : 0);
+      bx2 = b.x2 != null ? b.x2 : (bx1 + (b.width || b.w || (b.x2 ? b.x2 - bx1 : 80)));
+      by2 = b.y2 != null ? b.y2 : (by1 + (b.height || b.h || (b.y2 ? b.y2 - by1 : 60)));
+    }
+
     const imgW = (t.image_dimensions && t.image_dimensions.width) || (this.rawImage ? this.rawImage.naturalWidth : w) || w;
     const imgH = (t.image_dimensions && t.image_dimensions.height) || (this.rawImage ? this.rawImage.naturalHeight : h) || h;
     const sx = w / imgW;
     const sy = h / imgH;
-    const x1 = (bbox.x1 || 0) * sx;
-    const y1 = (bbox.y1 || 0) * sy;
-    const x2 = (bbox.x2 || (bbox.x1 + 80)) * sx;
-    const y2 = (bbox.y2 || (bbox.y1 + 60)) * sy;
-    return { x1, y1, x2, y2, bw: Math.max(12, x2 - x1), bh: Math.max(12, y2 - y1), sx, sy };
+    const x1 = bx1 * sx;
+    const y1 = by1 * sy;
+    const x2 = bx2 * sx;
+    const y2 = by2 * sy;
+    return { x1, y1, x2, y2, bw: Math.max(16, x2 - x1), bh: Math.max(16, y2 - y1), sx, sy };
   }
 
   _getPolygonCanvasCoords(t, w, h) {

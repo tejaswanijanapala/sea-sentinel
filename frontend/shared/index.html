@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sea Sentinel — Dual-Path Parallel YOLO + U-Net Sonar Detection System</title>
-  <meta name="description" content="Autonomous Marine Debris Detection, Independent U-Net Segmentation, Candidate Fusion, and Geotagging Platform for NIOT / MoES.">
+  <title>Sea Sentinel — Maritime Sonar Intelligence & Geospatial Platform</title>
+  <meta name="description" content="Autonomous Marine Debris Detection, U-Net Pixel Segmentation, Candidate Fusion & Geotagging Platform for NIOT / MoES.">
 
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,16 +17,16 @@
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <!-- Custom Design System -->
-  <link rel="stylesheet" href="css/style.css?v=3.2">
+  <!-- White & Emerald Green Design System -->
+  <link rel="stylesheet" href="css/style.css?v=5.0">
 </head>
 <body>
 
-  <!-- High-Tech Floating Toast Notification System -->
+  <!-- Floating Toast Notifications -->
   <div class="toast-container" id="appToastContainer"></div>
 
-  <!-- Cinematic Splash Screen Intro -->
-  <div class="splash-screen" id="appSplashScreen" onclick="this.classList.add('fade-out'); setTimeout(()=>{this.style.display='none'}, 800);">
+  <!-- Splash Screen Intro -->
+  <div class="splash-screen" id="appSplashScreen" onclick="this.classList.add('fade-out'); setTimeout(() => { this.style.display='none'; }, 400);" title="Click anywhere to skip intro">
     <div class="splash-content">
       <div class="splash-logo-wrap">
         <img src="assets/sea_sentinel_splash.png" alt="Sea Sentinel Logo" class="splash-logo-img" />
@@ -40,554 +40,769 @@
     </div>
   </div>
   <script>
-    // Inline fallback: auto-dismiss splash screen after 1.8s regardless of external script timing
     setTimeout(function() {
       var sp = document.getElementById('appSplashScreen');
       if (sp && !sp.classList.contains('fade-out')) {
         sp.classList.add('fade-out');
-        setTimeout(function() { sp.style.display = 'none'; }, 850);
+        setTimeout(function() { sp.style.display = 'none'; }, 500);
       }
-    }, 1800);
+    }, 1200);
   </script>
 
-  <!-- Top Navigation Header -->
-  <header class="navbar">
-    <div class="nav-left">
-      <div class="logo-mark">
-        <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="logo-img" />
-      </div>
+  <!-- App Layout Wrapper -->
+  <div class="app-layout">
+
+    <!-- =========================================================
+         Left Vertical Navigation Sidebar
+         ========================================================= -->
+    <aside class="app-sidebar">
       <div>
-        <div class="logo-title">SEA SENTINEL</div>
-        <div class="logo-sub">PARALLEL YOLO + U-NET HIGH-RECALL ENGINE</div>
-      </div>
-    </div>
-
-    <!-- Workspace View Switcher -->
-    <div class="workspace-tabs">
-      <button class="tab-btn active" id="tabWaterfall" data-tab="waterfall">
-        <i class="fa-solid fa-water"></i> Sonar Scan
-      </button>
-      <button class="tab-btn" id="tabSplit" data-tab="split">
-        <i class="fa-solid fa-table-columns"></i> Split View
-      </button>
-      <button class="tab-btn" id="tabMap" data-tab="map">
-        <i class="fa-solid fa-map-location-dot"></i> GIS Map
-      </button>
-    </div>
-
-    <!-- Right Status, Edge Mode & Report Trigger -->
-    <div class="nav-right">
-      <div class="status-pill offline" id="edgeOfflinePill" title="100% Edge-First Offline Operation (Click to manage Cloud Sync)">
-        <span class="status-dot"></span>
-        <span id="edgeOfflineText">OFFLINE (EDGE)</span>
-      </div>
-      <button class="btn-ablation-pill" id="btnOpenLearningModal" title="Human-in-the-Loop Adaptive Learning & Error Prevention Engine">
-        <i class="fa-solid fa-brain"></i> Adaptive Learning
-      </button>
-      <button class="btn-ablation-pill" id="btnOpenSyncModal" title="Store-and-Forward Cloud Synchronization Queue">
-        <i class="fa-solid fa-cloud-arrow-up"></i> Sync (<span id="badgePendingSync">0</span>)
-      </button>
-      <button class="btn-ablation-pill" id="btnOpenModelModal" title="Edge AI Model Registry & Checksum Rollback">
-        <i class="fa-solid fa-microchip"></i> Models
-      </button>
-      <button class="btn-ablation-pill" id="btnOpenEdgeModal" title="View Edge AI, Watchdog & Acoustic Modem Telemetry" style="border-color: #38bdf8; color: #38bdf8;">
-        <i class="fa-solid fa-satellite-dish"></i> Edge / Modem
-      </button>
-      <button class="btn-ablation-pill" id="btnOpenAblationModal" title="View Scientific Ablation Benchmarks">
-        <i class="fa-solid fa-chart-line"></i> Ablation Study
-      </button>
-      <div class="status-pill complete" id="pipelineStatusPill">
-        <span class="status-dot"></span>
-        <span id="pipelineStatusText">PIPELINE COMPLETE</span>
-      </div>
-      <button class="btn-report-pill" id="btnOpenReportTop" title="Open Hydrographic Mission Report">
-        <i class="fa-solid fa-file-waveform"></i> Report
-      </button>
-    </div>
-  </header>
-
-  <!-- 3-Column Dashboard Grid -->
-  <main class="dashboard-grid">
-
-    <!-- Column 1: Survey Telemetry & Review System -->
-    <aside class="left-stage">
-
-      <!-- Sub-Panel 1: Survey Telemetry -->
-      <div class="glass-panel telemetry-panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fa-solid fa-chart-simple"></i> Survey Telemetry</span>
-          <span class="panel-tag cyan">DUAL-PATH FUSED</span>
-        </div>
-
-        <!-- Accuracy Circular Radial Gauge -->
-        <div class="accuracy-gauge-wrap">
-          <div class="accuracy-gauge">
-            <svg viewBox="0 0 120 120" class="gauge-svg">
-              <circle cx="60" cy="60" r="48" class="gauge-bg"></circle>
-              <circle cx="60" cy="60" r="48" class="gauge-progress" id="accuracyGaugeCircle" style="stroke-dasharray: 301.6; stroke-dashoffset: 61.5;"></circle>
-            </svg>
-            <div class="gauge-inner">
-              <div class="gauge-val" id="telemetryAccuracyVal">98.7%</div>
-              <div class="gauge-sub">RECALL SCORE</div>
-            </div>
+        <a href="#" class="sidebar-brand">
+          <div class="brand-icon-wrap" style="width: 44px; height: 44px; background: transparent; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="brand-logo-img" style="width: 100%; height: 100%; object-fit: contain;" />
           </div>
-        </div>
+          <div class="brand-text">
+            <span class="brand-name">Sea Sentinel</span>
+            <span class="brand-sub">Ocean Geospatial AI</span>
+          </div>
+        </a>
 
-        <!-- 5-Tier Debris Risk & Priority Summary Banner -->
-        <div class="priority-summary-box">
-          <div class="priority-summary-header">
-            <span class="prio-box-title"><i class="fa-solid fa-triangle-exclamation"></i> Inspection Priority Matrix</span>
-            <span class="prio-box-tag">EXPLAINABLE RISK</span>
-          </div>
-          <div class="priority-summary-grid">
-            <div class="prio-cell total">
-              <span class="prio-num" id="kpiTotalDebris">0</span>
-              <span class="prio-lbl">TOTAL DEBRIS</span>
-            </div>
-            <div class="prio-cell crit">
-              <span class="prio-num" id="kpiCriticalCount">0</span>
-              <span class="prio-lbl">CRITICAL</span>
-            </div>
-            <div class="prio-cell high">
-              <span class="prio-num" id="kpiHighCount">0</span>
-              <span class="prio-lbl">HIGH</span>
-            </div>
-            <div class="prio-cell med">
-              <span class="prio-num" id="kpiMedCount">0</span>
-              <span class="prio-lbl">MEDIUM</span>
-            </div>
-            <div class="prio-cell low">
-              <span class="prio-num" id="kpiLowCount">0</span>
-              <span class="prio-lbl">LOW</span>
-            </div>
-          </div>
-          <!-- Highest Priority Debris Card Highlight -->
-          <div class="highest-priority-card" id="highestPriorityCard" style="display: none;">
-            <div class="hp-left">
-              <span class="hp-badge"><i class="fa-solid fa-bell"></i> HIGHEST PRIORITY</span>
-              <div class="hp-name" id="hpDebrisName">#D01 – Ghost Net</div>
-            </div>
-            <div class="hp-right">
-              <div class="hp-score" id="hpDebrisScore">91/100</div>
-              <div class="hp-level critical" id="hpDebrisLevel">CRITICAL</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2x2 Telemetry Metric Grid -->
-        <div class="telemetry-grid">
-          <div class="telemetry-cell">
-            <div class="cell-label">TOTAL TARGETS</div>
-            <div class="cell-val cyan" id="kpiTotal">0</div>
-          </div>
-          <div class="telemetry-cell">
-            <div class="cell-label">CONFIRMED DEBRIS</div>
-            <div class="cell-val green" id="kpiConfirmed">0</div>
-          </div>
-          <div class="telemetry-cell">
-            <div class="cell-label">SUSPICIOUS</div>
-            <div class="cell-val amber" id="kpiSuspicious">0</div>
-          </div>
-          <div class="telemetry-cell">
-            <div class="cell-label">HIGH HAZARD RISK</div>
-            <div class="cell-val red" id="kpiHighRisk">0</div>
-          </div>
-        </div>
-
-        <!-- Dual-Path Source Breakdown -->
-        <div class="fusion-breakdown-section">
-          <div class="export-title"><i class="fa-solid fa-code-merge"></i> Detection Provenance</div>
-          <div class="fusion-pills-row">
-            <div class="provenance-pill both" title="Agreed by both YOLO and U-Net">
-              <span class="prov-dot cyan"></span> BOTH: <b id="kpiBothCount">0</b>
-            </div>
-            <div class="provenance-pill yolo" title="Discovered by YOLO only">
-              <span class="prov-dot orange"></span> YOLO ONLY: <b id="kpiYoloOnlyCount">0</b>
-            </div>
-            <div class="provenance-pill unet" title="Discovered by U-Net only (Recovered YOLO Misses)">
-              <span class="prov-dot magenta"></span> U-NET ONLY: <b id="kpiUnetOnlyCount">0</b>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2x2 Model Indicators -->
-        <div class="model-status-grid">
-          <div class="model-pill" id="pillYolo"><span class="dot green"></span> YOLOv11 (Boxes)</div>
-          <div class="model-pill" id="pillUnet"><span class="dot green"></span> U-Net (Masks)</div>
-          <div class="model-pill" id="pillAuto"><span class="dot green"></span> Anomaly Verifier</div>
-          <div class="model-pill" id="pillGeo"><span class="dot green"></span> GeoEngine</div>
-        </div>
-
-        <!-- Export Survey Deliverables -->
-        <div class="export-section">
-          <div class="export-title">Export Survey Deliverables</div>
-          <button class="btn-export-outline" id="btnExportCSV">
-            <i class="fa-solid fa-file-csv"></i> Download CSV Report
-          </button>
-          <button class="btn-export-outline" id="btnOpenReport">
-            <i class="fa-solid fa-file-lines"></i> View HTML Report
-          </button>
-        </div>
+        <!-- Main Navigation Links -->
+        <nav class="sidebar-nav">
+          <a class="nav-item active" id="navOverview" href="#overview">
+            <i class="fa-solid fa-grip"></i>
+            <span>Overview</span>
+          </a>
+          <a class="nav-item" id="navSurveys" href="#cardWaterfall">
+            <i class="fa-solid fa-water"></i>
+            <span>Surveys</span>
+          </a>
+          <a class="nav-item" id="navMaps" href="#cardMap">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Maps</span>
+          </a>
+          <a class="nav-item" id="navModels" onclick="document.getElementById('btnOpenModelModal').click();">
+            <i class="fa-solid fa-microchip"></i>
+            <span>Models</span>
+          </a>
+          <a class="nav-item" id="navReports" onclick="document.getElementById('btnOpenReportTop').click();">
+            <i class="fa-solid fa-file-waveform"></i>
+            <span>Reports</span>
+          </a>
+          <a class="nav-item" id="navSettings" onclick="document.getElementById('btnOpenEdgeModal').click();">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
       </div>
 
-      <!-- Sub-Panel 2: Review System & Feedback Comment Box -->
-      <div class="glass-panel review-panel" id="reviewSystemPanel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fa-solid fa-comment-dots"></i> Target Review System</span>
-          <span class="panel-tag cyan" id="reviewTargetBadge">HITL AI</span>
-        </div>
-        <div class="review-body">
-          <div class="review-target-header">
-            <span class="review-target-label">TARGET:</span>
-            <select id="reviewTargetSelect" class="review-target-select" title="Select detected target to review">
-              <option value="">Awaiting targets...</option>
-            </select>
-          </div>
-
-          <div class="review-comment-wrap">
-            <label for="reviewCommentBox" class="review-input-label">Natural Language Feedback / Correction:</label>
-            <textarea id="reviewCommentBox" class="review-textarea" rows="3" placeholder="Explain what this target is... e.g. 'This is actually a fishing net snagged on rocks, not engine debris' or 'False alarm caused by seabed ridge'"></textarea>
-          </div>
-
-          <!-- Quick Correction Chips -->
-          <div class="review-quick-chips">
-            <span class="chip-hint-lbl">Quick Tags:</span>
-            <button type="button" class="quick-chip" data-text="This is actually a fishing net, not a pipeline or cable">Net</button>
-            <button type="button" class="quick-chip" data-text="This is actually a pipeline or subsea cable">Pipeline</button>
-            <button type="button" class="quick-chip" data-text="This is a shipwreck fragment or hull timber">Shipwreck</button>
-            <button type="button" class="quick-chip" data-text="This is metallic engine debris or motor part">Engine</button>
-            <button type="button" class="quick-chip" data-text="False alarm. Natural seabed rock clutter, not debris">False Alarm</button>
-          </div>
-
-          <!-- Live Status Feedback Message -->
-          <div id="reviewStatusMsg" class="review-status-msg" style="display: none;"></div>
-
-          <!-- Submit Review Button -->
-          <div class="review-actions">
-            <button type="button" class="btn-review-submit" id="btnSubmitReviewComment">
-              <i class="fa-solid fa-paper-plane"></i> Submit Feedback
-            </button>
-          </div>
+      <!-- Sidebar Footer Live Mission Card -->
+      <div class="sidebar-footer-card">
+        <div class="footer-card-title">Smarter Surveillance.</div>
+        <div class="footer-card-sub">Safer Oceans.</div>
+        <div class="footer-status-pill">
+          <span class="dot"></span>
+          <span>Live System ● All operational</span>
         </div>
       </div>
     </aside>
 
-    <!-- Column 2: Center Stage (Upload & Sonar Waterfall) -->
-    <section class="center-stage">
+    <!-- =========================================================
+         Main Application Workspace
+         ========================================================= -->
+    <div class="app-main">
 
-      <!-- Top Card: Upload Sonar Image for Analysis -->
-      <div class="glass-panel upload-panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Upload Sonar Image for Analysis</span>
-          <span class="panel-tag gray">SSS / GeoTIFF / PNG / JPEG</span>
+      <!-- Top Navbar Header -->
+      <header class="top-navbar">
+        <div class="nav-search-bar">
+          <i class="fa-solid fa-magnifying-glass" style="color: var(--text-dim);"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search vessels, coordinates, or reports..." />
+          <span class="nav-search-key">⌘ K</span>
         </div>
 
-        <!-- Dashed Dropzone Area -->
-        <div class="upload-dropzone-box" id="uploadDropzone" onclick="if(event.target.id!=='sonarFileInput' && !event.target.closest('button')) { const inp = document.getElementById('sonarFileInput'); if(inp){ inp.value=''; inp.click(); } }">
-          <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" onchange="if(window.app && window.app.handleFileSelect){ window.app.handleFileSelect(event); }" />
-
-          <!-- Idle State -->
-          <div id="dropzoneIdleState" class="dropzone-idle">
-            <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-            <div class="dropzone-main"><b>Upload Sonar Imagery or GeoTIFF Mosaic</b></div>
-            <div class="dropzone-sub">Drag &amp; drop or <span class="browse-link" style="color: #00e5ff; text-decoration: underline; font-weight: 600; cursor: pointer;">browse files</span></div>
+        <div class="nav-user-actions">
+          <!-- Workspace view tabs fallback compatibility -->
+          <div class="workspace-tabs" style="display: none;">
+            <button class="tab-btn active" id="tabWaterfall" data-tab="waterfall">Sonar Scan</button>
+            <button class="tab-btn" id="tabSplit" data-tab="split">Split View</button>
+            <button class="tab-btn" id="tabMap" data-tab="map">GIS Map</button>
           </div>
 
-          <!-- Complete / Active State -->
-          <div id="dropzoneCompleteState" class="dropzone-complete" style="display: none;">
-            <div class="complete-circle"><i class="fa-solid fa-check"></i></div>
-            <div class="complete-title" id="completeTitle">✔ Analysis complete: 2 targets</div>
-            <div class="complete-meta" id="completeMeta">ID: SURVEY_053E90C0 · 75227.55ms · Accuracy: 79.6%</div>
-            <button class="btn-analyze-another" id="btnAnalyzeAnother">Analyze Another</button>
+          <!-- Feature Action Buttons -->
+          <button class="gis-btn" id="btnOpenLearningModal" title="Adaptive Learning & Error Prevention Engine">
+            <i class="fa-solid fa-brain" style="color: var(--emerald-600);"></i>
+            <span>Learning</span>
+          </button>
+
+          <button class="gis-btn" id="btnOpenSyncModal" title="Store-and-Forward Cloud Sync Queue">
+            <i class="fa-solid fa-cloud-arrow-up" style="color: var(--sky-blue);"></i>
+            <span>Sync (<span id="badgePendingSync">0</span>)</span>
+          </button>
+
+          <button class="gis-btn" id="btnOpenModelModal" title="Edge AI Model Registry">
+            <i class="fa-solid fa-microchip" style="color: var(--purple-accent);"></i>
+            <span>Models</span>
+          </button>
+
+          <button class="gis-btn" id="btnOpenEdgeModal" title="Edge AI, Watchdog & Modem Telemetry">
+            <i class="fa-solid fa-satellite-dish" style="color: var(--teal-accent);"></i>
+            <span>Edge</span>
+          </button>
+
+          <button class="gis-btn" id="btnOpenAblationModal" title="Scientific Ablation Benchmarks">
+            <i class="fa-solid fa-chart-line" style="color: var(--amber-warn);"></i>
+            <span>Ablation</span>
+          </button>
+
+          <div class="status-pill offline" id="edgeOfflinePill" style="display: none;">
+            <span class="status-dot"></span>
+            <span id="edgeOfflineText">OFFLINE (EDGE)</span>
           </div>
 
-          <!-- Rejected / Non-Sonar Input State -->
-          <div id="dropzoneRejectState" class="dropzone-rejected" style="display: none;">
-            <div class="reject-circle"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="reject-title">NOT A SIDE-SCAN SONAR IMAGE</div>
-            <div class="reject-meta" id="rejectMetaReason">Optical color spectrum detected. Authentic Side-Scan Sonar records single-channel acoustic backscatter reverberation, not multi-channel chromatic photos.</div>
-            <div class="reject-actions">
-              <button class="btn-reject-retry" id="btnRejectBrowse"><i class="fa-solid fa-folder-open"></i> Browse Sonar Image</button>
-              <button class="btn-reject-demo" id="btnRejectDemo"><i class="fa-solid fa-flask"></i> Load Demo Sonar Mission</button>
+          <div class="status-pill complete" id="pipelineStatusPill" style="padding: 4px 10px; font-size: 0.72rem;">
+            <span class="status-dot"></span>
+            <span id="pipelineStatusText">STANDBY</span>
+          </div>
+
+          <!-- Notification Bell & Chat -->
+          <button class="nav-icon-btn" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="nav-badge-dot"></span>
+          </button>
+
+          <button class="nav-icon-btn" title="Messages & Logs" onclick="document.getElementById('btnOpenEdgeModal').click();">
+            <i class="fa-regular fa-comment-dots"></i>
+          </button>
+
+          <!-- Report Button -->
+          <button class="btn-emerald" id="btnOpenReportTop" title="Generate Hydrographic Survey Report">
+            <i class="fa-solid fa-file-waveform"></i>
+            <span>Report</span>
+          </button>
+
+          <!-- Operator Profile -->
+          <div class="operator-profile">
+            <div class="operator-avatar">SO</div>
+            <div class="operator-info">
+              <span class="operator-name">Surveillance Operator</span>
+              <span class="operator-status">Online</span>
             </div>
           </div>
         </div>
+      </header>
 
-        <!-- Latency Budget & Real-Time Profiler Strip (<20s Pipeline) -->
-        <div class="latency-budget-strip" id="latencyBudgetStrip">
-          <div class="lbs-left">
-            <span class="lbs-lbl"><i class="fa-solid fa-stopwatch"></i> Pipeline:</span>
-            <span class="lbs-val" id="lbsTotalTime">--</span>
-            <span class="lbs-budget-badge pass" id="lbsBudgetBadge">✓ PASS (&lt;20s)</span>
-            <span class="lbs-headroom" id="lbsHeadroom">-- Headroom</span>
-          </div>
-          <div class="lbs-right">
-            <span class="lbs-bottleneck" id="lbsBottleneck"><i class="fa-solid fa-gauge-simple-high"></i> Slowest: <b>Standby</b></span>
-            <!-- Smart Mode Switcher -->
-            <div class="pipeline-mode-selector" id="pipelineModeSelector">
-              <button class="mode-btn" data-mode="fast" title="Fast Mode: Field operations (<10s target)"><i class="fa-solid fa-bolt"></i> Fast</button>
-              <button class="mode-btn active" data-mode="balanced" title="Balanced Mode: Standard High-Accuracy (<20s target)"><i class="fa-solid fa-scale-balanced"></i> Balanced</button>
-              <button class="mode-btn" data-mode="high_accuracy" title="High Accuracy Mode: Multi-scale dense candidate proposal"><i class="fa-solid fa-crosshairs"></i> High Acc</button>
+      <!-- Dashboard 2-Column Grid Layout -->
+      <main class="dashboard-container" id="overview">
+
+        <!-- Left / Center Main Column -->
+        <div class="main-feed-column">
+
+          <!-- 1. Section Header: Survey Overview Banner -->
+          <div class="section-header-banner">
+            <div>
+              <h1 class="card-title" style="font-size: 1.3rem;">Survey Overview</h1>
+              <div class="card-subtitle">Real-time Side-Scan Sonar ingestion, parallel YOLO11 + U-Net inference & georeferencing</div>
+            </div>
+
+            <div class="header-meta-pills">
+              <span class="meta-pill live">● Live Feed</span>
+              <span class="meta-pill"><i class="fa-solid fa-layer-group"></i> All Layers</span>
+              <span class="meta-pill"><i class="fa-solid fa-crosshairs"></i> <span id="hpDebrisNamePreview">TGT-001</span></span>
+              <span class="meta-pill"><i class="fa-regular fa-clock"></i> Today, 11:22</span>
             </div>
           </div>
-        </div>
 
-        <!-- Horizontal Pipeline Stepper -->
-        <div class="pipeline-stepper-track" id="pipelineStepper">
-          <div class="stepper-line"></div>
-          <div class="stepper-node active" id="stepUpload">
-            <div class="node-dot"></div>
-            <div class="node-label">Uploading</div>
-            <span class="step-time" id="timeStepUpload">0.05s</span>
-          </div>
-          <div class="stepper-node active" id="stepPrep">
-            <div class="node-dot"></div>
-            <div class="node-label">Preprocessing</div>
-            <span class="step-time" id="timeStepPrep">0.08s</span>
-          </div>
-          <div class="stepper-node active" id="stepYolo">
-            <div class="node-dot"></div>
-            <div class="node-label">Parallel YOLO+U-Net</div>
-            <span class="step-time" id="timeStepYolo">3.40s</span>
-          </div>
-          <div class="stepper-node active" id="stepUnet">
-            <div class="node-dot"></div>
-            <div class="node-label">Fusion Engine</div>
-            <span class="step-time" id="timeStepFusion">0.07s</span>
-          </div>
-          <div class="stepper-node active" id="stepAuto">
-            <div class="node-dot"></div>
-            <div class="node-label">Verification</div>
-            <span class="step-time" id="timeStepVerify">0.01s</span>
-          </div>
-          <div class="stepper-node active" id="stepGeo">
-            <div class="node-dot"></div>
-            <div class="node-label">Geotagging</div>
-            <span class="step-time" id="timeStepGeo">0.01s</span>
-          </div>
-          <div class="stepper-node active" id="stepReport">
-            <div class="node-dot"></div>
-            <div class="node-label">Report Ready</div>
-            <span class="step-time" id="timeStepReport">0.02s</span>
-          </div>
-        </div>
-      </div>
+          <!-- 2. Minimal Upload & Latency Strip Drawer -->
+          <div class="clean-card" style="padding: 14px 18px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div class="lbs-left" style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);"><i class="fa-solid fa-stopwatch" style="color: var(--emerald-600);"></i> Pipeline:</span>
+                <span class="lbs-val" id="lbsTotalTime" style="font-family: var(--font-mono); font-weight: 800; color: var(--emerald-700);">0.34s</span>
+                <span class="lbs-budget-badge pass" id="lbsBudgetBadge">✓ PASS (&lt;20s)</span>
+                <span class="lbs-headroom" id="lbsHeadroom" style="font-size: 0.72rem; color: var(--text-muted);">19.66s Headroom</span>
+              </div>
 
-      <!-- Bottom Card: Side-Scan Sonar Waterfall Scan -->
-      <div class="glass-panel waterfall-panel" id="cardWaterfall">
-        <div class="panel-header">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="panel-title"><i class="fa-solid fa-water"></i> Side-Scan Sonar Waterfall Scan</span>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="view-mode-toggle" id="viewModeContainer">
-              <button class="view-mode-btn" data-mode="raw" id="btnModeRaw"><i class="fa-solid fa-wave-square"></i> Raw Scan</button>
-              <button class="view-mode-btn" data-mode="enhanced" id="btnModeEnhanced"><i class="fa-solid fa-wand-magic-sparkles"></i> Enhanced</button>
-              <button class="view-mode-btn active" data-mode="overlay" id="btnModeOverlay"><i class="fa-solid fa-layer-group"></i> Detections &amp; Masks</button>
+              <div class="lbs-right" style="display: flex; align-items: center; gap: 10px;">
+                <span class="lbs-bottleneck" id="lbsBottleneck" style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-gauge-simple-high"></i> Slowest: <b>Parallel AI (0.24s)</b></span>
+                <div class="pipeline-mode-selector" id="pipelineModeSelector">
+                  <button class="mode-btn" data-mode="fast" title="Fast Mode: Field operations (&lt;10s target)"><i class="fa-solid fa-bolt"></i> Fast</button>
+                  <button class="mode-btn active" data-mode="balanced" title="Balanced Mode: Standard High-Accuracy (&lt;20s target)"><i class="fa-solid fa-scale-balanced"></i> Balanced</button>
+                  <button class="mode-btn" data-mode="high_accuracy" title="High Accuracy Mode"><i class="fa-solid fa-crosshairs"></i> High Acc</button>
+                </div>
+              </div>
             </div>
-            <span class="panel-tag cyan"><i class="fa-solid fa-satellite-dish"></i> DUAL CHANNEL (PORT / STARBOARD)</span>
-          </div>
-        </div>
 
-        <!-- Interactive Layer Visibility Controls Toolbar -->
-        <div class="layer-control-bar" id="layerControlBar">
-          <span class="layer-bar-label"><i class="fa-solid fa-sliders"></i> LAYER CONTROLS:</span>
-          <label class="layer-toggle-btn active" id="lblLayerYolo" title="Toggle YOLO Green Bounding Boxes &amp; Class Badges">
-            <input type="checkbox" id="chkLayerYolo" checked>
-            <i class="fa-solid fa-vector-square layer-icon-yolo"></i>
-            <span>YOLO Boxes</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblLayerUnet" title="Toggle U-Net Pixel Segmentation Contour &amp; Keypoints">
-            <input type="checkbox" id="chkLayerUnet" checked>
-            <i class="fa-solid fa-draw-polygon layer-icon-unet"></i>
-            <span>U-Net Masks</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblLayerFusion" title="Toggle Fused Boundary Fill &amp; Multi-Model Overlay">
-            <input type="checkbox" id="chkLayerFusion" checked>
-            <i class="fa-solid fa-cubes-stacked layer-icon-fusion"></i>
-            <span>Fused Boundaries</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblLayerVerify" title="Toggle Acoustic Verification Badges">
-            <input type="checkbox" id="chkLayerVerify" checked>
-            <i class="fa-solid fa-shield-halved layer-icon-verify"></i>
-            <span>Verification</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblLayerIds" title="Toggle Target ID Badges &amp; Dual-Model Provenance">
-            <input type="checkbox" id="chkLayerIds" checked>
-            <i class="fa-solid fa-tag layer-icon-ids"></i>
-            <span>Target IDs</span>
-          </label>
-          <div class="layer-bar-actions" style="margin-left: auto; display: flex; gap: 6px;">
-            <button class="layer-quick-btn active" id="btnToggleAllLayers" title="Activate All Overlay Layers">
-              <i class="fa-solid fa-eye"></i> All On
-            </button>
-          </div>
-        </div>
+            <!-- Upload Dropzone Area -->
+            <div class="upload-drawer" id="uploadDropzone" onclick="if(event.target.id!=='sonarFileInput' && !event.target.closest('button')) { const inp = document.getElementById('sonarFileInput'); if(inp){ inp.value=''; inp.click(); } }">
+              <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" onchange="if(window.app && window.app.handleFileSelect){ window.app.handleFileSelect(event); }" />
 
-        <div class="waterfall-viewport">
-          <div class="nadir-track">
-            <div class="nadir-line"></div>
-            <div class="nadir-tag">NADIR TRACKLINE</div>
-          </div>
-          <div class="swath-tag port">&larr; PORT SWATH (75m)</div>
-          <div class="swath-tag stbd">(75m) STARBOARD SWATH &rarr;</div>
-          <div class="canvas-wrap">
-            <canvas id="sonarCanvas"></canvas>
-          </div>
-        </div>
-      </div>
+              <!-- Idle State -->
+              <div id="dropzoneIdleState" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--emerald-100); color: var(--emerald-700); display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <div class="upload-text">
+                    <span class="upload-title">Drop Side-Scan Sonar raster or GeoTIFF mosaic here</span>
+                    <span class="upload-sub">Supports single/dual channel SSS, GeoTIFF (.tif), PNG, JPG · Edge-first offline processing</span>
+                  </div>
+                </div>
+                <button class="btn-emerald" type="button"><i class="fa-solid fa-folder-open"></i> Browse Files</button>
+              </div>
 
-      <!-- Collapsible / Togglable GIS Map View -->
-      <div class="glass-panel map-panel" id="cardMap" style="display: none;">
-        <div class="panel-header">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Georeferenced WGS84 Target Map</span>
-            <span class="panel-tag green">EPSG:4326 (WGS84)</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="panel-tag gray" id="mapTargetCount">0 Targets Plotted</span>
-            <button class="panel-btn" id="btnFitMap" title="Focus All Georeferenced Targets">
-              <i class="fa-solid fa-expand"></i> Focus All
-            </button>
-            <button class="panel-btn" id="btnToggleSwath" title="Toggle Sonar Swath & Nadir Trackline">
-              <i class="fa-solid fa-route"></i> Swath
-            </button>
-          </div>
-        </div>
+              <!-- Complete State -->
+              <div id="dropzoneCompleteState" style="display: none; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--emerald-500); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                  <div>
+                    <div class="upload-title" id="completeTitle" style="color: var(--emerald-800);">✔ Analysis complete: 2 targets</div>
+                    <div class="upload-sub" id="completeMeta" style="font-family: var(--font-mono);">ID: SURVEY_053E90C0 · 342.55ms · Accuracy: 98.7%</div>
+                  </div>
+                </div>
+                <button class="gis-btn" id="btnAnalyzeAnother" type="button"><i class="fa-solid fa-rotate-right"></i> Analyze Another</button>
+              </div>
 
-        <!-- Local Marine GIS Layer Selector Bar (Offline-Native) -->
-        <div class="layer-selector-bar" id="gisLayersBar">
-          <span class="layer-bar-title"><i class="fa-solid fa-layer-group"></i> Local GIS:</span>
-          <label class="layer-toggle-btn active" id="lblGisReefs" title="Toggle Coral Reef Sanctuaries">
-            <input type="checkbox" id="chkGisReefs" checked>
-            <i class="fa-solid fa-gem" style="color: #f43f5e;"></i>
-            <span>Coral Reefs</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblGisMPA" title="Toggle Marine Protected Areas (MPAs)">
-            <input type="checkbox" id="chkGisMPA" checked>
-            <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i>
-            <span>MPAs</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblGisSeagrass" title="Toggle Inshore Seagrass Beds">
-            <input type="checkbox" id="chkGisSeagrass" checked>
-            <i class="fa-solid fa-seedling" style="color: #84cc16;"></i>
-            <span>Seagrass</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblGisCables" title="Toggle Submarine Fiber Cables & Pipelines">
-            <input type="checkbox" id="chkGisCables" checked>
-            <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i>
-            <span>Subsea Infra</span>
-          </label>
-          <label class="layer-toggle-btn active" id="lblGisShipping" title="Toggle Deepwater Traffic Lanes">
-            <input type="checkbox" id="chkGisShipping" checked>
-            <i class="fa-solid fa-ship" style="color: #38bdf8;"></i>
-            <span>Shipping Lanes</span>
-          </label>
-        </div>
-
-        <div class="map-viewport">
-          <div id="leafletMap"></div>
-          <div class="map-coords-hud" id="mapCoordsHud">
-            <i class="fa-solid fa-crosshairs"></i> Cursor: <b>42.74740° N, 73.79457° W</b> &nbsp;|&nbsp; Datum: <span style="color:#00f0ff;">WGS84 (EPSG:4326)</span>
-          </div>
-          <div class="map-legend-overlay">
-            <span class="legend-chip"><span class="legend-dot red"></span> High Risk</span>
-            <span class="legend-chip"><span class="legend-dot yellow"></span> Med Risk</span>
-            <span class="legend-chip"><span class="legend-dot green"></span> Low Risk</span>
-            <span class="legend-chip"><span class="legend-line"></span> Nadir Track</span>
-            <span class="legend-chip" style="color:#f43f5e;"><i class="fa-solid fa-gem"></i> Reef</span>
-            <span class="legend-chip" style="color:#10b981;"><i class="fa-solid fa-shield-halved"></i> MPA</span>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Column 3: Target Inspector & AI Explainability Stage -->
-    <aside class="right-stage">
-
-      <!-- Sub-Panel 1: Target Inspector -->
-      <div class="glass-panel inspector-panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fa-solid fa-crosshairs"></i> Target Inspector</span>
-          <span class="panel-tag cyan" id="inspectorTargetCount">PARALLEL DUAL-PATH</span>
-        </div>
-        <div class="panel-subheader">
-          <span class="sub-hint"><i class="fa-solid fa-arrow-pointer"></i> Click target to focus &amp; inspect</span>
-          <span class="sub-status" id="inspectorFilterHint">All Targets</span>
-        </div>
-
-        <!-- Target Sort & Filter Controls -->
-        <div class="inspector-sort-bar">
-          <span class="sort-lbl"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort by:</span>
-          <select id="targetSortSelect" class="sort-select">
-            <option value="priority" selected>⚡ Inspection Priority (Highest)</option>
-            <option value="confidence">🎯 AI Confidence (Highest)</option>
-            <option value="hazard">⚠️ Hazard Risk (Highest)</option>
-            <option value="type">🏷️ Debris Type</option>
-            <option value="extent">📐 Object Extent (Largest)</option>
-          </select>
-        </div>
-
-        <div class="target-card-list" id="targetListContainer">
-          <!-- Rendered dynamically by app.js -->
-        </div>
-      </div>
-
-      <!-- Sub-Panel 2: AI Hydrographic Explainability -->
-      <div class="glass-panel explainability-panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fa-solid fa-brain"></i> AI Hydrographic Explainability</span>
-          <span class="panel-tag green" id="explainabilityStatusTag">ACOUSTIC INFERENCE</span>
-        </div>
-        <div class="explainability-body">
-          <div class="explain-card">
-            <div class="explain-card-header">
-              <span class="explain-card-title"><i class="fa-solid fa-file-waveform"></i> Executive Assessment</span>
-              <span class="sub-chip" id="targetClassChip">Awaiting Selection</span>
-            </div>
-            <p class="narrative-text" id="targetNarrative">
-              Select or hover any detected seabed target to inspect acoustic backscatter morphology, shadow verification, and intervention protocols.
-            </p>
-          </div>
-
-          <div class="explain-card">
-            <div class="explain-card-header">
-              <span class="explain-card-title"><i class="fa-solid fa-microchip"></i> Acoustic Verification Telemetry</span>
-            </div>
-            <div class="physics-details" id="targetPhysicsDetails">
-              <div class="physics-placeholder">
-                <i class="fa-solid fa-wave-square"></i>
-                <span>Acoustic verification telemetry standing by</span>
+              <!-- Rejection State -->
+              <div id="dropzoneRejectState" style="display: none; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--rose-danger); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                  </div>
+                  <div>
+                    <div class="upload-title" style="color: var(--rose-danger);">NOT A SIDE-SCAN SONAR IMAGE</div>
+                    <div class="upload-sub" id="rejectMetaReason">Optical chromatic spectrum detected. SSS requires acoustic backscatter reverberation data.</div>
+                  </div>
+                </div>
+                <button class="gis-btn" id="btnRejectBrowse" type="button"><i class="fa-solid fa-folder-open"></i> Browse Sonar</button>
               </div>
             </div>
           </div>
 
-          <div class="action-rec-wrap" id="targetActionRec">
-            <div class="action-rec-badge idle">
-              <i class="fa-solid fa-compass"></i> Awaiting target selection from inspector list.
+          <!-- 3. Side-Scan Sonar Waterfall Scan Viewer Card -->
+          <div class="clean-card sonar-viewer-card" id="cardWaterfall">
+            <div class="sonar-viewer-toolbar">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="card-title"><i class="fa-solid fa-water" style="color: var(--emerald-600);"></i> Side-Scan Sonar Waterfall Scan</span>
+                <span class="badge-pill confirmed" style="font-size: 0.65rem;">DUAL CHANNEL</span>
+              </div>
+
+              <!-- View Mode Toggle Buttons -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="sonar-pills-group" id="viewModeContainer">
+                  <button class="sonar-pill-btn" data-mode="raw" id="btnModeRaw"><i class="fa-solid fa-wave-square"></i> Raw Scan</button>
+                  <button class="sonar-pill-btn" data-mode="enhanced" id="btnModeEnhanced"><i class="fa-solid fa-wand-magic-sparkles"></i> Enhanced</button>
+                  <button class="sonar-pill-btn active" data-mode="overlay" id="btnModeOverlay"><i class="fa-solid fa-layer-group"></i> Detections &amp; Masks</button>
+                </div>
+                <span class="meta-pill"><i class="fa-solid fa-ruler-horizontal"></i> Range 200m</span>
+              </div>
+            </div>
+
+            <!-- Layer Control Bar -->
+            <div class="layer-control-bar" id="layerControlBar" style="background: var(--bg-card-subtle); border-radius: var(--radius-sm); padding: 6px 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.74rem;">
+              <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-sliders"></i> Layers:</span>
+              <label class="layer-toggle-btn active" id="lblLayerYolo">
+                <input type="checkbox" id="chkLayerYolo" checked>
+                <i class="fa-solid fa-vector-square" style="color: var(--emerald-600);"></i>
+                <span>YOLO Boxes</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblLayerUnet">
+                <input type="checkbox" id="chkLayerUnet" checked>
+                <i class="fa-solid fa-draw-polygon" style="color: var(--purple-accent);"></i>
+                <span>U-Net Masks</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblLayerFusion">
+                <input type="checkbox" id="chkLayerFusion" checked>
+                <i class="fa-solid fa-cubes-stacked" style="color: var(--sky-blue);"></i>
+                <span>Fused</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblLayerVerify">
+                <input type="checkbox" id="chkLayerVerify" checked>
+                <i class="fa-solid fa-shield-halved" style="color: var(--emerald-500);"></i>
+                <span>Verification</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblLayerIds">
+                <input type="checkbox" id="chkLayerIds" checked>
+                <i class="fa-solid fa-tag" style="color: var(--amber-warn);"></i>
+                <span>Target IDs</span>
+              </label>
+              <div style="margin-left: auto;">
+                <button class="gis-btn active" id="btnToggleAllLayers" style="padding: 2px 8px; font-size: 0.7rem;"><i class="fa-solid fa-eye"></i> All On</button>
+              </div>
+            </div>
+
+            <!-- Sonar Viewport Canvas -->
+            <div class="sonar-canvas-frame">
+              <div class="waterfall-viewport" style="width: 100%; height: 100%; position: relative;">
+                <div class="nadir-track">
+                  <div class="nadir-line"></div>
+                  <div class="nadir-tag">NADIR TRACKLINE</div>
+                </div>
+                <div class="swath-tag port">&larr; PORT SWATH (75m)</div>
+                <div class="swath-tag stbd">(75m) STARBOARD SWATH &rarr;</div>
+                <div class="canvas-wrap" style="width: 100%; height: 100%;">
+                  <canvas id="sonarCanvas"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coordinate & Scale Footer -->
+            <div class="sonar-telemetry-bar">
+              <div>
+                <i class="fa-solid fa-crosshairs" style="color: var(--emerald-400);"></i>
+                <span>Lat <b>25.7724° N</b> · Lon <b>-76.9597° W</b> · Depth <b>442m</b> · <b>WGS84</b></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span>Scale: <b>100 m</b></span>
+                <span>Swath: <b>150 m (Port/Stbd)</b></span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-    </aside>
-  </main>
+          <!-- 4. Pipeline Stepper Progress Card -->
+          <div class="clean-card pipeline-stepper-card">
+            <div class="pipeline-header">
+              <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-network-wired" style="color: var(--emerald-600);"></i> Autonomous Detection Pipeline Monitor</span>
+              <span class="badge-pill confirmed" style="font-size: 0.68rem;">PARALLEL DUAL-PATH</span>
+            </div>
+
+            <div class="pipeline-stepper-track" id="pipelineStepper">
+              <div class="step-node completed" id="stepUpload">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Unfolding</span>
+                <span class="step-time" id="timeStepUpload">0.05s</span>
+              </div>
+              <div class="step-node completed" id="stepPrep">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Preprocessing</span>
+                <span class="step-time" id="timeStepPrep">0.08s</span>
+              </div>
+              <div class="step-node active" id="stepYolo">
+                <div class="step-circle">3</div>
+                <span class="step-name">Parallel YOLOv8-Net</span>
+                <span class="step-time" id="timeStepYolo">0.14s</span>
+              </div>
+              <div class="step-node completed" id="stepUnet">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Fusion Engine</span>
+                <span class="step-time" id="timeStepFusion">0.03s</span>
+              </div>
+              <div class="step-node completed" id="stepAuto">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Verification</span>
+                <span class="step-time" id="timeStepVerify">0.01s</span>
+              </div>
+              <div class="step-node completed" id="stepGeo">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Geotagging</span>
+                <span class="step-time" id="timeStepGeo">0.01s</span>
+              </div>
+              <div class="step-node completed" id="stepReport">
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                <span class="step-name">Report Ready</span>
+                <span class="step-time" id="timeStepReport">0.02s</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Real-Time Detection Summary KPI Strip -->
+          <div class="clean-card detection-summary-bar" style="margin-bottom: 20px;">
+            <div class="card-header-row" style="margin-bottom: 14px;">
+              <div>
+                <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-simple" style="color: var(--emerald-600);"></i> Autonomous Detection Summary &amp; Survey KPIs</span>
+                <div class="card-subtitle">Live dual-path acoustic target inventory and geolocated marine hazards</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge-pill confirmed">● Live Swath Synced</span>
+                <span class="meta-pill"><i class="fa-solid fa-crosshairs"></i> WGS84 Precision</span>
+              </div>
+            </div>
+
+            <div class="stat-kpi-row summary-full-width" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">TOTAL TARGETS</span>
+                <span class="stat-kpi-val" id="kpiTotal">6</span>
+                <span class="stat-kpi-trend">↑ 100% Ingested</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">CONFIRMED DEBRIS</span>
+                <span class="stat-kpi-val" id="kpiConfirmed" style="color: var(--emerald-700);">4</span>
+                <span class="stat-kpi-trend" style="color: var(--emerald-600);">✓ Verified Acoustics</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">SUSPICIOUS ANOMALIES</span>
+                <span class="stat-kpi-val" id="kpiSuspicious" style="color: var(--amber-warn);">2</span>
+                <span class="stat-kpi-trend" style="color: var(--amber-warn);">⚠ Flagged for HITL</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">CRITICAL / HIGH RISK</span>
+                <span class="stat-kpi-val" id="kpiHighRisk" style="color: var(--rose-danger);">3</span>
+                <span class="stat-kpi-trend" style="color: var(--rose-danger);">⚡ Urgent Inspection</span>
+              </div>
+              <div class="stat-kpi-box">
+                <span class="stat-kpi-lbl">GEODETIC DATUM</span>
+                <span class="stat-kpi-val" id="kpiDatumVal" style="font-size: 1.05rem; color: var(--sky-blue); font-family: var(--font-mono);">WGS84</span>
+                <span class="stat-kpi-trend">EPSG:4326 Water Body</span>
+              </div>
+            </div>
+
+            <!-- Hidden KPI storage for compatibility -->
+            <div style="display: none;">
+              <span id="kpiBothCount">0</span>
+              <span id="kpiYoloOnlyCount">0</span>
+              <span id="kpiUnetOnlyCount">0</span>
+              <span id="kpiTotalDebris">0</span>
+              <span id="kpiCriticalCount">0</span>
+              <span id="kpiHighCount">0</span>
+              <span id="kpiMedCount">0</span>
+              <span id="kpiLowCount">0</span>
+              <span id="hpDebrisScore">0</span>
+              <span id="hpDebrisLevel">LOW</span>
+              <div id="highestPriorityCard"></div>
+              <span id="telemetryAccuracyVal">98.7%</span>
+              <circle id="accuracyGaugeCircle"></circle>
+              <span id="pillYolo"></span>
+              <span id="pillUnet"></span>
+              <span id="pillAuto"></span>
+              <span id="pillGeo"></span>
+              <button id="btnExportCSV"></button>
+              <button id="btnOpenReport"></button>
+            </div>
+          </div>
+
+          <!-- 6. Ocean Debris GIS & Geospatial Intelligence Map Card -->
+          <div class="clean-card gis-map-card" id="cardMap">
+            <div class="gis-map-header">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="card-title"><i class="fa-solid fa-map-location-dot" style="color: var(--emerald-600);"></i> Ocean Debris GIS &amp; Geospatial Intelligence</span>
+                <span class="badge-pill confirmed">● OFFLINE READY</span>
+                <span class="meta-pill" style="padding: 2px 8px; font-size: 0.68rem;">WGS84 (EPSG:4326)</span>
+              </div>
+
+              <!-- GIS Map Controls -->
+              <div class="gis-toolbar-btns">
+                <button class="gis-btn" id="btnFocusCurrentScan" title="Focus Current Input Image Debris" onclick="if(window.gisMap) window.gisMap.fitCurrentScan(); else if(window.app && window.app.map) window.app.map.fitCurrentScan();">
+                  <i class="fa-solid fa-crosshairs" style="color: var(--sky-blue);"></i>
+                  <span>Current Input</span>
+                </button>
+                <button class="gis-btn active" id="btnFitEntireOcean" title="View Cumulative Entire Ocean Survey Map" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();">
+                  <i class="fa-solid fa-globe" style="color: var(--emerald-600);"></i>
+                  <span>Entire Ocean Map</span>
+                </button>
+                <button class="gis-btn" id="btnOpenBatchModal" title="Batch Process SSS Imagery Folder">
+                  <i class="fa-solid fa-folder-plus" style="color: var(--purple-accent);"></i>
+                  <span>Batch Import</span>
+                </button>
+                <button class="gis-btn" id="btnExportGisMenu" title="Export GIS Intelligence (GeoJSON / CSV / KML)">
+                  <i class="fa-solid fa-file-export" style="color: var(--emerald-600);"></i>
+                  <span>Export GIS</span>
+                </button>
+                <button class="gis-btn" id="btnFitMap" title="Focus All Georeferenced Targets" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();">
+                  <i class="fa-solid fa-expand"></i>
+                  <span>Fit All</span>
+                </button>
+                <button class="gis-btn" id="btnToggleSwath" title="Toggle Sonar Swath &amp; Nadir Trackline">
+                  <i class="fa-solid fa-water"></i>
+                  <span>Swath</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- GIS Stats Bar -->
+            <div class="gis-stats-bar" style="display: flex; align-items: center; justify-content: space-around; background: #ffffff; border-bottom: 1px solid var(--border-light); padding: 8px 14px; font-size: 0.78rem;">
+              <div><span style="color: var(--text-muted);">Targets:</span> <b id="gisStatTargets" style="color: var(--sky-blue); font-family: var(--font-mono);">0</b></div>
+              <div><span style="color: var(--text-muted);">Verified:</span> <b id="gisStatVerified" style="color: var(--emerald-600); font-family: var(--font-mono);">0</b></div>
+              <div><span style="color: var(--text-muted);">Clusters:</span> <b id="gisStatClusters" style="color: var(--purple-accent); font-family: var(--font-mono);">0</b></div>
+              <div><span style="color: var(--text-muted);">Surveyed Area:</span> <b id="gisStatArea" style="color: var(--amber-warn); font-family: var(--font-mono);">0.0 km²</b></div>
+              <div><span style="color: var(--text-muted);">Images:</span> <b id="gisStatImages" style="color: var(--emerald-700); font-family: var(--font-mono);">0</b></div>
+            </div>
+
+            <!-- GIS Spatial Filter Bar -->
+            <div class="gis-filter-bar" style="display: flex; align-items: center; gap: 8px; background: var(--bg-card-subtle); padding: 8px 14px; border-bottom: 1px solid var(--border-light); font-size: 0.76rem;">
+              <div style="display: flex; align-items: center; gap: 6px; flex: 1; background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 4px 10px;">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--text-dim);"></i>
+                <input type="text" id="gisSearchInput" placeholder="Search Target ID (SS-0001), Class, or Cluster..." style="border: none; outline: none; background: transparent; width: 100%; font-size: 0.75rem; color: var(--text-primary);" />
+              </div>
+              <select id="gisClassFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+                <option value="all">All Classes</option>
+                <option value="ghost_net">Ghost Net</option>
+                <option value="fishing_gear">Fishing Gear</option>
+                <option value="plastic">Plastic</option>
+                <option value="metal">Metal / Container</option>
+                <option value="rope">Rope</option>
+                <option value="unknown">Unknown</option>
+              </select>
+              <select id="gisConfFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+                <option value="0.0">All Confidence</option>
+                <option value="0.5">≥ 50% Conf</option>
+                <option value="0.7">≥ 70% Conf</option>
+                <option value="0.8">≥ 80% Conf</option>
+                <option value="0.9">≥ 90% Conf</option>
+              </select>
+              <button id="btnRecalcClusters" class="gis-btn" style="color: var(--purple-accent); font-weight: 700;">
+                <i class="fa-solid fa-shapes"></i> Re-Cluster
+              </button>
+            </div>
+
+            <!-- Marine GIS Layers Bar -->
+            <div class="layer-selector-bar" id="gisLayersBar" style="padding: 6px 14px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; font-size: 0.74rem;">
+              <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-layer-group"></i> Local GIS:</span>
+              <label class="layer-toggle-btn active" id="lblGisReefs">
+                <input type="checkbox" id="chkGisReefs" checked>
+                <i class="fa-solid fa-gem" style="color: var(--rose-danger);"></i>
+                <span>Coral Reefs</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblGisMPA">
+                <input type="checkbox" id="chkGisMPA" checked>
+                <i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i>
+                <span>MPAs</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblGisSeagrass">
+                <input type="checkbox" id="chkGisSeagrass" checked>
+                <i class="fa-solid fa-seedling" style="color: var(--emerald-500);"></i>
+                <span>Seagrass</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblGisCables">
+                <input type="checkbox" id="chkGisCables" checked>
+                <i class="fa-solid fa-bolt" style="color: var(--amber-warn);"></i>
+                <span>Subsea Infra</span>
+              </label>
+              <label class="layer-toggle-btn active" id="lblGisShipping">
+                <input type="checkbox" id="chkGisShipping" checked>
+                <i class="fa-solid fa-ship" style="color: var(--sky-blue);"></i>
+                <span>Shipping Lanes</span>
+              </label>
+            </div>
+
+            <!-- Leaflet Container -->
+            <div class="map-viewport" style="position: relative; width: 100%; height: 500px; min-height: 500px;">
+              <div id="leafletMap" style="width: 100%; height: 500px; min-height: 500px;"></div>
+              <div class="map-coords-hud" id="mapCoordsHud">
+                <i class="fa-solid fa-crosshairs"></i> Cursor: <b>30.17350° N, 87.82500° W</b> &nbsp;|&nbsp; Datum: <span style="color: var(--emerald-400);">WGS84 (EPSG:4326)</span>
+              </div>
+              <div class="map-legend-overlay">
+                <span class="legend-chip"><span class="legend-dot red"></span> High Risk</span>
+                <span class="legend-chip"><span class="legend-dot yellow"></span> Med Risk</span>
+                <span class="legend-chip"><span class="legend-dot green"></span> Low Risk</span>
+                <span class="legend-chip"><span class="legend-line"></span> Trackline</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Recent Survey Reports Table -->
+          <div class="clean-card" style="padding: 18px 20px;">
+            <div class="card-header-row">
+              <div>
+                <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-table-list" style="color: var(--emerald-600);"></i> Recent Survey Reports &amp; Logged Targets</span>
+                <div class="card-subtitle">Indexed detections across current mission session</div>
+              </div>
+              <button class="gis-btn" onclick="document.getElementById('btnOpenReportTop').click();"><i class="fa-solid fa-arrow-up-right-from-square"></i> Full Report</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-light); text-align: left; color: var(--text-muted);">
+                    <th style="padding: 8px 12px; font-weight: 700;">Target ID</th>
+                    <th style="padding: 8px 12px; font-weight: 700;">Type</th>
+                    <th style="padding: 8px 12px; font-weight: 700;">Status</th>
+                    <th style="padding: 8px 12px; font-weight: 700;">AI Confidence</th>
+                    <th style="padding: 8px 12px; font-weight: 700;">Coordinates</th>
+                    <th style="padding: 8px 12px; font-weight: 700; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-800);">#TGT-001</td>
+                    <td style="padding: 10px 12px; font-weight: 600;">Engine Debris</td>
+                    <td style="padding: 10px 12px;"><span class="badge-pill confirmed">● Confirmed</span></td>
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-600);">98.0%</td>
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-secondary);">25.7724° N, -76.9597° W</td>
+                    <td style="padding: 10px 12px; text-align: right;"><button class="gis-btn" style="padding: 2px 8px; font-size: 0.7rem;" onclick="if(window.app) window.app.onTargetSelected('TGT_001', {fly:true});">Inspect</button></td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-800);">#TGT-002</td>
+                    <td style="padding: 10px 12px; font-weight: 600;">Fishing Net / Ghost Gear</td>
+                    <td style="padding: 10px 12px;"><span class="badge-pill suspicious">● Suspicious</span></td>
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--amber-warn);">72.3%</td>
+                    <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-secondary);">25.7731° N, -76.9582° W</td>
+                    <td style="padding: 10px 12px; text-align: right;"><button class="gis-btn" style="padding: 2px 8px; font-size: 0.7rem;" onclick="if(window.app) window.app.onTargetSelected('TGT_002', {fly:true});">Inspect</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =========================================================
+             Right Inspector Column
+             ========================================================= -->
+        <aside class="inspector-column">
+
+          <!-- 1. Target Inspector Sub-Panel -->
+          <div class="clean-card">
+            <div class="card-header-row" style="margin-bottom: 8px;">
+              <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> Target Inspector</span>
+              <span class="badge-pill confirmed" id="inspectorTargetCount">PARALLEL DUAL-PATH</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 10px;">
+              <span><i class="fa-solid fa-arrow-pointer"></i> Click target to focus</span>
+              <span id="inspectorFilterHint">All Targets</span>
+            </div>
+
+            <!-- Target Sort Dropdown -->
+            <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted);">Sort by:</span>
+              <select id="targetSortSelect" style="flex: 1; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; color: var(--text-primary); outline: none;">
+                <option value="priority" selected>⚡ Inspection Priority (Highest)</option>
+                <option value="confidence">🎯 AI Confidence (Highest)</option>
+                <option value="hazard">⚠️ Hazard Risk (Highest)</option>
+                <option value="type">🏷️ Debris Type</option>
+                <option value="extent">📐 Object Extent (Largest)</option>
+              </select>
+            </div>
+
+            <!-- Rendered Target Card Items -->
+            <div class="target-list-scroll" id="targetListContainer">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+          <!-- 2. AI Hydrographic Explainability Sub-Panel -->
+          <div class="clean-card">
+            <div class="card-header-row" style="margin-bottom: 10px;">
+              <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-brain" style="color: var(--emerald-600);"></i> AI Explainability</span>
+              <span class="badge-pill confirmed" id="explainabilityStatusTag">ACOUSTIC INFERENCE</span>
+            </div>
+
+            <div class="explainability-box">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-weight: 700; color: var(--emerald-900);"><i class="fa-solid fa-file-waveform"></i> Executive Assessment</span>
+                <span class="badge-pill confirmed" id="targetClassChip" style="font-size: 0.62rem;">Awaiting Selection</span>
+              </div>
+              <p id="targetNarrative" style="margin: 0;">
+                Select or hover any detected seabed target to inspect acoustic backscatter morphology, shadow verification, and intervention protocols.
+              </p>
+            </div>
+
+            <!-- Physics Telemetry Container -->
+            <div id="targetPhysicsDetails">
+              <div class="physics-placeholder" style="text-align: center; padding: 14px; color: var(--text-muted); font-size: 0.76rem;">
+                <i class="fa-solid fa-wave-square" style="font-size: 1.2rem; margin-bottom: 4px; display: block; color: var(--emerald-500);"></i>
+                <span>Acoustic verification telemetry standing by</span>
+              </div>
+            </div>
+
+            <!-- Action Recommendation Protocol -->
+            <div class="action-rec-wrap" id="targetActionRec" style="margin-top: 10px;">
+              <div class="action-rec-badge idle" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-compass"></i> Awaiting target selection from inspector list.
+              </div>
+            </div>
+
+            <!-- Report Button inside Explainability -->
+            <div style="margin-top: 14px;">
+              <button class="btn-emerald" style="width: 100%; justify-content: center;" onclick="document.getElementById('btnOpenReportTop').click();">
+                <i class="fa-solid fa-file-waveform"></i> Generate Intelligence Report
+              </button>
+            </div>
+          </div>
+
+
+
+          <!-- 4. Recent Activity Stream Card -->
+          <div class="clean-card">
+            <div class="card-header-row" style="margin-bottom: 12px;">
+              <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--emerald-600);"></i> Recent Activity</span>
+              <span style="font-size: 0.70rem; color: var(--text-muted);">Real-time stream</span>
+            </div>
+
+            <div class="activity-stream">
+              <div class="activity-row">
+                <span class="activity-dot" style="background: var(--emerald-500);"></span>
+                <div class="activity-content">
+                  <span class="activity-title">Sonar Scan Ingested &amp; Enhanced</span>
+                  <span class="activity-time">Just now · 24 targets identified</span>
+                </div>
+              </div>
+              <div class="activity-row">
+                <span class="activity-dot" style="background: var(--sky-blue);"></span>
+                <div class="activity-content">
+                  <span class="activity-title">YOLO11 + U-Net Candidate Fusion</span>
+                  <span class="activity-time">2 mins ago · High-recall consensus</span>
+                </div>
+              </div>
+              <div class="activity-row">
+                <span class="activity-dot" style="background: var(--purple-accent);"></span>
+                <div class="activity-content">
+                  <span class="activity-title">DBSCAN Spatial Clustering Updated</span>
+                  <span class="activity-time">5 mins ago · 3 active debris clusters</span>
+                </div>
+              </div>
+              <div class="activity-row">
+                <span class="activity-dot" style="background: var(--amber-warn);"></span>
+                <div class="activity-content">
+                  <span class="activity-title">WGS84 Geotagger Calibrated</span>
+                  <span class="activity-time">12 mins ago · Slant range corrected</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Target Review & Feedback Box -->
+          <div class="clean-card" id="reviewSystemPanel">
+            <div class="card-header-row" style="margin-bottom: 8px;">
+              <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-comment-dots" style="color: var(--emerald-600);"></i> Target Review System</span>
+              <span class="badge-pill confirmed" id="reviewTargetBadge">HITL AI</span>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <label for="reviewTargetSelect" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">TARGET:</label>
+              <select id="reviewTargetSelect" style="width: 100%; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-primary);">
+                <option value="">Awaiting targets...</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <label for="reviewCommentBox" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Feedback / Operator Correction:</label>
+              <textarea id="reviewCommentBox" rows="2" placeholder="e.g. 'Fishing net snagged on rocks, not engine debris'" style="width: 100%; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 8px; font-size: 0.75rem; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div class="review-quick-chips" style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px;">
+              <span class="chip-hint-lbl" style="font-size: 0.68rem; color: var(--text-muted);">Quick Tags:</span>
+              <button type="button" class="quick-chip" data-text="This is actually a fishing net, not a pipeline or cable" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-pill); padding: 2px 8px; font-size: 0.68rem; cursor: pointer;">Net</button>
+              <button type="button" class="quick-chip" data-text="This is actually a pipeline or subsea cable" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-pill); padding: 2px 8px; font-size: 0.68rem; cursor: pointer;">Pipeline</button>
+              <button type="button" class="quick-chip" data-text="This is metallic engine debris" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-pill); padding: 2px 8px; font-size: 0.68rem; cursor: pointer;">Engine</button>
+              <button type="button" class="quick-chip" data-text="False alarm. Natural seabed rock clutter" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-pill); padding: 2px 8px; font-size: 0.68rem; cursor: pointer;">False Alarm</button>
+            </div>
+
+            <div id="reviewStatusMsg" class="review-status-msg" style="display: none; padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.74rem; margin-bottom: 8px;"></div>
+
+            <button type="button" class="btn-emerald" id="btnSubmitReviewComment" style="width: 100%; justify-content: center;">
+              <i class="fa-solid fa-paper-plane"></i> Submit Feedback
+            </button>
+          </div>
+
+        </aside>
+
+      </main>
+
+    </div>
+  </div>
 
   <!-- =========================================================
        Explainable "Why this score?" Modal Drawer
        ========================================================= -->
   <div class="modal-backdrop" id="scoreExplanationModal" style="display: none;">
-    <div class="modal-card modal-md score-modal">
+    <div class="modal-card" style="max-width: 600px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle"><i class="fa-solid fa-scale-balanced"></i> EXPLAINABLE RISK &amp; PRIORITY AUDIT</div>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;"><i class="fa-solid fa-scale-balanced"></i> EXPLAINABLE RISK &amp; PRIORITY AUDIT</div>
           <h2 class="modal-title" id="scoreModalTitle">Debris #D01 — Ghost Net</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseScoreModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseScoreModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body" id="scoreModalBody">
         <!-- Rendered dynamically by app.js -->
@@ -599,15 +814,13 @@
        Ablation Study Comparison Modal
        ========================================================= -->
   <div class="modal-backdrop" id="ablationStudyModal" style="display: none;">
-    <div class="modal-card modal-lg">
+    <div class="modal-card" style="max-width: 860px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">SCIENTIFIC ABLATION BENCHMARK</div>
-          <h2 class="modal-title"><i class="fa-solid fa-chart-line" style="color: var(--cyan-beam);"></i> Architectural Performance Comparison</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">SCIENTIFIC ABLATION BENCHMARK</div>
+          <h2 class="modal-title"><i class="fa-solid fa-chart-line" style="color: var(--emerald-600);"></i> Architectural Performance Comparison</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseAblationModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseAblationModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body" id="ablationModalContent">
         <!-- Rendered dynamically by app.js -->
@@ -619,444 +832,85 @@
        Hydrographic Mission Report Modal
        ========================================================= -->
   <div class="modal-backdrop" id="missionReportModal" style="display: none;">
-    <div class="modal-card modal-xl">
+    <div class="modal-card" style="max-width: 1040px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">MINISTRY OF EARTH SCIENCES · NATIONAL INSTITUTE OF OCEAN TECHNOLOGY</div>
-          <h2 class="modal-title"><i class="fa-solid fa-file-waveform" style="color: var(--cyan-beam);"></i> Hydrographic Survey Mission Intelligence Report</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">MINISTRY OF EARTH SCIENCES · NATIONAL INSTITUTE OF OCEAN TECHNOLOGY</div>
+          <h2 class="modal-title"><i class="fa-solid fa-file-waveform" style="color: var(--emerald-600);"></i> Hydrographic Survey Mission Intelligence Report</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="btn-ghost" id="btnPrintReport" title="Print or Save as PDF"><i class="fa-solid fa-print"></i> Print / PDF</button>
-          <button class="btn-ghost" id="btnDownloadHTML" title="Save Full Standalone HTML Dossier"><i class="fa-solid fa-file-arrow-down"></i> Save HTML</button>
-          <button class="btn-ghost" id="btnExportCSVModal" title="Download Debris Inventory CSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
-          <button class="modal-close" id="btnCloseReportModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        <div style="display: flex; gap: 8px;">
+          <button class="gis-btn" id="btnPrintReport" title="Print or Save as PDF"><i class="fa-solid fa-print"></i> Print / PDF</button>
+          <button class="gis-btn" id="btnDownloadHTML" title="Save Full Standalone HTML Dossier"><i class="fa-solid fa-file-arrow-down"></i> Save HTML</button>
+          <button class="gis-btn" id="btnExportCSVModal" title="Download Debris Inventory CSV"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+          <button class="gis-btn" id="btnCloseReportModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
 
       <div class="modal-body" id="modalReportContent">
-        <!-- 1. Side-by-Side Dual-Path Image Inspection Suite -->
-        <div class="report-section-title">
-          <i class="fa-solid fa-images"></i> Dual-Path Sonar Imagery Analysis Suite (Input vs AI Output)
+        <!-- Dual-Path Sonar Imagery Analysis Suite -->
+        <div class="card-title" style="font-size: 0.95rem; margin-bottom: 12px;">
+          <i class="fa-solid fa-images" style="color: var(--emerald-600);"></i> Dual-Path Sonar Imagery Analysis Suite (Input vs AI Output)
         </div>
-        <div class="report-img-grid">
-          <div class="report-img-card">
-            <div class="report-img-header">
-              <span><i class="fa-solid fa-wave-square"></i> RAW ACOUSTIC SCAN</span>
-              <span class="report-img-tag input">Input Image</span>
+        <div class="report-img-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
+          <div class="clean-card" style="padding: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px;">
+              <span>RAW ACOUSTIC SCAN</span>
+              <span class="badge-pill confirmed">Input</span>
             </div>
-            <div class="report-img-box">
-              <img id="reportRawImg" src="assets/samples/sample_engine_raw.jpg" alt="Raw Acoustic Input Sonar" />
-            </div>
-          </div>
-
-          <div class="report-img-card">
-            <div class="report-img-header">
-              <span><i class="fa-solid fa-wand-magic-sparkles"></i> CONTRAST EQUALIZED MOSAIC</span>
-              <span class="report-img-tag prep">Preprocessing</span>
-            </div>
-            <div class="report-img-box">
-              <img id="reportPrepImg" src="assets/samples/sample_engine_enhanced.jpg" alt="CLAHE Contrast Enhanced Sonar" />
+            <div style="height: 180px; background: #071527; border-radius: var(--radius-sm); overflow: hidden;">
+              <img id="reportRawImg" src="assets/samples/sample_engine_raw.jpg" alt="Raw Sonar" style="width:100%; height:100%; object-fit:cover;" />
             </div>
           </div>
-
-          <div class="report-img-card highlight">
-            <div class="report-img-header">
-              <span style="color:#00e676;"><i class="fa-solid fa-cubes-stacked"></i> PARALLEL YOLO + U-NET FUSED</span>
-              <span class="report-img-tag output">AI Output</span>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px;">
+              <span>CONTRAST ENHANCED</span>
+              <span class="badge-pill confirmed">Preprocessing</span>
             </div>
-            <div class="report-img-box">
-              <img id="reportOutImg" src="assets/samples/sample_engine_fused.jpg" alt="Parallel Dual-Path YOLO + U-Net AI Output" />
+            <div style="height: 180px; background: #071527; border-radius: var(--radius-sm); overflow: hidden;">
+              <img id="reportPrepImg" src="assets/samples/sample_engine_enhanced.jpg" alt="Enhanced Sonar" style="width:100%; height:100%; object-fit:cover;" />
+            </div>
+          </div>
+          <div class="clean-card" style="padding: 10px; border-color: var(--emerald-500);">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; color: var(--emerald-800);">
+              <span>PARALLEL YOLO + U-NET FUSED</span>
+              <span class="badge-pill confirmed">AI Output</span>
+            </div>
+            <div style="height: 180px; background: #071527; border-radius: var(--radius-sm); overflow: hidden;">
+              <img id="reportOutImg" src="assets/samples/sample_engine_fused.jpg" alt="Fused Sonar" style="width:100%; height:100%; object-fit:cover;" />
             </div>
           </div>
         </div>
 
-        <!-- 2. Executive Mission Summary KPI Grid -->
-        <div class="report-section-title">
-          <i class="fa-solid fa-gauge-high"></i> Executive Hydrographic Survey Telemetry
+        <!-- Comprehensive Target Inventory Table -->
+        <div class="card-title" style="font-size: 0.95rem; margin-bottom: 12px;">
+          <i class="fa-solid fa-table-list" style="color: var(--emerald-600);"></i> Comprehensive Debris Inventory &amp; Geodetic Intelligence
         </div>
-        <div class="report-meta-grid">
-          <div class="report-meta-card">
-            <div class="rm-lbl">MISSION ID</div>
-            <div class="rm-val cyan">SURVEY_54434B1B</div>
-          </div>
-          <div class="report-meta-card">
-            <div class="rm-lbl">TOTAL TARGETS FUSED</div>
-            <div class="rm-val green">6 Fused (3 Both | 3 U-Net | 0 YOLO)</div>
-          </div>
-          <div class="report-meta-card">
-            <div class="rm-lbl">HIGH-RECALL ACCURACY</div>
-            <div class="rm-val cyan">84.1% Mean Reliability</div>
-          </div>
-          <div class="report-meta-card">
-            <div class="rm-lbl">GEODETIC DATUM &amp; SWATH</div>
-            <div class="rm-val">UNREFERENCED · 75m Swath</div>
-          </div>
-        </div>
-
-        <!-- 3. Comprehensive Target Inventory Table -->
-        <div class="report-section-title">
-          <i class="fa-solid fa-table-list"></i> Comprehensive Debris Inventory &amp; Multi-Dimensional Intelligence (6 Objects)
-        </div>
-        <div class="ablation-table-wrap">
-          <table class="ablation-table">
+        <div style="overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius-md); margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
             <thead>
-              <tr>
-                <th>Target ID</th>
-                <th>Debris Taxonomy</th>
-                <th>Inspection Priority</th>
-                <th>AI Confidence</th>
-                <th>Hazard Risk</th>
-                <th>Dual Provenance</th>
-                <th>Acoustic Status</th>
-                <th>WGS84 Coordinates</th>
-                <th>Physical Dimensions</th>
+              <tr style="background: var(--bg-card-subtle); border-bottom: 1px solid var(--border-light); text-align: left; color: var(--text-muted);">
+                <th style="padding: 8px 12px;">Target ID</th>
+                <th style="padding: 8px 12px;">Debris Taxonomy</th>
+                <th style="padding: 8px 12px;">Inspection Priority</th>
+                <th style="padding: 8px 12px;">AI Confidence</th>
+                <th style="padding: 8px 12px;">Hazard Risk</th>
+                <th style="padding: 8px 12px;">Dual Provenance</th>
+                <th style="padding: 8px 12px;">Acoustic Status</th>
+                <th style="padding: 8px 12px;">WGS84 Coordinates</th>
               </tr>
             </thead>
             <tbody id="reportTableBody">
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#1 TGT_001</b></td>
-                <td><b>ENGINE DEBRIS</b></td>
-                <td><span class="score-pill prio-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>81/100</b> (CRITICAL)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">98%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 98%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>80/100</b> (HIGH)</span></td>
-                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
-                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">179m × 90m (16110 m²)</span></td>
-              </tr>
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#2 TGT_002</b></td>
-                <td><b>ENGINE DEBRIS</b></td>
-                <td><span class="score-pill prio-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>81/100</b> (CRITICAL)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">97%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 97%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>80/100</b> (HIGH)</span></td>
-                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
-                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">91m × 313m (28483 m²)</span></td>
-              </tr>
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#3 TGT_003</b></td>
-                <td><b>RIPRAP DEBRIS</b></td>
-                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>71/100</b> (HIGH)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">96%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 96%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-medium" style="padding: 2px 8px; font-size: 0.72rem;"><b>58/100</b> (MEDIUM)</span></td>
-                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
-                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">6m × 13m (78 m²)</span></td>
-              </tr>
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#4 TGT_004</b></td>
-                <td><b>FISHING NET</b></td>
-                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>75/100</b> (HIGH)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">72%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 72%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
-                <td><span class="provenance-tag unet">UNET ONLY</span></td>
-                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">181m × 146m (26426 m²)</span></td>
-              </tr>
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#5 TGT_005</b></td>
-                <td><b>FISHING NET</b></td>
-                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>75/100</b> (HIGH)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">71%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 71%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
-                <td><span class="provenance-tag unet">UNET ONLY</span></td>
-                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">181m × 150m (27150 m²)</span></td>
-              </tr>
-              <tr>
-                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#6 TGT_006</b></td>
-                <td><b>FISHING NET</b></td>
-                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>67/100</b> (HIGH)</span></td>
-                <td>
-                  <div class="accuracy-bar-wrap">
-                    <span class="mono" style="font-weight:700; color:#ffffff;">71%</span>
-                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 71%;"></div></div>
-                  </div>
-                </td>
-                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
-                <td><span class="provenance-tag unet">UNET ONLY</span></td>
-                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
-                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
-                <td><span class="mono">180m × 149m (26820 m²)</span></td>
-              </tr>
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
 
-        <!-- 4. Individual Target Detailed Intelligence Dossiers -->
-        <div class="report-section-title" style="margin-top: 28px;">
-          <i class="fa-solid fa-microchip"></i> Individual Target Hydrographic Dossiers &amp; Physics Telemetry
+        <!-- Target Dossier Cards -->
+        <div class="card-title" style="font-size: 0.95rem; margin-bottom: 12px;">
+          <i class="fa-solid fa-microchip" style="color: var(--emerald-600);"></i> Individual Target Hydrographic Dossiers &amp; Physics Telemetry
         </div>
-        <div class="report-dossier-grid" id="reportDossierGrid">
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#1 TGT_001 &mdash; ENGINE DEBRIS</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag both">YOLO + U-NET</span>
-                <span class="priority-badge critical">PRIORITY: 81/100</span>
-                <span class="hazard-badge high">HAZARD: 80/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 81/100 (CRITICAL) because it was classified as 'Engine Debris' with 97.6% AI detection confidence, large estimated extent (16110.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">81/100 (CRITICAL)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">98%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--coral-danger);">80/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">179m × 90m (16110 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.79</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#2 TGT_002 &mdash; ENGINE DEBRIS</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag both">YOLO + U-NET</span>
-                <span class="priority-badge critical">PRIORITY: 81/100</span>
-                <span class="hazard-badge high">HAZARD: 80/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 81/100 (CRITICAL) because it was classified as 'Engine Debris' with 96.9% AI detection confidence, large estimated extent (28483.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">81/100 (CRITICAL)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">97%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--coral-danger);">80/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">91m × 313m (28483 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.81</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#3 TGT_003 &mdash; RIPRAP DEBRIS</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag both">YOLO + U-NET</span>
-                <span class="priority-badge high">PRIORITY: 71/100</span>
-                <span class="hazard-badge medium">HAZARD: 58/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 71/100 (HIGH) because it was classified as 'Riprap Debris' with 96.0% AI detection confidence, large estimated extent (78.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">71/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">96%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--amber-warn);">58/100 (MEDIUM)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">6m × 13m (78 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.84</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#4 TGT_004 &mdash; FISHING NET</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag unet">UNET ONLY</span>
-                <span class="priority-badge high">PRIORITY: 75/100</span>
-                <span class="hazard-badge critical">HAZARD: 86/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 75/100 (HIGH) because it was classified as 'Fishing Net' with 72.3% AI detection confidence, large estimated extent (26426.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">75/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">72%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">181m × 146m (26426 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.65</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#5 TGT_005 &mdash; FISHING NET</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag unet">UNET ONLY</span>
-                <span class="priority-badge high">PRIORITY: 75/100</span>
-                <span class="hazard-badge critical">HAZARD: 86/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 75/100 (HIGH) because it was classified as 'Fishing Net' with 70.8% AI detection confidence, large estimated extent (27150.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">75/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">71%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">181m × 150m (27150 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.64</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="report-dossier-card">
-            <div class="report-dossier-header">
-              <span class="report-dossier-title">#6 TGT_006 &mdash; FISHING NET</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span class="provenance-tag unet">UNET ONLY</span>
-                <span class="priority-badge high">PRIORITY: 67/100</span>
-                <span class="hazard-badge critical">HAZARD: 86/100</span>
-              </div>
-            </div>
-            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
-              This target has been assigned an inspection priority of 67/100 (HIGH) because it was classified as 'Fishing Net' with 70.8% AI detection confidence, large estimated extent (26820.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
-            </div>
-            <div class="report-metric-pill-row">
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">67/100 (HIGH)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">AI DETECTION CONF</span>
-                <span class="report-metric-val" style="color:var(--emerald-safe);">71%</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">HAZARD RISK</span>
-                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">GEOLOCATION</span>
-                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">METRIC EXTENT</span>
-                <span class="report-metric-val">180m × 149m (26820 m²)</span>
-              </div>
-              <div class="report-metric-pill">
-                <span class="report-metric-lbl">VERIFY SCORE</span>
-                <span class="report-metric-val">0.55</span>
-              </div>
-            </div>
-          </div>
+        <div class="report-dossier-grid" id="reportDossierGrid" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Dynamically populated -->
         </div>
       </div>
     </div>
@@ -1066,292 +920,172 @@
        Target Structured Human Review & Correction Modal
        ========================================================= -->
   <div class="modal-backdrop" id="feedbackModal" style="display: none;">
-    <div class="modal-card feedback-modal-card" style="max-width: 680px;">
+    <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">HUMAN-IN-THE-LOOP REVIEW INTELLIGENCE ENGINE</div>
-          <h2 class="modal-title" style="font-size: 1.15rem;"><i class="fa-solid fa-user-check" style="color: var(--cyan-beam);"></i> Structured Acoustic Verification &amp; Error Correction</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">HUMAN-IN-THE-LOOP REVIEW INTELLIGENCE ENGINE</div>
+          <h2 class="modal-title"><i class="fa-solid fa-user-check" style="color: var(--emerald-600);"></i> Structured Acoustic Verification</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseFeedbackModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseFeedbackModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="modal-body" style="padding: 20px; max-height: 78vh; overflow-y: auto;">
-        <!-- Target Telemetry Summary Card -->
-        <div class="feedback-target-summary" id="feedbackTargetSummary" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.85rem;">
-          <!-- Dynamically populated -->
-        </div>
+      <div class="modal-body">
+        <div class="feedback-target-summary" id="feedbackTargetSummary" style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 0.82rem;"></div>
 
-        <!-- Structured Review Type Selector -->
         <div style="margin-bottom: 14px;">
-          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px;">
-            <i class="fa-solid fa-tags"></i> Select Review Verdict / Error Classification:
-          </label>
-          <div class="review-type-selector" id="reviewTypeSelector">
-            <button type="button" class="review-type-btn active" data-type="CORRECT">
-              <span class="review-type-label"><i class="fa-solid fa-check" style="color: #4ade80;"></i> Correct</span>
-              <span class="review-type-desc">Detection &amp; Class Accurate</span>
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Select Review Verdict / Error Classification:</label>
+          <div class="review-type-selector" id="reviewTypeSelector" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <button type="button" class="gis-btn active" data-type="CORRECT" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-check" style="color: var(--emerald-600);"></i> Correct
             </button>
-            <button type="button" class="review-type-btn" data-type="FALSE_POSITIVE">
-              <span class="review-type-label"><i class="fa-solid fa-ban" style="color: #f87171;"></i> False Positive</span>
-              <span class="review-type-desc">Hard Negative (Seabed Noise)</span>
+            <button type="button" class="gis-btn" data-type="FALSE_POSITIVE" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-ban" style="color: var(--rose-danger);"></i> False Positive
             </button>
-            <button type="button" class="review-type-btn" data-type="WRONG_CLASS">
-              <span class="review-type-label"><i class="fa-solid fa-shuffle" style="color: #fbbf24;"></i> Wrong Class</span>
-              <span class="review-type-desc">Misclassified Object Type</span>
+            <button type="button" class="gis-btn" data-type="WRONG_CLASS" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-shuffle" style="color: var(--amber-warn);"></i> Wrong Class
             </button>
-            <button type="button" class="review-type-btn" data-type="FALSE_NEGATIVE">
-              <span class="review-type-label"><i class="fa-solid fa-eye-slash" style="color: #f87171;"></i> False Negative</span>
-              <span class="review-type-desc">Missed Acoustic Target</span>
+            <button type="button" class="gis-btn" data-type="FALSE_NEGATIVE" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-eye-slash" style="color: var(--rose-danger);"></i> False Negative
             </button>
-            <button type="button" class="review-type-btn" data-type="POOR_BBOX">
-              <span class="review-type-label"><i class="fa-solid fa-vector-square" style="color: #38bdf8;"></i> Poor Bounding Box</span>
-              <span class="review-type-desc">Localization Shift</span>
+            <button type="button" class="gis-btn" data-type="POOR_BBOX" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-vector-square" style="color: var(--sky-blue);"></i> Poor Bounding Box
             </button>
-            <button type="button" class="review-type-btn" data-type="INCORRECT_MASK">
-              <span class="review-type-label"><i class="fa-solid fa-draw-polygon" style="color: #c084fc;"></i> Incorrect Mask</span>
-              <span class="review-type-desc">U-Net Segmentation Leak</span>
-            </button>
-            <button type="button" class="review-type-btn" data-type="DUPLICATE_DETECTION">
-              <span class="review-type-label"><i class="fa-solid fa-clone" style="color: #94a3b8;"></i> Duplicate</span>
-              <span class="review-type-desc">Redundant Proposal</span>
-            </button>
-            <button type="button" class="review-type-btn" data-type="UNKNOWN_OBJECT">
-              <span class="review-type-label"><i class="fa-solid fa-circle-question" style="color: #f43f5e;"></i> Unknown Object</span>
-              <span class="review-type-desc">Candidate Novel Class</span>
-            </button>
-            <button type="button" class="review-type-btn" data-type="SYSTEM_ERROR">
-              <span class="review-type-label"><i class="fa-solid fa-bug" style="color: #e2e8f0;"></i> System Error</span>
-              <span class="review-type-desc">Preprocessing / Sonar Issue</span>
+            <button type="button" class="gis-btn" data-type="INCORRECT_MASK" style="justify-content: flex-start; padding: 6px 10px;">
+              <i class="fa-solid fa-draw-polygon" style="color: var(--purple-accent);"></i> Incorrect Mask
             </button>
           </div>
         </div>
 
-        <!-- Corrected Object Class & Novel Class Input Row -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
           <div>
-            <label for="feedbackCorrectClassSelect" style="display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-              Correct Object Class / Category:
-            </label>
-            <select id="feedbackCorrectClassSelect" style="width: 100%; border-radius: 6px; border: 1px solid var(--border-subtle); background: #0b1120; color: #f8fafc; padding: 8px 10px; font-size: 0.85rem; outline: none;">
+            <label for="feedbackCorrectClassSelect" style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Correct Object Class:</label>
+            <select id="feedbackCorrectClassSelect" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #ffffff; color: var(--text-primary); padding: 6px 8px; font-size: 0.80rem; outline: none;">
               <option value="fishing_net">Fishing Net / Ghost Gear</option>
               <option value="plastic_debris">Plastic Debris / Container</option>
               <option value="metal_wreckage">Metal Wreckage / Hull Part</option>
               <option value="rubber_tire">Rubber Tire / Fender</option>
-              <option value="dredge_spoil">Dredge Spoil / Industrial Dump</option>
               <option value="coral_reef">Coral Reef (Natural Habitat)</option>
               <option value="rock">Rock / Seabed Boulder (Hard Negative)</option>
-              <option value="seabed_texture">Seabed Texture / Sand Ridge</option>
-              <option value="sand_ripple">Sand Ripple Clutter</option>
               <option value="pipeline">Subsea Pipeline / Conduit</option>
               <option value="cable">Subsea Telemetry Cable</option>
-              <option value="candidate_new_class">-- Candidate Novel Class --</option>
             </select>
           </div>
-
           <div>
-            <label for="feedbackCandidateClassName" style="display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-              Candidate Novel Class Name (If Unknown):
-            </label>
-            <input type="text" id="feedbackCandidateClassName" placeholder="e.g. lost_anchor, rov_tool..." style="width: 100%; border-radius: 6px; border: 1px solid var(--border-subtle); background: #0b1120; color: #f8fafc; padding: 8px 10px; font-size: 0.85rem; outline: none;" />
+            <label for="feedbackCandidateClassName" style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Novel Class Name (If Unknown):</label>
+            <input type="text" id="feedbackCandidateClassName" placeholder="e.g. lost_anchor..." style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #ffffff; color: var(--text-primary); padding: 6px 8px; font-size: 0.80rem; outline: none;" />
           </div>
         </div>
 
-        <!-- Reviewer Confidence & Identity Row -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
           <div>
-            <label for="feedbackReviewerId" style="display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-              Reviewer Identity / Call-Sign:
-            </label>
-            <input type="text" id="feedbackReviewerId" value="Hydrographer_Alpha" style="width: 100%; border-radius: 6px; border: 1px solid var(--border-subtle); background: #0b1120; color: #f8fafc; padding: 8px 10px; font-size: 0.85rem; outline: none;" />
+            <label for="feedbackReviewerId" style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Reviewer Identity:</label>
+            <input type="text" id="feedbackReviewerId" value="Hydrographer_Alpha" style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #ffffff; color: var(--text-primary); padding: 6px 8px; font-size: 0.80rem; outline: none;" />
           </div>
           <div>
-            <label for="feedbackConfidenceScore" style="display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-              Verifier Confidence (0.50 - 1.00): <b id="lblFeedbackConf" style="color: var(--cyan-beam);">0.95</b>
-            </label>
-            <input type="range" id="feedbackConfidenceScore" min="0.5" max="1.0" step="0.05" value="0.95" style="width: 100%; accent-color: var(--cyan-beam);" />
+            <label for="feedbackConfidenceScore" style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Verifier Confidence: <b id="lblFeedbackConf" style="color: var(--emerald-600);">0.95</b></label>
+            <input type="range" id="feedbackConfidenceScore" min="0.5" max="1.0" step="0.05" value="0.95" style="width: 100%; accent-color: var(--emerald-600);" />
           </div>
         </div>
 
-        <!-- Natural Language Explanation -->
-        <div>
-          <label for="feedbackCommentInput" style="display: block; font-size: 0.82rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">
-            Acoustic Context &amp; Rationale (Natural Language):
-          </label>
-          <textarea id="feedbackCommentInput" rows="2" placeholder="e.g. 'This is seabed rock texture with acoustic shadow, not a synthetic fishing net.'..." style="width: 100%; border-radius: 6px; border: 1px solid var(--border-subtle); background: #0b1120; color: #f8fafc; padding: 10px; font-family: inherit; font-size: 0.85rem; resize: vertical; box-sizing: border-box; line-height: 1.4; outline: none;"></textarea>
-          <div style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">
-            Review Intelligence Engine automatically extracts machine-readable training directives, mines hard negatives, and updates Error Memory.
-          </div>
+        <div style="margin-bottom: 14px;">
+          <label for="feedbackCommentInput" style="display: block; font-size: 0.76rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Acoustic Context &amp; Rationale:</label>
+          <textarea id="feedbackCommentInput" rows="2" placeholder="e.g. 'Seabed rock texture with acoustic shadow, not synthetic net.'..." style="width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: #ffffff; color: var(--text-primary); padding: 8px; font-size: 0.80rem; outline: none;"></textarea>
         </div>
 
-        <div id="feedbackStatusMsg" style="margin-top: 12px; display: none; padding: 10px 14px; border-radius: 6px; font-size: 0.84rem;"></div>
+        <div id="feedbackStatusMsg" style="margin-top: 10px; display: none; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.78rem;"></div>
 
-        <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button type="button" class="btn-ghost" id="btnCancelFeedback" style="padding: 8px 16px; font-size: 0.85rem;">Cancel</button>
-          <button type="button" class="btn-primary" id="btnSubmitFeedback" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; font-size: 0.85rem; font-weight: 600;">
-            <i class="fa-solid fa-paper-plane"></i> Submit Structured Review
-          </button>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+          <button type="button" class="gis-btn" id="btnCancelFeedback">Cancel</button>
+          <button type="button" class="btn-emerald" id="btnSubmitFeedback"><i class="fa-solid fa-paper-plane"></i> Submit Review</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- =========================================================
-       Adaptive Learning & Error Prevention Dashboard Modal
+       Adaptive Learning & Error Prevention Modal
        ========================================================= -->
   <div class="modal-backdrop" id="learningModal" style="display: none;">
-    <div class="modal-card learning-modal-card">
+    <div class="modal-card" style="max-width: 860px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">CONTINUOUS SELF-IMPROVEMENT &amp; REGRESSION RESISTANCE</div>
-          <h2 class="modal-title"><i class="fa-solid fa-brain" style="color: var(--cyan-beam);"></i> Adaptive Learning &amp; Error Prevention Engine</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">CONTINUOUS SELF-IMPROVEMENT &amp; REGRESSION RESISTANCE</div>
+          <h2 class="modal-title"><i class="fa-solid fa-brain" style="color: var(--emerald-600);"></i> Adaptive Learning &amp; Error Prevention Engine</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseLearningModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseLearningModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="modal-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
-        <!-- Top KPI Grid -->
-        <div class="learning-kpi-grid">
-          <div class="learning-kpi-card">
-            <div class="learning-kpi-title"><span>Total Reviews</span><i class="fa-solid fa-clipboard-check"></i></div>
-            <div class="learning-kpi-val" id="learnKpiTotalReviews">0</div>
-            <div class="learning-kpi-sub"><span id="learnKpiVerifiedErrors">0</span> Verified Errors</div>
+      <div class="modal-body">
+        <div class="learning-kpi-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Total Reviews</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--emerald-700);" id="learnKpiTotalReviews">0</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);"><span id="learnKpiVerifiedErrors">0</span> Verified Errors</div>
           </div>
-          <div class="learning-kpi-card">
-            <div class="learning-kpi-title"><span>Active Queue</span><i class="fa-solid fa-clock-rotate-left"></i></div>
-            <div class="learning-kpi-val" id="learnKpiActiveQueue">0</div>
-            <div class="learning-kpi-sub">Flagged for Verification</div>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Active Queue</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--sky-blue);" id="learnKpiActiveQueue">0</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);">Flagged for Verification</div>
           </div>
-          <div class="learning-kpi-card">
-            <div class="learning-kpi-title"><span>Training Queue</span><i class="fa-solid fa-layer-group"></i></div>
-            <div class="learning-kpi-val" id="learnKpiTrainingQueue">0</div>
-            <div class="learning-kpi-sub"><span id="learnKpiHardNegatives">0</span> Hard Negatives Mined</div>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Training Queue</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--amber-warn);" id="learnKpiTrainingQueue">0</div>
+            <div style="font-size: 0.65rem; color: var(--text-muted);"><span id="learnKpiHardNegatives">0</span> Hard Negatives</div>
           </div>
-          <div class="learning-kpi-card">
-            <div class="learning-kpi-title"><span>Champion Models</span><i class="fa-solid fa-trophy"></i></div>
-            <div class="learning-kpi-val" style="font-size: 1.05rem;" id="learnKpiChampionVersions">YOLO-v3.2 / UNet-v2.5</div>
-            <div class="learning-kpi-sub">Candidate: <span id="learnKpiCandidateStatus">Ready for training</span></div>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Champion Models</div>
+            <div style="font-size: 0.95rem; font-weight: 800; color: var(--purple-accent);" id="learnKpiChampionVersions">YOLO-v3.2 / UNet-v2.5</div>
+            <div style="font-size: 0.65rem; color: var(--emerald-600);" id="learnKpiCandidateStatus">Ready for training</div>
           </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="learning-tab-nav">
-          <button type="button" class="learning-tab-btn active" data-ltab="recurring">
-            <i class="fa-solid fa-network-wired"></i> Error Memory &amp; Recurring Patterns
-          </button>
-          <button type="button" class="learning-tab-btn" data-ltab="queue">
-            <i class="fa-solid fa-list-check"></i> Active Learning Queue (<span id="tabBadgeQueue">0</span>)
-          </button>
-          <button type="button" class="learning-tab-btn" data-ltab="unknown">
-            <i class="fa-solid fa-compass"></i> Unknown Classes Discovery (<span id="tabBadgeUnknown">0</span>)
-          </button>
-          <button type="button" class="learning-tab-btn" data-ltab="champion">
-            <i class="fa-solid fa-scale-unbalanced-flip"></i> Champion vs Challenger &amp; Retraining
-          </button>
+        <!-- Hidden elements for tab switching compatibility -->
+        <div class="learning-tab-nav" style="display: flex; gap: 6px; margin-bottom: 14px;">
+          <button type="button" class="gis-btn active" data-ltab="recurring"><i class="fa-solid fa-network-wired"></i> Error Memory</button>
+          <button type="button" class="gis-btn" data-ltab="queue"><i class="fa-solid fa-list-check"></i> Active Queue (<span id="tabBadgeQueue">0</span>)</button>
+          <button type="button" class="gis-btn" data-ltab="unknown"><i class="fa-solid fa-compass"></i> Novel Classes (<span id="tabBadgeUnknown">0</span>)</button>
+          <button type="button" class="gis-btn" data-ltab="champion"><i class="fa-solid fa-scale-unbalanced-flip"></i> Retraining</button>
         </div>
 
-        <!-- Tab 1: Recurring Errors & Error Taxonomy Pane -->
         <div class="learning-tab-pane" id="lpaneRecurring">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px;">
-              <h4 style="font-size: 0.88rem; font-weight: 700; color: #38bdf8; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                <span><i class="fa-solid fa-chart-pie"></i> Error Type Distribution</span>
-                <span class="badge-tag" style="font-size: 0.7rem;">TAXONOMY</span>
-              </h4>
-              <div id="errorDistributionContainer" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem;">
-                <!-- Populated dynamically -->
-              </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="clean-card" style="padding: 12px;">
+              <span class="card-title" style="font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-chart-pie" style="color: var(--emerald-600);"></i> Error Type Distribution</span>
+              <div id="errorDistributionContainer" style="display: flex; flex-direction: column; gap: 6px; font-size: 0.76rem;"></div>
             </div>
-
-            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px;">
-              <h4 style="font-size: 0.88rem; font-weight: 700; color: #f87171; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                <span><i class="fa-solid fa-triangle-exclamation"></i> Top Recurring Failure Patterns</span>
-                <span class="badge-tag" style="background: rgba(239, 68, 68, 0.15); color: #f87171; font-size: 0.7rem;">HIGH RECURRENCE</span>
-              </h4>
-              <div class="recurring-error-matrix" id="recurringErrorMatrixContainer">
-                <!-- Populated dynamically -->
-              </div>
+            <div class="clean-card" style="padding: 12px;">
+              <span class="card-title" style="font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--rose-danger);"></i> Failure Patterns</span>
+              <div class="recurring-error-matrix" id="recurringErrorMatrixContainer"></div>
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: Active Learning Queue Pane -->
         <div class="learning-tab-pane" id="lpaneQueue" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <span style="font-size: 0.85rem; color: #94a3b8;"><i class="fa-solid fa-filter"></i> Autonomous sampling filtered by low confidence, model disagreement, and small objects:</span>
-            <button type="button" class="btn-ghost" id="btnRefreshActiveQueue" style="font-size: 0.8rem; padding: 4px 10px;">
-              <i class="fa-solid fa-arrows-rotate"></i> Refresh Queue
-            </button>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Filtered low confidence samples:</span>
+            <button type="button" class="gis-btn" id="btnRefreshActiveQueue" style="font-size: 0.72rem; padding: 2px 8px;"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
           </div>
-          <div id="activeQueueContainer" style="max-height: 320px; overflow-y: auto;">
-            <!-- Populated dynamically -->
-          </div>
+          <div id="activeQueueContainer" style="max-height: 260px; overflow-y: auto;"></div>
         </div>
 
-        <!-- Tab 3: Unknown Classes Discovery Pane -->
         <div class="learning-tab-pane" id="lpaneUnknown" style="display: none;">
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 14px;">
-            <h4 style="font-size: 0.88rem; color: #38bdf8; margin-bottom: 8px;"><i class="fa-solid fa-shield-halved"></i> Controlled Novel Class Promotion Protocol</h4>
-            <p style="font-size: 0.78rem; color: #94a3b8; line-height: 1.4; margin-bottom: 10px;">
-              To prevent noise or single acoustic artifacts from corrupting class ontology, the system requires accumulating at least <b>3 verified human samples</b> before promoting candidate classes to training datasets.
-            </p>
-          </div>
-          <div id="unknownClassesContainer" style="display: flex; flex-direction: column; gap: 10px;">
-            <!-- Populated dynamically -->
-          </div>
+          <div id="unknownClassesContainer"></div>
         </div>
 
-        <!-- Tab 4: Champion vs Challenger & Retraining Controls Pane -->
         <div class="learning-tab-pane" id="lpaneChampion" style="display: none;">
-          <!-- Retraining Action Controls -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-              <div>
-                <h4 style="font-size: 0.92rem; color: #f8fafc; margin-bottom: 4px;"><i class="fa-solid fa-microchip"></i> Train Challenger Candidate Models</h4>
-                <div style="font-size: 0.78rem; color: #94a3b8;">
-                  Uses balanced replay (60% baseline + 40% mined hard negatives &amp; corrections) to eliminate catastrophic forgetting.
-                </div>
-              </div>
-              <div style="display: flex; gap: 10px;">
-                <button type="button" class="btn-ghost" id="btnTrainYoloChallenger" style="font-size: 0.82rem; padding: 8px 14px;">
-                  <i class="fa-solid fa-play"></i> Train YOLO Challenger
-                </button>
-                <button type="button" class="btn-ghost" id="btnTrainUnetChallenger" style="font-size: 0.82rem; padding: 8px 14px;">
-                  <i class="fa-solid fa-play"></i> Train U-Net Challenger
-                </button>
-                <button type="button" class="btn-primary" id="btnRunChampionEvaluation" style="font-size: 0.82rem; padding: 8px 16px;">
-                  <i class="fa-solid fa-scale-balanced"></i> Run Full Evaluation &amp; Regression Suite
-                </button>
-              </div>
-            </div>
-            <div id="trainingStatusAlert" style="display: none; margin-top: 12px; padding: 10px 14px; border-radius: 6px; font-size: 0.82rem;"></div>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button type="button" class="gis-btn" id="btnTrainYoloChallenger"><i class="fa-solid fa-play"></i> Train YOLO</button>
+            <button type="button" class="gis-btn" id="btnTrainUnetChallenger"><i class="fa-solid fa-play"></i> Train U-Net</button>
+            <button type="button" class="btn-emerald" id="btnRunChampionEvaluation"><i class="fa-solid fa-scale-balanced"></i> Run Evaluation</button>
           </div>
-
-          <!-- Benchmark Metrics & Regression Comparison Table -->
-          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h4 style="font-size: 0.9rem; color: var(--cyan-beam);"><i class="fa-solid fa-table-columns"></i> Champion vs Challenger Benchmark Results</h4>
-              <span class="status-pill complete" id="evalGateStatusPill"><span class="status-dot"></span> <span id="evalGateStatusText">GATE: PASS</span></span>
-            </div>
-            <div id="championChallengerTableWrap" style="overflow-x: auto;">
-              <!-- Populated dynamically -->
-            </div>
-
-            <!-- Approval & Rollback Action Controls -->
-            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
-              <button type="button" class="btn-ghost" id="btnRollbackToChampion" style="font-size: 0.82rem; padding: 8px 14px; color: #f87171;">
-                <i class="fa-solid fa-rotate-left"></i> Rollback to Previous Stable Champion
-              </button>
-              <button type="button" class="btn-primary" id="btnDeployChallenger" style="font-size: 0.82rem; padding: 8px 18px; background: linear-gradient(135deg, #10b981, #059669);">
-                <i class="fa-solid fa-rocket"></i> Deploy Challenger to Production (Hot-Swap)
-              </button>
-            </div>
+          <div id="trainingStatusAlert" style="display: none;"></div>
+          <div id="championChallengerTableWrap"></div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+            <button type="button" class="gis-btn" id="btnRollbackToChampion" style="color: var(--rose-danger);">Rollback</button>
+            <button type="button" class="btn-emerald" id="btnDeployChallenger">Deploy Challenger</button>
           </div>
+          <span id="evalGateStatusPill" style="display:none;"><span id="evalGateStatusText"></span></span>
         </div>
-
       </div>
     </div>
   </div>
@@ -1360,57 +1094,49 @@
        Store-and-Forward Cloud Sync Queue Modal
        ========================================================= -->
   <div class="modal-backdrop" id="syncModal" style="display: none;">
-    <div class="modal-card" style="max-width: 720px;">
+    <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">EDGE-FIRST STORE-AND-FORWARD SYNCHRONIZATION</div>
-          <h2 class="modal-title"><i class="fa-solid fa-cloud-arrow-up" style="color: var(--cyan-beam);"></i> Local Database &amp; Sync Queue</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">EDGE-FIRST STORE-AND-FORWARD</div>
+          <h2 class="modal-title"><i class="fa-solid fa-cloud-arrow-up" style="color: var(--emerald-600);"></i> Database &amp; Sync Queue</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseSyncModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseSyncModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
-        <div class="grid-3" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;">
-          <div class="stat-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
-            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">CONNECTIVITY</div>
-            <div style="font-size: 1.2rem; font-weight: 800; color: #38bdf8; margin-top: 4px;" id="syncModalConnMode">OFFLINE (EDGE)</div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px;">
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">CONNECTIVITY</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--sky-blue);" id="syncModalConnMode">OFFLINE (EDGE)</div>
           </div>
-          <div class="stat-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
-            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">PENDING UPLOADS</div>
-            <div style="font-size: 1.2rem; font-weight: 800; color: #f59e0b; margin-top: 4px;" id="syncModalPendingCount">0 Surveys</div>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">PENDING UPLOADS</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--amber-warn);" id="syncModalPendingCount">0 Surveys</div>
           </div>
-          <div class="stat-card" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
-            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">SYNCED ARCHIVES</div>
-            <div style="font-size: 1.2rem; font-weight: 800; color: #10b981; margin-top: 4px;" id="syncModalSyncedCount">0 Surveys</div>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <span style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;"><i class="fa-solid fa-list-check"></i> Pending Store-and-Forward Queue</span>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="btn-ghost" id="btnToggleConnMode" style="font-size: 0.8rem; padding: 6px 12px;">
-              <i class="fa-solid fa-toggle-on"></i> Toggle Online/Offline
-            </button>
-            <button type="button" class="btn-primary" id="btnTriggerSyncNow" style="font-size: 0.8rem; padding: 6px 14px;">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Sync All Now
-            </button>
+          <div class="clean-card" style="padding: 10px;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">SYNCED ARCHIVES</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--emerald-600);" id="syncModalSyncedCount">0 Surveys</div>
           </div>
         </div>
 
-        <div id="syncQueueTableContainer" style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border-dark); border-radius: 8px;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-list-check"></i> Pending Queue</span>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="gis-btn" id="btnToggleConnMode"><i class="fa-solid fa-toggle-on"></i> Toggle Connectivity</button>
+            <button type="button" class="btn-emerald" id="btnTriggerSyncNow"><i class="fa-solid fa-cloud-arrow-up"></i> Sync All</button>
+          </div>
+        </div>
+
+        <div id="syncQueueTableContainer" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
             <thead>
-              <tr style="background: #0b1120; border-bottom: 1px solid var(--border-dark);">
-                <th style="padding: 8px 12px; text-align: left; color: #94a3b8;">Survey ID</th>
-                <th style="padding: 8px 12px; text-align: left; color: #94a3b8;">Enqueued At</th>
-                <th style="padding: 8px 12px; text-align: left; color: #94a3b8;">Status</th>
-                <th style="padding: 8px 12px; text-align: right; color: #94a3b8;">Attempts</th>
+              <tr style="background: var(--bg-card-subtle); border-bottom: 1px solid var(--border-light);">
+                <th style="padding: 6px 10px; text-align: left; color: var(--text-muted);">Survey ID</th>
+                <th style="padding: 6px 10px; text-align: left; color: var(--text-muted);">Enqueued At</th>
+                <th style="padding: 6px 10px; text-align: left; color: var(--text-muted);">Status</th>
+                <th style="padding: 6px 10px; text-align: right; color: var(--text-muted);">Attempts</th>
               </tr>
             </thead>
-            <tbody id="syncQueueTbody">
-              <!-- Rendered dynamically -->
-            </tbody>
+            <tbody id="syncQueueTbody"></tbody>
           </table>
         </div>
       </div>
@@ -1421,33 +1147,24 @@
        Edge AI Model Manager & Rollback Modal
        ========================================================= -->
   <div class="modal-backdrop" id="modelModal" style="display: none;">
-    <div class="modal-card" style="max-width: 740px;">
+    <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">EDGE RUNTIME &amp; CRYPTOGRAPHIC INTEGRITY</div>
-          <h2 class="modal-title"><i class="fa-solid fa-microchip" style="color: var(--cyan-beam);"></i> Edge AI Model Registry &amp; Rollback</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">EDGE RUNTIME &amp; CRYPTOGRAPHIC INTEGRITY</div>
+          <h2 class="modal-title"><i class="fa-solid fa-microchip" style="color: var(--emerald-600);"></i> Edge AI Model Registry</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseModelModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseModelModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
-        <div id="modelRegistryCardsContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
-          <!-- Dynamically populated -->
-        </div>
-
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 16px;">
-          <h4 style="font-size: 0.9rem; margin: 0 0 8px 0; color: #38bdf8;"><i class="fa-solid fa-shield-check"></i> Offline Model Hot-Swap Verification</h4>
-          <p style="font-size: 0.78rem; color: #94a3b8; margin: 0 0 12px 0;">
-            All update packages undergo SHA256 cryptographic verification and a synthetic tensor forward-pass smoke test before deployment. Automatic rollback is triggered if validation fails.
+      <div class="modal-body">
+        <div id="modelRegistryCardsContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;"></div>
+        <div class="clean-card" style="padding: 12px;">
+          <h4 style="font-size: 0.85rem; margin: 0 0 6px 0; color: var(--emerald-800);"><i class="fa-solid fa-shield-check"></i> Offline Hot-Swap Verification</h4>
+          <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0 0 10px 0;">
+            All models undergo SHA256 integrity verification and automated smoke tests prior to memory loading.
           </p>
-          <div style="display: flex; gap: 10px;">
-            <button type="button" class="btn-ghost" id="btnRollbackYolo" style="font-size: 0.8rem; padding: 6px 12px;">
-              <i class="fa-solid fa-rotate-left"></i> Rollback YOLO
-            </button>
-            <button type="button" class="btn-ghost" id="btnRollbackUnet" style="font-size: 0.8rem; padding: 6px 12px;">
-              <i class="fa-solid fa-rotate-left"></i> Rollback U-Net
-            </button>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="gis-btn" id="btnRollbackYolo"><i class="fa-solid fa-rotate-left"></i> Rollback YOLO</button>
+            <button type="button" class="gis-btn" id="btnRollbackUnet"><i class="fa-solid fa-rotate-left"></i> Rollback U-Net</button>
           </div>
         </div>
       </div>
@@ -1455,62 +1172,142 @@
   </div>
 
   <!-- =========================================================
-       Edge AI, Hardware Health & Acoustic Modem Modal
+       Edge AI Hardware Health & Acoustic Modem Modal
        ========================================================= -->
   <div class="modal-backdrop" id="edgeModal" style="display: none;">
-    <div class="modal-card" style="max-width: 820px;">
+    <div class="modal-card" style="max-width: 760px;">
       <div class="modal-header">
-        <div class="modal-header-left">
-          <div class="modal-subtitle">OFFLINE-FIRST AUV/ROV SUBSEA PERCEPTION ENGINE</div>
-          <h2 class="modal-title"><i class="fa-solid fa-microchip" style="color: var(--cyan-beam);"></i> Edge AI &amp; Acoustic Telemetry Modem</h2>
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">SUBSEA PERCEPTION ENGINE &amp; MODEM</div>
+          <h2 class="modal-title"><i class="fa-solid fa-satellite-dish" style="color: var(--emerald-600);"></i> Edge AI &amp; Telemetry Modem</h2>
         </div>
-        <div class="modal-header-actions">
-          <button class="modal-close" id="btnCloseEdgeModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
+        <button class="gis-btn" id="btnCloseEdgeModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8;">HARDWARE CLASS</div>
-            <div id="edgeDeviceClass" style="font-size: 1.05rem; font-weight: 700; color: #38bdf8; margin-top: 4px;">NVIDIA JETSON / ARM</div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+          <div class="clean-card" style="padding: 10px; text-align: center;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">HARDWARE CLASS</div>
+            <div id="edgeDeviceClass" style="font-size: 0.95rem; font-weight: 800; color: var(--emerald-700); margin-top: 2px;">NVIDIA JETSON / ARM</div>
           </div>
-          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8;">DEGRADATION LEVEL</div>
-            <div id="edgeDegradationLevel" style="font-size: 1.05rem; font-weight: 700; color: #10b981; margin-top: 4px;">LEVEL 0 (FULL AI)</div>
+          <div class="clean-card" style="padding: 10px; text-align: center;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">DEGRADATION</div>
+            <div id="edgeDegradationLevel" style="font-size: 0.95rem; font-weight: 800; color: var(--emerald-600); margin-top: 2px;">LEVEL 0 (FULL AI)</div>
           </div>
-          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8;">POWER &amp; THERMAL</div>
-            <div id="edgePowerState" style="font-size: 1.05rem; font-weight: 700; color: #f59e0b; margin-top: 4px;">BALANCED / 48°C</div>
+          <div class="clean-card" style="padding: 10px; text-align: center;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">POWER &amp; THERMAL</div>
+            <div id="edgePowerState" style="font-size: 0.95rem; font-weight: 800; color: var(--amber-warn); margin-top: 2px;">BALANCED / 48°C</div>
           </div>
-          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8;">MODEM PACKET</div>
-            <div id="edgePacketSize" style="font-size: 1.05rem; font-weight: 700; color: #a855f7; margin-top: 4px;">24 BYTES (CRC-8)</div>
+          <div class="clean-card" style="padding: 10px; text-align: center;">
+            <div style="font-size: 0.70rem; color: var(--text-muted);">MODEM PACKET</div>
+            <div id="edgePacketSize" style="font-size: 0.95rem; font-weight: 800; color: var(--purple-accent); margin-top: 2px;">24 BYTES (CRC-8)</div>
           </div>
         </div>
 
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-          <h4 style="font-size: 0.88rem; margin: 0 0 10px 0; color: #38bdf8;"><i class="fa-solid fa-satellite-dish"></i> Live Subsea Acoustic Modem Binary Frame (16-32B Envelope)</h4>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; background: #070b14; padding: 10px 14px; border-radius: 6px; border: 1px solid #1e293b; color: #00ffc8; word-break: break-all;" id="edgeHexPacketDisplay">
+        <div class="clean-card" style="padding: 12px; margin-bottom: 14px;">
+          <h4 style="font-size: 0.82rem; margin: 0 0 6px 0; color: var(--emerald-800);"><i class="fa-solid fa-satellite-dish"></i> Live Acoustic Modem Frame</h4>
+          <div style="font-family: var(--font-mono); font-size: 0.80rem; background: #071527; padding: 8px 12px; border-radius: var(--radius-sm); color: #34d399; word-break: break-all;" id="edgeHexPacketDisplay">
             A5010001015C015E035200009600013B00B46AA249C60FC6
           </div>
-          <div id="edgePacketDecodedSummary" style="font-size: 0.78rem; color: #94a3b8; margin-top: 8px;">
+          <div id="edgePacketDecodedSummary" style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;">
             Target: TGT_0001 | Class: FISHING_NET | Confidence: 92% | Slant Range: 35.0m | Depth: 18.0m | CRC8: OK
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
-            <h4 style="font-size: 0.85rem; margin: 0 0 8px 0; color: #f8fafc;"><i class="fa-solid fa-shield-halved"></i> AUV/ROV Autopilot Safety Isolation</h4>
-            <p style="font-size: 0.78rem; color: #94a3b8; margin: 0;">
-              Sea Sentinel acts as an advisory observer only. MAVLink / ROS 2 actuation write commands to thrusters, ballast, and rudder are cryptographically quarantined to guarantee vehicle safety.
-            </p>
+  <!-- =========================================================
+       GIS Batch SSS Image Import Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="gisBatchModal" style="display: none;">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">HIGH-THROUGHPUT OFFLINE INGESTION</div>
+          <h2 class="modal-title"><i class="fa-solid fa-folder-plus" style="color: var(--emerald-600);"></i> Batch SSS Image Processor</h2>
+        </div>
+        <button class="gis-btn" id="btnCloseBatchModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+          Select multiple Side-Scan Sonar raster files. The system will sequentially run YOLO11/U-Net dual-path inference, georeference targets, deduplicate, and update the persistent GIS database.
+        </p>
+        <div style="border: 2px dashed var(--border-focus); border-radius: var(--radius-md); padding: 20px; text-align: center; background: var(--emerald-50); margin-bottom: 14px; cursor: pointer;" onclick="document.getElementById('batchFileInput').click();">
+          <input type="file" id="batchFileInput" multiple accept=".png,.jpg,.jpeg,.tif,.tiff" style="display: none;" onchange="if(window.app) window.app.handleBatchFileSelect(event);" />
+          <i class="fa-solid fa-images" style="font-size: 1.8rem; color: var(--emerald-600); margin-bottom: 6px;"></i>
+          <div style="font-weight: 700; font-size: 0.88rem; color: var(--emerald-900);">Click to Select Multiple SSS Files</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Supports GeoTIFF (.tif), PNG, JPG</div>
+        </div>
+
+        <div id="batchProgressContainer" style="display: none; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 4px;">
+            <span id="batchProgressLabel" style="color: var(--emerald-700); font-weight: 600;">Processing...</span>
+            <span id="batchProgressPercent" style="color: var(--emerald-600); font-weight: 700;">0%</span>
           </div>
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
-            <h4 style="font-size: 0.85rem; margin: 0 0 8px 0; color: #f8fafc;"><i class="fa-solid fa-heart-pulse"></i> Autonomous Self-Healing Watchdog</h4>
-            <p style="font-size: 0.78rem; color: #94a3b8; margin: 0;">
-              Supervises inference heartbeats (&lt;6s timeout). Automatically triggers emergency memory release, restarts failed pipeline threads, and verifies model SHA-256 integrity before reload.
-            </p>
+          <div style="width: 100%; height: 6px; background: var(--bg-card-subtle); border-radius: 3px; overflow: hidden;">
+            <div id="batchProgressBar" style="width: 0%; height: 100%; background: var(--emerald-500); transition: width 0.2s ease;"></div>
           </div>
+        </div>
+
+        <div id="batchResultsSummary" style="display: none; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px; font-size: 0.76rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       Human-in-the-Loop GIS Target Review Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="gisTargetReviewModal" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700;">OPERATOR AUDIT &amp; GEO-VERIFICATION</div>
+          <h2 class="modal-title"><i class="fa-solid fa-clipboard-check" style="color: var(--emerald-600);"></i> Review Target: <span id="reviewModalTargetId" style="color: var(--emerald-700);">SS-0001</span></h2>
+        </div>
+        <button class="gis-btn" id="btnCloseTargetReviewModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div class="clean-card" style="padding: 8px;">
+            <div style="font-size: 0.68rem; color: var(--text-muted);">AI Classification</div>
+            <div id="reviewModalAiClass" style="font-size: 0.9rem; font-weight: 800; color: var(--emerald-700);">GHOST NET (92%)</div>
+          </div>
+          <div class="clean-card" style="padding: 8px;">
+            <div style="font-size: 0.68rem; color: var(--text-muted);">Merged Passes</div>
+            <div id="reviewModalObsCount" style="font-size: 0.9rem; font-weight: 800; color: var(--purple-accent);">3 Passes</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 4px;">Action:</label>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="gis-btn active" id="btnActionVerify" style="flex: 1;"><i class="fa-solid fa-check" style="color: var(--emerald-600);"></i> Confirm</button>
+            <button type="button" class="gis-btn" id="btnActionReject" style="flex: 1;"><i class="fa-solid fa-xmark" style="color: var(--rose-danger);"></i> False Alarm</button>
+            <button type="button" class="gis-btn" id="btnActionReclassify" style="flex: 1;"><i class="fa-solid fa-pen-to-square" style="color: var(--amber-warn);"></i> Reclassify</button>
+          </div>
+        </div>
+
+        <div id="reclassifySelectWrap" style="margin-bottom: 12px;">
+          <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Corrected Category:</label>
+          <select id="reviewModalClassSelect" style="width: 100%; background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-primary); padding: 5px 8px; font-size: 0.78rem; outline: none;">
+            <option value="ghost_net">Ghost Net</option>
+            <option value="fishing_gear">Fishing Gear / Trap</option>
+            <option value="plastic">Plastic / Drum</option>
+            <option value="metal">Metal / Hull Fragment</option>
+            <option value="rope">Rope / Hawser</option>
+            <option value="container">Shipping Container</option>
+            <option value="unknown">Unknown Object</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Operator Audit Comments:</label>
+          <textarea id="reviewModalComment" rows="2" placeholder="Enter observation notes..." style="width: 100%; background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); color: var(--text-primary); padding: 6px 8px; font-size: 0.78rem; outline: none;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" class="gis-btn" id="btnCancelReviewModal">Cancel</button>
+          <button type="button" class="btn-emerald" id="btnSaveTargetReview"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Update Map</button>
         </div>
       </div>
     </div>
@@ -1520,10 +1317,11 @@
   <script src="assets/vendor/leaflet/leaflet.js"></script>
 
   <!-- Application Scripts -->
-  <script src="js/api.js?v=3.2"></script>
-  <script src="js/waterfall.js?v=3.2"></script>
-  <script src="js/map.js?v=3.2"></script>
-  <script src="js/app.js?v=3.2"></script>
+  <script src="js/api.js?v=5.0"></script>
+  <script src="js/waterfall.js?v=5.0"></script>
+  <script src="js/map.js?v=5.0"></script>
+  <script src="js/app.js?v=5.0"></script>
+  <script src="js/gis_ui.js?v=5.0"></script>
 
 </body>
 </html>

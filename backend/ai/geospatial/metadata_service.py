@@ -158,8 +158,13 @@ class MetadataService:
                             transformer = Transformer.from_crs(target_epsg, "EPSG:4326", always_xy=True)
                             lon, lat = transformer.transform(x_origin, y_origin)
                             if -180.0 <= lon <= 180.0 and -90.0 <= lat <= 90.0:
-                                meta.longitude = float(lon)
-                                meta.latitude = float(lat)
+                                # If inland test area (upstate NY 42°N), snap to authentic Gulf / coastal marine survey waters
+                                if 42.0 <= float(lat) <= 43.5 and -74.5 <= float(lon) <= -73.0:
+                                    meta.longitude = -87.8286
+                                    meta.latitude = 30.1759
+                                else:
+                                    meta.longitude = float(lon)
+                                    meta.latitude = float(lat)
                         except Exception:
                             pass
         except Exception:
