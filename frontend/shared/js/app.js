@@ -789,10 +789,9 @@ class DashboardApp {
       
       const hazardScore = t.hazard_score != null ? Math.round(t.hazard_score) : (t.risk_score === 'HIGH' ? 82 : 45);
       const hazardLevel = (t.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
-      const risk = t.risk_score || (hazardScore >= 80 ? 'HIGH' : hazardScore >= 50 ? 'MED' : 'LOW');
-      const isHigher = prioScore >= 60;
-      const accVal = t.accuracy_score != null ? (t.accuracy_score * 100) : (conf * 0.98);
-      const accStr = accVal.toFixed(1);
+      const risk = (t.risk_score || hazardLevel).toUpperCase();
+      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75;
+      const accStr = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100).toFixed(1) : (conf * 0.98).toFixed(1);
 
       const vStatus = t.verification_status || "confirmed";
       const isConfirmed = (vStatus === "confirmed");
@@ -818,10 +817,6 @@ class DashboardApp {
       const lenM = t.length_m ? Math.round(t.length_m) : 18;
       const widM = t.width_m ? Math.round(t.width_m) : 6;
       const areaM = t.area_sq_m ? Math.round(t.area_sq_m) : (lenM * widM);
-
-      const risk = (t.risk_score || hazardLevel).toUpperCase();
-      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75;
-      const accStr = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100).toFixed(1) : conf;
 
       // Category Icon mapping
       const typeIcons = {
@@ -953,11 +948,6 @@ class DashboardApp {
     if (revBadge) {
       revBadge.textContent = targetId;
     }
-    // Synchronize Target List active styling
-    document.querySelectorAll('.target-card').forEach(el => {
-      const idEl = el.querySelector('.target-id');
-      el.classList.toggle('active', el.dataset.targetId === targetId || (idEl && idEl.textContent.trim() === targetId));
-    });
 
     this.waterfall.selectTarget(targetId);
     this.map.selectTarget(targetId, options);
@@ -993,9 +983,9 @@ class DashboardApp {
     const recEl = document.getElementById('targetActionRec');
     if (recEl) {
       const action = (target.score_explanation && target.score_explanation.action_recommendation) || target.action_recommendation || "Prioritize for ROV acoustic / optical inspection and tactical debris retrieval";
-      const prioLevel = (target.priority_level || 'HIGH').toLowerCase();
+      const prioLevelClass = (target.priority_level || 'HIGH').toLowerCase();
       recEl.innerHTML = `
-        <div class="action-rec-badge ${prioLevel}">
+        <div class="action-rec-badge ${prioLevelClass}">
           <i class="fa-solid fa-clipboard-check"></i> 
           <div><b>Protocol:</b> ${action}</div>
         </div>
@@ -1006,7 +996,7 @@ class DashboardApp {
     if (physicsEl) {
       const srcCat = target.source_category || (target.sources && target.sources.length > 1 ? "BOTH" : (target.sources && target.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
       const prioScore = target.priority_score != null ? Math.round(target.priority_score) : 85;
-      const prioLevel = target.priority_level || 'HIGH';
+      const prioLevel = (target.priority_level || 'HIGH').toUpperCase();
       const hazardScore = target.hazard_score != null ? Math.round(target.hazard_score) : 75;
       const confScore = Math.round((target.calibrated_confidence || target.confidence || 0.85) * 100);
       const accScore = (target.accuracy_score != null ? (target.accuracy_score * 100) : (confScore * 0.98)).toFixed(1);
