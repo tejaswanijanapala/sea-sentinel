@@ -11,11 +11,16 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3000" ^| findstr "LISTENING
     taskkill /F /PID %%a 2>nul
 )
 
+set PYTHON_EXE=python
+if exist "%~dp0.venv\Scripts\python.exe" (
+    set PYTHON_EXE=%~dp0.venv\Scripts\python.exe
+)
+
 echo [2/3] Starting FastAPI Backend Server on http://localhost:8000 ...
-start "Sea Sentinel Backend" /D "%~dp0backend" python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+start "Sea Sentinel Backend" /D "%~dp0backend" "%PYTHON_EXE%" -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 echo [3/3] Starting Frontend Web Server on http://localhost:3000 ...
-start "Sea Sentinel Frontend" /D "%~dp0" python -m http.server 3000 --directory frontend
+start "Sea Sentinel Frontend" /D "%~dp0" "%PYTHON_EXE%" -m http.server 3000 --directory frontend
 
 echo.
 echo Servers successfully reloaded!

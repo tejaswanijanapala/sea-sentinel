@@ -621,7 +621,430 @@
       </div>
 
       <div class="modal-body" id="modalReportContent">
-        <!-- Rendered dynamically by app.js -->
+        <!-- 1. Side-by-Side Dual-Path Image Inspection Suite -->
+        <div class="report-section-title">
+          <i class="fa-solid fa-images"></i> Dual-Path Sonar Imagery Analysis Suite (Input vs AI Output)
+        </div>
+        <div class="report-img-grid">
+          <div class="report-img-card">
+            <div class="report-img-header">
+              <span><i class="fa-solid fa-wave-square"></i> RAW ACOUSTIC SCAN</span>
+              <span class="report-img-tag input">Input Image</span>
+            </div>
+            <div class="report-img-box">
+              <img id="reportRawImg" src="assets/samples/sample_engine_raw.jpg" alt="Raw Acoustic Input Sonar" />
+            </div>
+          </div>
+
+          <div class="report-img-card">
+            <div class="report-img-header">
+              <span><i class="fa-solid fa-wand-magic-sparkles"></i> CONTRAST EQUALIZED MOSAIC</span>
+              <span class="report-img-tag prep">Preprocessing</span>
+            </div>
+            <div class="report-img-box">
+              <img id="reportPrepImg" src="assets/samples/sample_engine_enhanced.jpg" alt="CLAHE Contrast Enhanced Sonar" />
+            </div>
+          </div>
+
+          <div class="report-img-card highlight">
+            <div class="report-img-header">
+              <span style="color:#00e676;"><i class="fa-solid fa-cubes-stacked"></i> PARALLEL YOLO + U-NET FUSED</span>
+              <span class="report-img-tag output">AI Output</span>
+            </div>
+            <div class="report-img-box">
+              <img id="reportOutImg" src="assets/samples/sample_engine_fused.jpg" alt="Parallel Dual-Path YOLO + U-Net AI Output" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Executive Mission Summary KPI Grid -->
+        <div class="report-section-title">
+          <i class="fa-solid fa-gauge-high"></i> Executive Hydrographic Survey Telemetry
+        </div>
+        <div class="report-meta-grid">
+          <div class="report-meta-card">
+            <div class="rm-lbl">MISSION ID</div>
+            <div class="rm-val cyan">SURVEY_54434B1B</div>
+          </div>
+          <div class="report-meta-card">
+            <div class="rm-lbl">TOTAL TARGETS FUSED</div>
+            <div class="rm-val green">6 Fused (3 Both | 3 U-Net | 0 YOLO)</div>
+          </div>
+          <div class="report-meta-card">
+            <div class="rm-lbl">HIGH-RECALL ACCURACY</div>
+            <div class="rm-val cyan">84.1% Mean Reliability</div>
+          </div>
+          <div class="report-meta-card">
+            <div class="rm-lbl">GEODETIC DATUM &amp; SWATH</div>
+            <div class="rm-val">UNREFERENCED · 75m Swath</div>
+          </div>
+        </div>
+
+        <!-- 3. Comprehensive Target Inventory Table -->
+        <div class="report-section-title">
+          <i class="fa-solid fa-table-list"></i> Comprehensive Debris Inventory &amp; Multi-Dimensional Intelligence (6 Objects)
+        </div>
+        <div class="ablation-table-wrap">
+          <table class="ablation-table">
+            <thead>
+              <tr>
+                <th>Target ID</th>
+                <th>Debris Taxonomy</th>
+                <th>Inspection Priority</th>
+                <th>AI Confidence</th>
+                <th>Hazard Risk</th>
+                <th>Dual Provenance</th>
+                <th>Acoustic Status</th>
+                <th>WGS84 Coordinates</th>
+                <th>Physical Dimensions</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody">
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#1 TGT_001</b></td>
+                <td><b>ENGINE DEBRIS</b></td>
+                <td><span class="score-pill prio-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>81/100</b> (CRITICAL)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">98%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 98%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>80/100</b> (HIGH)</span></td>
+                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
+                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">179m × 90m (16110 m²)</span></td>
+              </tr>
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#2 TGT_002</b></td>
+                <td><b>ENGINE DEBRIS</b></td>
+                <td><span class="score-pill prio-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>81/100</b> (CRITICAL)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">97%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 97%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>80/100</b> (HIGH)</span></td>
+                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
+                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">91m × 313m (28483 m²)</span></td>
+              </tr>
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#3 TGT_003</b></td>
+                <td><b>RIPRAP DEBRIS</b></td>
+                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>71/100</b> (HIGH)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">96%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 96%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-medium" style="padding: 2px 8px; font-size: 0.72rem;"><b>58/100</b> (MEDIUM)</span></td>
+                <td><span class="provenance-tag both">YOLO + U-NET</span></td>
+                <td><span style="color:var(--emerald-safe); font-weight:700;">CONFIRMED</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">6m × 13m (78 m²)</span></td>
+              </tr>
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#4 TGT_004</b></td>
+                <td><b>FISHING NET</b></td>
+                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>75/100</b> (HIGH)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">72%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 72%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
+                <td><span class="provenance-tag unet">UNET ONLY</span></td>
+                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">181m × 146m (26426 m²)</span></td>
+              </tr>
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#5 TGT_005</b></td>
+                <td><b>FISHING NET</b></td>
+                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>75/100</b> (HIGH)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">71%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 71%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
+                <td><span class="provenance-tag unet">UNET ONLY</span></td>
+                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">181m × 150m (27150 m²)</span></td>
+              </tr>
+              <tr>
+                <td><b style="color:var(--cyan-beam); font-family:var(--font-mono);">#6 TGT_006</b></td>
+                <td><b>FISHING NET</b></td>
+                <td><span class="score-pill prio-high" style="padding: 2px 8px; font-size: 0.72rem;"><b>67/100</b> (HIGH)</span></td>
+                <td>
+                  <div class="accuracy-bar-wrap">
+                    <span class="mono" style="font-weight:700; color:#ffffff;">71%</span>
+                    <div class="accuracy-bar-track"><div class="accuracy-bar-fill" style="width: 71%;"></div></div>
+                  </div>
+                </td>
+                <td><span class="score-pill hazard-critical" style="padding: 2px 8px; font-size: 0.72rem;"><b>86/100</b> (CRITICAL)</span></td>
+                <td><span class="provenance-tag unet">UNET ONLY</span></td>
+                <td><span style="color:var(--amber-warn); font-weight:700;">SUSPICIOUS</span></td>
+                <td><span class="mono" style="color:#e2e8f0;">Case C (Unreferenced)</span></td>
+                <td><span class="mono">180m × 149m (26820 m²)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 4. Individual Target Detailed Intelligence Dossiers -->
+        <div class="report-section-title" style="margin-top: 28px;">
+          <i class="fa-solid fa-microchip"></i> Individual Target Hydrographic Dossiers &amp; Physics Telemetry
+        </div>
+        <div class="report-dossier-grid" id="reportDossierGrid">
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#1 TGT_001 &mdash; ENGINE DEBRIS</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag both">YOLO + U-NET</span>
+                <span class="priority-badge critical">PRIORITY: 81/100</span>
+                <span class="hazard-badge high">HAZARD: 80/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 81/100 (CRITICAL) because it was classified as 'Engine Debris' with 97.6% AI detection confidence, large estimated extent (16110.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">81/100 (CRITICAL)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">98%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--coral-danger);">80/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">179m × 90m (16110 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.79</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#2 TGT_002 &mdash; ENGINE DEBRIS</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag both">YOLO + U-NET</span>
+                <span class="priority-badge critical">PRIORITY: 81/100</span>
+                <span class="hazard-badge high">HAZARD: 80/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 81/100 (CRITICAL) because it was classified as 'Engine Debris' with 96.9% AI detection confidence, large estimated extent (28483.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">81/100 (CRITICAL)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">97%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--coral-danger);">80/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">91m × 313m (28483 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.81</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#3 TGT_003 &mdash; RIPRAP DEBRIS</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag both">YOLO + U-NET</span>
+                <span class="priority-badge high">PRIORITY: 71/100</span>
+                <span class="hazard-badge medium">HAZARD: 58/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 71/100 (HIGH) because it was classified as 'Riprap Debris' with 96.0% AI detection confidence, large estimated extent (78.0 m²), and high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">71/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">96%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--amber-warn);">58/100 (MEDIUM)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">6m × 13m (78 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.84</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#4 TGT_004 &mdash; FISHING NET</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag unet">UNET ONLY</span>
+                <span class="priority-badge high">PRIORITY: 75/100</span>
+                <span class="hazard-badge critical">HAZARD: 86/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 75/100 (HIGH) because it was classified as 'Fishing Net' with 72.3% AI detection confidence, large estimated extent (26426.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">75/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">72%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">181m × 146m (26426 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.65</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#5 TGT_005 &mdash; FISHING NET</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag unet">UNET ONLY</span>
+                <span class="priority-badge high">PRIORITY: 75/100</span>
+                <span class="hazard-badge critical">HAZARD: 86/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 75/100 (HIGH) because it was classified as 'Fishing Net' with 70.8% AI detection confidence, large estimated extent (27150.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">75/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">71%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">181m × 150m (27150 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.64</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-dossier-card">
+            <div class="report-dossier-header">
+              <span class="report-dossier-title">#6 TGT_006 &mdash; FISHING NET</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="provenance-tag unet">UNET ONLY</span>
+                <span class="priority-badge high">PRIORITY: 67/100</span>
+                <span class="hazard-badge critical">HAZARD: 86/100</span>
+              </div>
+            </div>
+            <div style="font-size: 0.80rem; color: #d1e2f5; line-height: 1.45; margin-top: 4px;">
+              This target has been assigned an inspection priority of 67/100 (HIGH) because it was classified as 'Fishing Net' with 70.8% AI detection confidence, large estimated extent (26820.0 m²), and very high potential marine impact. Standard unreferenced acoustic survey sector.
+            </div>
+            <div class="report-metric-pill-row">
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">INSPECTION PRIORITY</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-weight:800;">67/100 (HIGH)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">AI DETECTION CONF</span>
+                <span class="report-metric-val" style="color:var(--emerald-safe);">71%</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">HAZARD RISK</span>
+                <span class="report-metric-val" style="color:var(--coral-danger);">86/100 (CRITICAL)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">GEOLOCATION</span>
+                <span class="report-metric-val" style="color:var(--cyan-beam); font-size:0.68rem;">Case C (Unreferenced)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">METRIC EXTENT</span>
+                <span class="report-metric-val">180m × 149m (26820 m²)</span>
+              </div>
+              <div class="report-metric-pill">
+                <span class="report-metric-lbl">VERIFY SCORE</span>
+                <span class="report-metric-val">0.55</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

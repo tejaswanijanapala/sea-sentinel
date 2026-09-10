@@ -17,13 +17,19 @@ Write-Host "[1/3] Terminating any existing servers on ports 8000 and 3000..." -F
     }
 }
 
+# Python executable resolution
+$pythonExe = "python"
+if (Test-Path "$PSScriptRoot\.venv\Scripts\python.exe") {
+    $pythonExe = "$PSScriptRoot\.venv\Scripts\python.exe"
+}
+
 # Start Backend
 Write-Host "[2/3] Starting FastAPI Backend on http://localhost:8000 ..." -ForegroundColor Yellow
-Start-Process python -ArgumentList "-m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload" -WorkingDirectory "$PSScriptRoot\backend"
+Start-Process $pythonExe -ArgumentList "-m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload" -WorkingDirectory "$PSScriptRoot\backend"
 
 # Start Frontend
 Write-Host "[3/3] Starting Frontend Server on http://localhost:3000 ..." -ForegroundColor Yellow
-Start-Process python -ArgumentList "-m http.server 3000 --directory frontend" -WorkingDirectory "$PSScriptRoot"
+Start-Process $pythonExe -ArgumentList "-m http.server 3000 --directory frontend" -WorkingDirectory "$PSScriptRoot"
 
 Write-Host "`nServers successfully launched!" -ForegroundColor Green
 Write-Host " - Web Dashboard:    http://localhost:3000" -ForegroundColor Cyan
