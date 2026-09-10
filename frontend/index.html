@@ -283,14 +283,14 @@
         </div>
 
         <!-- Dashed Dropzone Area -->
-        <div class="upload-dropzone-box" id="uploadDropzone">
-          <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" />
+        <div class="upload-dropzone-box" id="uploadDropzone" onclick="if(event.target.id!=='sonarFileInput' && !event.target.closest('button')) { const inp = document.getElementById('sonarFileInput'); if(inp){ inp.value=''; inp.click(); } }">
+          <input type="file" id="sonarFileInput" accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp" style="display: none;" onchange="if(window.app && window.app.handleFileSelect){ window.app.handleFileSelect(event); }" />
 
           <!-- Idle State -->
           <div id="dropzoneIdleState" class="dropzone-idle">
             <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
             <div class="dropzone-main"><b>Upload Sonar Imagery or GeoTIFF Mosaic</b></div>
-            <div class="dropzone-sub">Drag &amp; drop or <span class="browse-link">browse files</span></div>
+            <div class="dropzone-sub">Drag &amp; drop or <span class="browse-link" style="color: #00e5ff; text-decoration: underline; font-weight: 600; cursor: pointer;">browse files</span></div>
           </div>
 
           <!-- Complete / Active State -->

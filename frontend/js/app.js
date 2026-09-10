@@ -348,6 +348,17 @@ class DashboardApp {
     });
   }
 
+  async handleFileSelect(e) {
+    const files = e && e.target && e.target.files ? e.target.files : (e && e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null);
+    if (files && files.length > 0) {
+      const file = files[0];
+      this.uploadedFile = file;
+      this.currentSample = null;
+      document.querySelectorAll('.sample-pill').forEach(b => b.classList.remove('active'));
+      await this.executeAIPipeline();
+    }
+  }
+
   async executeAIPipeline() {
     const statusPill = document.getElementById('pipelineStatusPill');
     const statusText = document.getElementById('pipelineStatusText');
@@ -1560,20 +1571,15 @@ class DashboardApp {
 
     if (dropzone && fileInput) {
       dropzone.onclick = (e) => {
-        if (e.target.closest('.sample-pill') || e.target.closest('.btn-reject-retry') || e.target.closest('.btn-reject-demo') || e.target.closest('.btn-analyze-another')) {
+        if (e.target.closest('.sample-pill') || e.target.closest('.btn-reject-retry') || e.target.closest('.btn-reject-demo') || e.target.closest('.btn-analyze-another') || e.target.id === 'sonarFileInput') {
           return;
         }
+        fileInput.value = '';
         fileInput.click();
       };
 
       fileInput.onchange = async (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-          const file = e.target.files[0];
-          this.uploadedFile = file;
-          this.currentSample = null;
-          document.querySelectorAll('.sample-pill').forEach(b => b.classList.remove('active'));
-          await this.executeAIPipeline();
-        }
+        await this.handleFileSelect(e);
       };
 
       dropzone.ondragover = (e) => {
@@ -1588,13 +1594,7 @@ class DashboardApp {
       dropzone.ondrop = async (e) => {
         e.preventDefault();
         dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          const file = e.dataTransfer.files[0];
-          this.uploadedFile = file;
-          this.currentSample = null;
-          document.querySelectorAll('.sample-pill').forEach(b => b.classList.remove('active'));
-          await this.executeAIPipeline();
-        }
+        await this.handleFileSelect(e);
       };
     }
 
@@ -1603,6 +1603,7 @@ class DashboardApp {
     if (btnRejectBrowse && fileInput) {
       btnRejectBrowse.onclick = (e) => {
         e.stopPropagation();
+        fileInput.value = '';
         fileInput.click();
       };
     }
@@ -1621,6 +1622,7 @@ class DashboardApp {
     if (btnAnalyzeAnother && fileInput) {
       btnAnalyzeAnother.onclick = (e) => {
         e.stopPropagation();
+        fileInput.value = '';
         fileInput.click();
       };
     }
