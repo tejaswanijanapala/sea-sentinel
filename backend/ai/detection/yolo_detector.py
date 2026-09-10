@@ -78,6 +78,8 @@ class YOLODetector:
             backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             project_dir = os.path.dirname(backend_dir)
             trained_candidates = [
+                os.path.join(project_dir, "models", "yolo", "best.onnx"),
+                os.path.join(project_dir, "models", "yolo", "best_fp16.pt"),
                 os.path.join(project_dir, "models", "yolo", "best.pt"),
                 os.path.join(backend_dir, "models", "yolo", "best.pt"),
                 os.path.join(backend_dir, "yolo11n.pt")

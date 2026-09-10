@@ -63,6 +63,8 @@ class UNetSegmenter:
             backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             project_dir = os.path.dirname(backend_dir)
             fallbacks = [
+                os.path.join(project_dir, "models", "unet", "attention_unet_best_fp16.pt"),
+                os.path.join(backend_dir, "models", "checkpoints", "unet", "attention_unet_best_fp16.pt"),
                 os.path.join(project_dir, "models", "unet", "attention_unet_best.pt"),
                 os.path.join(backend_dir, "models", "unet", "attention_unet_best.pt"),
                 os.path.join(project_dir, "models", "unet", "attention_unet_latest.pt")
@@ -110,7 +112,18 @@ class UNetSegmenter:
                 num_classes=1,
                 features=features
             )
-            self.model.load_state_dict(state_dict)
+
+            # Support FP16 optimized checkpoints: cast weights to match device parameter dtype
+            if state_dict is not None:
+                target_dtype = next(self.model.parameters()).dtype
+                clean_state = {}
+                for k, v in state_dict.items():
+                    if isinstance(v, torch.Tensor) and v.is_floating_point():
+                        clean_state[k] = v.to(dtype=target_dtype)
+                    else:
+                        clean_state[k] = v
+                self.model.load_state_dict(clean_state)
+
             self.model.to(self.device)
             self.model.eval()
             self.is_model_loaded = True

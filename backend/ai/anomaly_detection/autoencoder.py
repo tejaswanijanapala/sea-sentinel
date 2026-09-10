@@ -57,18 +57,43 @@ class AnomalyDetector:
         self._check_model()
 
     def _check_model(self) -> bool:
+        if not self.checkpoint_path or not os.path.exists(self.checkpoint_path):
+            backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            project_dir = os.path.dirname(backend_dir)
+            fallbacks = [
+                os.path.join(project_dir, "models", "autoencoder", "baseline_autoencoder_fp16.pt"),
+                os.path.join(backend_dir, "models", "checkpoints", "autoencoder", "baseline_autoencoder_fp16.pt"),
+                os.path.join(project_dir, "models", "autoencoder", "baseline_autoencoder.pt"),
+                os.path.join(backend_dir, "models", "checkpoints", "autoencoder", "baseline_autoencoder.pt")
+            ]
+            for fb in fallbacks:
+                if os.path.exists(fb):
+                    self.checkpoint_path = fb
+                    break
+
         if self.checkpoint_path and os.path.exists(self.checkpoint_path):
             try:
                 self.model = AcousticAutoencoder(in_channels=1, latent_dim=128, base_channels=32)
                 ckpt = torch.load(self.checkpoint_path, map_location=self.device)
+                state_dict = None
                 if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
-                    self.model.load_state_dict(ckpt["model_state_dict"])
+                    state_dict = ckpt["model_state_dict"]
                     if "threshold" in ckpt:
                         self.threshold = ckpt["threshold"]
                 elif isinstance(ckpt, dict):
-                    self.model.load_state_dict(ckpt)
+                    state_dict = ckpt
                 else:
                     self.model = ckpt
+
+                if state_dict is not None and isinstance(self.model, torch.nn.Module):
+                    target_dtype = next(self.model.parameters()).dtype
+                    clean_state = {}
+                    for k, v in state_dict.items():
+                        if isinstance(v, torch.Tensor) and v.is_floating_point():
+                            clean_state[k] = v.to(dtype=target_dtype)
+                        else:
+                            clean_state[k] = v
+                    self.model.load_state_dict(clean_state)
 
                 self.model.to(self.device)
                 self.model.eval()
