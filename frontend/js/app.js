@@ -39,6 +39,7 @@ class DashboardApp {
 
     try {
       this.map = new GISMap('leafletMap');
+      window.gisMap = this.map;
     } catch (e) {
       console.error("GIS Map init error:", e);
     }
@@ -1003,8 +1004,15 @@ class DashboardApp {
 
       let lat = (target.latitude != null) ? Number(target.latitude) : (target.lat != null ? Number(target.lat) : null);
       let lon = (target.longitude != null) ? Number(target.longitude) : (target.lon != null ? Number(target.lon) : null);
-      const hasCoords = (lat != null && lon != null && !isNaN(lat) && !isNaN(lon));
-      const geoText = hasCoords ? `${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E` : "Case C (Unref)";
+      const hasCoords = (lat != null && lon != null && !isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0);
+      const formatCoord = (val, isLat) => {
+        if (val == null || isNaN(val)) return "--";
+        const num = Number(val);
+        const abs = Math.abs(num).toFixed(5);
+        const dir = isLat ? (num >= 0 ? "N" : "S") : (num >= 0 ? "E" : "W");
+        return `${abs}°${dir}`;
+      };
+      const geoText = hasCoords ? `${formatCoord(lat, true)}, ${formatCoord(lon, false)}` : "Case C (Unreferenced)";
 
       physicsEl.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.76rem;">

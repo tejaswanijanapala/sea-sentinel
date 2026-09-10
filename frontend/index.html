@@ -11,14 +11,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Leaflet GIS CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet GIS CSS (Local Offline Asset) -->
+  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
 
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <!-- Custom Design System -->
-  <link rel="stylesheet" href="css/style.css?v=3.2">
+  <link rel="stylesheet" href="css/style.css?v=4.4">
 </head>
 <body>
 
@@ -64,10 +64,10 @@
 
     <!-- Workspace View Switcher -->
     <div class="workspace-tabs">
-      <button class="tab-btn active" id="tabWaterfall" data-tab="waterfall">
+      <button class="tab-btn" id="tabWaterfall" data-tab="waterfall">
         <i class="fa-solid fa-water"></i> Sonar Scan
       </button>
-      <button class="tab-btn" id="tabSplit" data-tab="split">
+      <button class="tab-btn active" id="tabSplit" data-tab="split">
         <i class="fa-solid fa-table-columns"></i> Split View
       </button>
       <button class="tab-btn" id="tabMap" data-tab="map">
@@ -439,21 +439,75 @@
       </div>
 
       <!-- Collapsible / Togglable GIS Map View -->
-      <div class="glass-panel map-panel" id="cardMap" style="display: none;">
+      <div class="glass-panel map-panel" id="cardMap" style="display: block;">
         <div class="panel-header">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Georeferenced WGS84 Target Map</span>
-            <span class="panel-tag green">EPSG:4326 (WGS84)</span>
+            <span class="panel-title"><i class="fa-solid fa-map-location-dot"></i> Ocean Debris GIS &amp; Geospatial Intelligence</span>
+            <span class="panel-tag green">● OFFLINE READY</span>
+            <span class="panel-tag cyan">WGS84</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="panel-tag gray" id="mapTargetCount">0 Targets Plotted</span>
-            <button class="panel-btn" id="btnFitMap" title="Focus All Georeferenced Targets">
-              <i class="fa-solid fa-expand"></i> Focus All
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <button class="panel-btn gis-panel-btn" id="btnFocusCurrentScan" title="Focus Current Input Image Debris" onclick="if(window.gisMap) window.gisMap.fitCurrentScan(); else if(window.app && window.app.map) window.app.map.fitCurrentScan();" style="background: rgba(0, 240, 255, 0.22); color: #00f0ff; border: 1px solid #00f0ff; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              <span>Current Input</span>
             </button>
-            <button class="panel-btn" id="btnToggleSwath" title="Toggle Sonar Swath & Nadir Trackline">
-              <i class="fa-solid fa-route"></i> Swath
+            <button class="panel-btn gis-panel-btn active" id="btnFitEntireOcean" title="View Cumulative Entire Ocean Survey Map" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();" style="background: rgba(56, 189, 248, 0.20); color: #38bdf8; border: 1px solid #38bdf8; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span>Entire Ocean Map</span>
+            </button>
+            <button class="panel-btn gis-panel-btn" id="btnOpenBatchModal" title="Batch Process SSS Imagery Folder" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M12 10v6"/><path d="M9 13h6"/></svg>
+              <span>Batch Import</span>
+            </button>
+            <button class="panel-btn gis-panel-btn" id="btnExportGisMenu" title="Export GIS Intelligence (GeoJSON / CSV / KML)" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Export GIS</span>
+            </button>
+            <button class="panel-btn gis-panel-btn" id="btnFitMap" title="Focus All Georeferenced Targets" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><polyline points="21 15 21 21 15 21"/><polyline points="3 9 3 3 9 3"/></svg>
+              <span>Fit All</span>
+            </button>
+            <button class="panel-btn gis-panel-btn" id="btnToggleSwath" title="Toggle Sonar Swath & Nadir Trackline" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18"/><path d="m6 17 3-13 6 4 3 9"/><circle cx="6" cy="17" r="2"/><circle cx="18" cy="17" r="2"/></svg>
+              <span>Swath</span>
             </button>
           </div>
+        </div>
+
+        <!-- Live GIS Dashboard Statistics Bar -->
+        <div class="gis-stats-bar" style="display: flex; align-items: center; justify-content: space-around; background: rgba(15, 23, 42, 0.75); border-bottom: 1px solid var(--border-dark); padding: 8px 12px; font-size: 0.78rem;">
+          <div style="text-align: center;"><span style="color:#94a3b8;">Targets:</span> <b id="gisStatTargets" style="color:#00f0ff; font-family:'JetBrains Mono',monospace;">0</b></div>
+          <div style="text-align: center;"><span style="color:#94a3b8;">Verified:</span> <b id="gisStatVerified" style="color:#10b981; font-family:'JetBrains Mono',monospace;">0</b></div>
+          <div style="text-align: center;"><span style="color:#94a3b8;">Clusters:</span> <b id="gisStatClusters" style="color:#a855f7; font-family:'JetBrains Mono',monospace;">0</b></div>
+          <div style="text-align: center;"><span style="color:#94a3b8;">Surveyed Area:</span> <b id="gisStatArea" style="color:#f59e0b; font-family:'JetBrains Mono',monospace;">0.0 km²</b></div>
+          <div style="text-align: center;"><span style="color:#94a3b8;">Images:</span> <b id="gisStatImages" style="color:#38bdf8; font-family:'JetBrains Mono',monospace;">0</b></div>
+        </div>
+
+        <!-- GIS Spatial Filter & Search Bar -->
+        <div class="gis-filter-bar" style="display: flex; align-items: center; gap: 8px; background: rgba(10, 17, 30, 0.65); padding: 6px 12px; border-bottom: 1px solid var(--border-dark); font-size: 0.76rem;">
+          <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+            <i class="fa-solid fa-magnifying-glass" style="color:#94a3b8;"></i>
+            <input type="text" id="gisSearchInput" placeholder="Search Target ID (SS-0001), Class, or Cluster..." style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-dark); border-radius: 4px; color: #fff; padding: 4px 8px; font-size: 0.75rem; width: 100%; outline: none;" />
+          </div>
+          <select id="gisClassFilter" style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-dark); border-radius: 4px; color: #38bdf8; padding: 4px 6px; font-size: 0.75rem; outline: none;">
+            <option value="all">All Classes</option>
+            <option value="ghost_net">Ghost Net</option>
+            <option value="fishing_gear">Fishing Gear</option>
+            <option value="plastic">Plastic</option>
+            <option value="metal">Metal / Container</option>
+            <option value="rope">Rope</option>
+            <option value="unknown">Unknown</option>
+          </select>
+          <select id="gisConfFilter" style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-dark); border-radius: 4px; color: #10b981; padding: 4px 6px; font-size: 0.75rem; outline: none;">
+            <option value="0.0">All Confidence</option>
+            <option value="0.5">≥ 50% Conf</option>
+            <option value="0.7">≥ 70% Conf</option>
+            <option value="0.8">≥ 80% Conf</option>
+            <option value="0.9">≥ 90% Conf</option>
+          </select>
+          <button id="btnRecalcClusters" title="Recalculate DBSCAN Clusters" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid #a855f7; border-radius: 4px; padding: 4px 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+            <i class="fa-solid fa-shapes"></i> Re-Cluster
+          </button>
         </div>
 
         <!-- Local Marine GIS Layer Selector Bar (Offline-Native) -->
@@ -486,10 +540,10 @@
           </label>
         </div>
 
-        <div class="map-viewport">
-          <div id="leafletMap"></div>
+        <div class="map-viewport" style="position: relative; width: 100%; height: 500px; min-height: 500px; border-radius: 0 0 10px 10px; overflow: hidden; background: #060b18;">
+          <div id="leafletMap" style="width: 100%; height: 500px; min-height: 500px; background: #060b18; position: relative; z-index: 1;"></div>
           <div class="map-coords-hud" id="mapCoordsHud">
-            <i class="fa-solid fa-crosshairs"></i> Cursor: <b>42.74740° N, 73.79457° W</b> &nbsp;|&nbsp; Datum: <span style="color:#00f0ff;">WGS84 (EPSG:4326)</span>
+            <i class="fa-solid fa-crosshairs"></i> Cursor: <b>30.17350° N, 87.82500° W</b> &nbsp;|&nbsp; Datum: <span style="color:#00f0ff;">WGS84 (EPSG:4326)</span>
           </div>
           <div class="map-legend-overlay">
             <span class="legend-chip"><span class="legend-dot red"></span> High Risk</span>
@@ -1516,14 +1570,128 @@
     </div>
   </div>
 
-  <!-- Leaflet GIS JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- =========================================================
+       GIS Batch SSS Image Import Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="gisBatchModal" style="display: none;">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-subtitle">HIGH-THROUGHPUT OFFLINE SURVEY INGESTION</div>
+          <h2 class="modal-title"><i class="fa-solid fa-folder-plus" style="color: var(--cyan-beam);"></i> Batch SSS Image Processor</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button class="modal-close" id="btnCloseBatchModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p style="font-size: 0.82rem; color: #94a3b8; margin: 0 0 14px 0;">
+          Select multiple Side-Scan Sonar raster files or companion navigation logs. The system will sequentially extract metadata, run YOLO11/U-Net dual-path inference, georeference targets, deduplicate observations, and update the persistent GIS database.
+        </p>
+
+        <div style="border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 24px; text-align: center; background: rgba(15, 23, 42, 0.6); margin-bottom: 16px; cursor: pointer;" onclick="document.getElementById('batchFileInput').click();">
+          <input type="file" id="batchFileInput" multiple accept=".png,.jpg,.jpeg,.tif,.tiff" style="display: none;" onchange="if(window.app) window.app.handleBatchFileSelect(event);" />
+          <i class="fa-solid fa-images" style="font-size: 2rem; color: #38bdf8; margin-bottom: 8px;"></i>
+          <div style="font-weight: 700; font-size: 0.95rem; color: #f8fafc;">Click to Select Multiple SSS Images</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Supports GeoTIFF (.tif), PNG, JPG, and companion .nav files</div>
+        </div>
+
+        <div id="batchProgressContainer" style="display: none; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+            <span id="batchProgressLabel" style="color: #38bdf8; font-weight: 600;">Processing 0 / 0 images...</span>
+            <span id="batchProgressPercent" style="color: #10b981; font-weight: 700;">0%</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden;">
+            <div id="batchProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0284c7, #10b981); transition: width 0.2s ease;"></div>
+          </div>
+        </div>
+
+        <div id="batchResultsSummary" style="display: none; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-dark); border-radius: 6px; padding: 12px; font-size: 0.80rem;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       Human-in-the-Loop Target Review Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="gisTargetReviewModal" style="display: none;">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-subtitle">OPERATOR VERIFICATION &amp; DATASET FEEDBACK</div>
+          <h2 class="modal-title"><i class="fa-solid fa-clipboard-check" style="color: var(--cyan-beam);"></i> Human-in-the-Loop Review: <span id="reviewModalTargetId" style="color:#00f0ff;">SS-0001</span></h2>
+        </div>
+        <div class="modal-header-actions">
+          <button class="modal-close" id="btnCloseTargetReviewModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+            <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">AI Classification</div>
+            <div id="reviewModalAiClass" style="font-size: 1rem; font-weight: 800; color: #38bdf8; margin-top: 2px;">GHOST NET (92%)</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+            <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Merged Observations</div>
+            <div id="reviewModalObsCount" style="font-size: 1rem; font-weight: 800; color: #a855f7; margin-top: 2px;">3 Passes</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: #f8fafc; display: block; margin-bottom: 4px;">Operator Verification Action:</label>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn-review-action active" id="btnActionVerify" style="flex: 1; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; border-radius: 4px; padding: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+              <i class="fa-solid fa-check"></i> Confirm Debris
+            </button>
+            <button type="button" class="btn-review-action" id="btnActionReject" style="flex: 1; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; padding: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+              <i class="fa-solid fa-xmark"></i> False Alarm
+            </button>
+            <button type="button" class="btn-review-action" id="btnActionReclassify" style="flex: 1; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; border-radius: 4px; padding: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+              <i class="fa-solid fa-pen-to-square"></i> Reclassify
+            </button>
+          </div>
+        </div>
+
+        <div id="reclassifySelectWrap" style="margin-bottom: 14px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: #f8fafc; display: block; margin-bottom: 4px;">Corrected Classification:</label>
+          <select id="reviewModalClassSelect" style="width: 100%; background: #0b1120; border: 1px solid var(--border-dark); border-radius: 4px; color: #fff; padding: 6px 10px; font-size: 0.82rem; outline: none;">
+            <option value="ghost_net">Ghost Net</option>
+            <option value="fishing_gear">Fishing Gear / Trap</option>
+            <option value="plastic">Plastic / Drum</option>
+            <option value="metal">Metal / Hull Fragment</option>
+            <option value="rope">Rope / Hawser</option>
+            <option value="tyre">Tyre / Rubber</option>
+            <option value="container">Shipping Container</option>
+            <option value="unknown">Unknown Object</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: #f8fafc; display: block; margin-bottom: 4px;">Operator Audit Comments:</label>
+          <textarea id="reviewModalComment" rows="3" placeholder="Enter observation notes, seabed context, or reason for correction..." style="width: 100%; background: #0b1120; border: 1px solid var(--border-dark); border-radius: 4px; color: #fff; padding: 8px 10px; font-size: 0.80rem; outline: none;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-ghost" id="btnCancelReviewModal">Cancel</button>
+          <button type="button" class="btn-review-submit" id="btnSaveTargetReview" style="background: linear-gradient(135deg, #0284c7, #06b6d4); color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+            <i class="fa-solid fa-floppy-disk"></i> Save Review &amp; Update Map
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet GIS JS (Local Offline Asset) -->
+  <script src="assets/vendor/leaflet/leaflet.js"></script>
 
   <!-- Application Scripts -->
-  <script src="js/api.js?v=3.2"></script>
-  <script src="js/waterfall.js?v=3.2"></script>
-  <script src="js/map.js?v=3.2"></script>
-  <script src="js/app.js?v=3.2"></script>
+  <script src="js/api.js?v=4.5"></script>
+  <script src="js/waterfall.js?v=4.5"></script>
+  <script src="js/map.js?v=4.5"></script>
+  <script src="js/app.js?v=4.5"></script>
+  <script src="js/gis_ui.js?v=4.5"></script>
 
 </body>
 </html>

@@ -43,6 +43,15 @@ from edge.resource_manager import EdgeResourceManager
 from edge.watchdog import EdgeWatchdogSupervisor
 from edge.telemetry_modem import AcousticTelemetryEncoder
 
+# GIS & Spatial Intelligence Modules
+from database.local_db import LocalDatabase
+from ai.geospatial.metadata_service import MetadataService, SonarMetadata
+from ai.geospatial.georeferencing_engine import GeoreferencingEngine, SonarConfiguration
+from duplicate_detection.spatial_matcher import TargetMatchingService
+from ai.geospatial.clustering_service import ClusteringService
+from ai.geospatial.survey_track_service import SurveyTrackService
+from ai.geospatial.export_service import GISExportService
+
 app = FastAPI(
     title="Sea Sentinel — AI Underwater Debris & Anomaly Detection API",
     description="MoES / NIOT Autonomous Parallel YOLO + U-Net Side-Scan Sonar Engine",
@@ -68,6 +77,15 @@ edge_pipeline = EdgePerceptionPipeline(yolo_detector=agent.detector, unet_segmen
 edge_watchdog = EdgeWatchdogSupervisor()
 CACHED_ANALYSES = {}
 CACHED_ABLATION = None
+
+# Instantiate GIS Services (Offline-First Spatial Database)
+local_gis_db = LocalDatabase()
+metadata_service = MetadataService()
+georef_engine = GeoreferencingEngine()
+target_matcher = TargetMatchingService(local_gis_db, matching_radius_m=15.0)
+clustering_service = ClusteringService(local_gis_db, epsilon_meters=50.0, min_samples=2)
+survey_track_service = SurveyTrackService(local_gis_db)
+gis_exporter = GISExportService(local_gis_db)
 
 # Ensure Output and Static Directories
 UPLOADS_DIR = os.path.join(PROJECT_ROOT, "outputs", "uploads")
@@ -512,6 +530,17 @@ def analyze_survey(req: AnalyzeRequest):
     annotated_p = res.get("annotated_image_path")
     if annotated_p and os.path.exists(annotated_p):
         res["annotated_image_url"] = f"/static/preprocessed/{os.path.basename(annotated_p)}"
+
+    # Register with GIS Spatial Intelligence Engine
+    try:
+        register_gis_survey(
+            image_path=req.image_path,
+            analysis_result=res,
+            raster_meta_override=req.raster_meta,
+            nav_log=req.nav_log
+        )
+    except Exception as e:
+        print(f"GIS Registration Warning: {e}")
 
     CACHED_ANALYSES[analysis_id] = res
     CACHED_ANALYSES["latest"] = res
@@ -1405,3 +1434,290 @@ def generate_html_mission_report(analysis_id: str):
 </body>
 </html>"""
     return HTMLResponse(content=html)
+
+
+# =====================================================================
+# GIS Spatial Intelligence Pipeline Helper & Endpoints
+# =====================================================================
+
+def register_gis_survey(
+    image_path: str,
+    analysis_result: Dict[str, Any],
+    raster_meta_override: Optional[Dict[str, Any]] = None,
+    nav_log: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Ingests SSS analysis into the persistent GIS Spatial Database:
+    1. Extracts/validates Sonar Metadata
+    2. Records survey image
+    3. Generates vehicle trackline and swath coverage polygons
+    4. Georeferences each detection and deduplicates against persistent targets
+    5. Recalculates DBSCAN clusters
+    """
+    survey_id = analysis_result.get("analysis_id") or f"SURV_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+    meta = metadata_service.extract_metadata(image_path, override_meta=nav_log or raster_meta_override)
+
+    # Insert survey image
+    img_data = {
+        "image_id": survey_id,
+        "filename": os.path.basename(image_path),
+        "file_path": image_path,
+        "timestamp": meta.timestamp,
+        "latitude": meta.latitude,
+        "longitude": meta.longitude,
+        "heading": meta.heading,
+        "depth": meta.depth,
+        "sonar_range": meta.sonar_range,
+        "altitude": meta.altitude,
+        "sensor_id": meta.sensor_id,
+        "frequency": meta.frequency,
+        "metadata_source": meta.metadata_source,
+        "metadata_quality": meta.metadata_quality,
+        "processing_status": "COMPLETED"
+    }
+    image_id = local_gis_db.insert_survey_image(img_data)
+
+    # Generate Survey Track & Swath Coverage
+    track_id, coverage_id = survey_track_service.generate_track_and_coverage(survey_id, image_id, meta)
+
+    # Process Detections & Deduplicate Targets
+    detections = analysis_result.get("detections", [])
+    img_h, img_w = 640, 640
+    raw_p = analysis_result.get("raw_image_path")
+    if raw_p and os.path.exists(raw_p):
+        try:
+            import cv2
+            im = cv2.imread(raw_p)
+            if im is not None:
+                img_h, img_w = im.shape[:2]
+        except Exception:
+            pass
+
+    for d in detections:
+        bbox = d.get("bbox", [0, 0, 50, 50])
+        georef = georef_engine.georeference_detection(bbox, (img_h, img_w), meta)
+        
+        # Determine thumbnail crop path if available
+        crop_path = d.get("crop_path") or ""
+
+        # Match or create persistent target
+        t_id, is_dup, target_dict = target_matcher.match_or_create_target(
+            class_name=d.get("class", "debris"),
+            latitude=georef.latitude,
+            longitude=georef.longitude,
+            confidence=float(d.get("calibrated_confidence", d.get("confidence", 0.8))),
+            depth=georef.depth_m,
+            uncertainty_radius_m=georef.uncertainty_radius_m,
+            georeference_quality=georef.georeference_quality,
+            thumbnail_path=crop_path
+        )
+        d["target_id"] = t_id
+        d["is_duplicate"] = is_dup
+        d["latitude"] = georef.latitude
+        d["longitude"] = georef.longitude
+        d["uncertainty_radius_m"] = georef.uncertainty_radius_m
+        d["georeference_method"] = georef.georeference_method
+        d["georeference_quality"] = georef.georeference_quality
+
+    # Re-save updated survey & detections
+    local_gis_db.insert_survey(analysis_result, detections)
+
+    # Recalculate DBSCAN clusters
+    clustering_service.recalculate_clusters()
+
+    return {
+        "survey_id": survey_id,
+        "image_id": image_id,
+        "track_id": track_id,
+        "coverage_id": coverage_id,
+        "total_detections": len(detections)
+    }
+
+
+@app.get("/api/gis/map-data")
+def get_gis_map_data(
+    min_confidence: float = Query(0.0, ge=0.0, le=1.0),
+    class_filter: Optional[str] = Query("all")
+):
+    """
+    Returns unified offline GIS dataset:
+    - All persistent deduplicated targets
+    - All DBSCAN clusters
+    - All survey vehicle tracks
+    - All scanned swath coverage polygons
+    - Real-time GIS statistics
+    """
+    targets = local_gis_db.get_all_targets(min_confidence=min_confidence, class_filter=class_filter)
+    clusters = local_gis_db.get_all_clusters()
+    tracks = local_gis_db.get_all_survey_tracks()
+    coverage = local_gis_db.get_all_survey_coverage()
+    stats = local_gis_db.get_gis_dashboard_stats()
+
+    return {
+        "status": "success",
+        "timestamp": datetime.utcnow().isoformat(),
+        "offline_ready": True,
+        "statistics": stats,
+        "targets": targets,
+        "clusters": clusters,
+        "survey_tracks": tracks,
+        "survey_coverage": coverage
+    }
+
+
+class BatchProcessRequest(BaseModel):
+    image_paths: List[str]
+    nav_logs: Optional[List[Dict[str, Any]]] = None
+    mode: Optional[str] = "balanced"
+
+
+@app.post("/api/gis/process-batch")
+def process_gis_batch(req: BatchProcessRequest):
+    """
+    Batch processor for multiple SSS images:
+    Extracts metadata, runs YOLO11/U-Net, georeferences, deduplicates, and clusters incrementally.
+    """
+    results = []
+    successful = 0
+    failed = 0
+    warnings = 0
+
+    for idx, path in enumerate(req.image_paths):
+        if not os.path.exists(path):
+            failed += 1
+            results.append({"path": path, "status": "failed", "error": "File not found"})
+            continue
+
+        try:
+            nav_item = req.nav_logs[idx] if req.nav_logs and idx < len(req.nav_logs) else None
+            res = agent.analyze_image(image_path=path, nav_log=nav_item, mode=req.mode or "balanced")
+            if res.get("status") == "rejected":
+                warnings += 1
+                results.append({"path": path, "status": "warning", "message": "Non-sonar image rejected"})
+            else:
+                gis_summary = register_gis_survey(image_path=path, analysis_result=res, nav_log=nav_item)
+                successful += 1
+                results.append({
+                    "path": path,
+                    "status": "success",
+                    "analysis_id": res.get("analysis_id"),
+                    "objects": len(res.get("detections", [])),
+                    "gis": gis_summary
+                })
+        except Exception as e:
+            failed += 1
+            results.append({"path": path, "status": "error", "error": str(e)})
+
+    # Recalculate clusters after full batch
+    clusters = clustering_service.recalculate_clusters()
+    stats = local_gis_db.get_gis_dashboard_stats()
+
+    return {
+        "status": "completed",
+        "processed_count": len(req.image_paths),
+        "successful": successful,
+        "failed": failed,
+        "warnings": warnings,
+        "results": results,
+        "statistics": stats
+    }
+
+
+class TargetReviewRequest(BaseModel):
+    reviewer_decision: str  # 'VERIFIED', 'REJECTED', 'RECLASSIFIED', 'UNVERIFIED'
+    correct_class: Optional[str] = None
+    comments: Optional[str] = ""
+    new_confidence: Optional[float] = None
+    reviewer_name: Optional[str] = "Operator"
+
+
+@app.post("/api/gis/target/{target_id}/review")
+def review_target(target_id: str, req: TargetReviewRequest):
+    """
+    Submits human-in-the-loop review decision for a specific debris target.
+    Updates the target status while preserving original raw AI detections.
+    """
+    target = local_gis_db.get_target_by_id(target_id)
+    if not target:
+        raise HTTPException(status_code=404, detail=f"Target {target_id} not found.")
+
+    review_record = {
+        "target_id": target_id,
+        "reviewer_decision": req.reviewer_decision,
+        "correct_class": req.correct_class,
+        "comments": req.comments,
+        "old_confidence": target.get("confidence", 0.8),
+        "new_confidence": req.new_confidence or target.get("confidence", 0.8),
+        "reviewer_name": req.reviewer_name or "Operator"
+    }
+    review_id = local_gis_db.insert_review(review_record)
+    updated_target = local_gis_db.get_target_by_id(target_id)
+
+    return {
+        "status": "success",
+        "review_id": review_id,
+        "target": updated_target
+    }
+
+
+@app.get("/api/gis/target/{target_id}")
+def get_target_details(target_id: str):
+    """Retrieves full target dossier including review history and linked detections."""
+    target = local_gis_db.get_target_by_id(target_id)
+    if not target:
+        raise HTTPException(status_code=404, detail=f"Target {target_id} not found.")
+    reviews = local_gis_db.get_target_reviews(target_id)
+    return {
+        "target": target,
+        "reviews": reviews
+    }
+
+
+@app.get("/api/gis/export")
+def export_gis_data(
+    format: str = Query("geojson", regex="^(geojson|csv|kml|gpkg)$"),
+    layer: str = Query("all", regex="^(all|targets|clusters|tracks|coverage)$")
+):
+    """
+    Exports Sea Sentinel GIS layers in GeoJSON, CSV, or KML format offline.
+    """
+    if format == "geojson":
+        geojson_data = gis_exporter.export_geojson(layer=layer)
+        return JSONResponse(
+            content=geojson_data,
+            headers={"Content-Disposition": f"attachment; filename=sea_sentinel_{layer}.geojson"}
+        )
+    elif format == "csv":
+        csv_str = gis_exporter.export_csv()
+        return Response(
+            content=csv_str,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=sea_sentinel_targets.csv"}
+        )
+    elif format == "kml":
+        kml_str = gis_exporter.export_kml()
+        return Response(
+            content=kml_str,
+            media_type="application/vnd.google-earth.kml+xml",
+            headers={"Content-Disposition": "attachment; filename=sea_sentinel_targets.kml"}
+        )
+    else:
+        geojson_data = gis_exporter.export_geojson(layer=layer)
+        return JSONResponse(content=geojson_data)
+
+
+@app.post("/api/gis/cluster/recalculate")
+def recalculate_clusters_endpoint(
+    epsilon_meters: float = Query(50.0, ge=5.0, le=5000.0),
+    min_samples: int = Query(2, ge=1, le=50)
+):
+    """Recalculates DBSCAN clusters on-demand with custom epsilon radius and min samples."""
+    clusters = clustering_service.recalculate_clusters(epsilon_meters=epsilon_meters, min_samples=min_samples)
+    return {
+        "status": "success",
+        "epsilon_meters": epsilon_meters,
+        "min_samples": min_samples,
+        "total_clusters": len(clusters),
+        "clusters": clusters
+    }
+

@@ -1059,24 +1059,29 @@ body {
 
 /* GIS Map Panel (When displayed) */
 .map-panel {
-  min-height: 480px;
-  height: 560px;
+  min-height: 640px;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
 
 .map-viewport {
   position: relative;
-  flex: 1;
-  min-height: 380px;
+  width: 100%;
+  height: 520px;
+  min-height: 520px;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   overflow: hidden;
+  background: #060b18;
 }
 
 #leafletMap {
   width: 100%;
-  height: 100%;
+  height: 520px;
+  min-height: 520px;
   background: #060b18;
+  position: relative;
+  z-index: 1;
 }
 
 .map-coords-hud {
@@ -4605,5 +4610,141 @@ body {
 .active-queue-item.med-prio {
   border-left: 3px solid #fbbf24;
 }
+
+/* =========================================================
+   GIS Panel Toolbar & Interactive Ocean Map Controls
+   ========================================================= */
+.gis-panel-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.7);
+  color: #e2e8f0;
+}
+
+.gis-panel-btn svg {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.gis-panel-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+.gis-panel-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.gis-panel-btn.active {
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.35), inset 0 0 6px rgba(0, 240, 255, 0.2);
+}
+
+#btnFocusCurrentScan:hover {
+  background: rgba(0, 240, 255, 0.35) !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.45);
+}
+
+#btnFitEntireOcean:hover {
+  background: rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+}
+
+#leafletMap {
+  width: 100% !important;
+  min-height: 500px !important;
+  height: 500px !important;
+  background: #0b1a2d !important;
+  border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+  z-index: 1;
+}
+
+.map-viewport {
+  width: 100% !important;
+  min-height: 500px !important;
+  height: 500px !important;
+  position: relative !important;
+  background: #0b1a2d !important;
+}
+
+/* Leaflet Layer Switcher Control: Futuristic Marine Glassmorphism */
+.leaflet-control-layers {
+  background: rgba(8, 16, 32, 0.92) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(0, 240, 255, 0.35) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 240, 255, 0.15) !important;
+  color: #e2e8f0 !important;
+  font-family: var(--font-sans, system-ui) !important;
+  font-size: 0.76rem !important;
+  padding: 8px 12px !important;
+  transition: all 0.25s ease !important;
+}
+
+.leaflet-control-layers-toggle {
+  background-color: rgba(8, 16, 32, 0.85) !important;
+  border-radius: 6px !important;
+  width: 34px !important;
+  height: 34px !important;
+}
+
+.leaflet-control-layers-expanded {
+  padding: 10px 14px !important;
+  max-height: 380px !important;
+  overflow-y: auto !important;
+}
+
+.leaflet-control-layers-separator {
+  border-top: 1px solid rgba(0, 240, 255, 0.2) !important;
+  margin: 6px 0 !important;
+}
+
+.leaflet-control-layers label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 4px !important;
+  cursor: pointer !important;
+  color: #cbd5e1 !important;
+}
+
+.leaflet-control-layers label:hover {
+  color: #00f0ff !important;
+}
+
+.leaflet-control-layers input[type="radio"],
+.leaflet-control-layers input[type="checkbox"] {
+  accent-color: #00f0ff !important;
+  cursor: pointer !important;
+}
+
+/* Zoom controls sleek styling */
+.leaflet-bar a {
+  background-color: rgba(8, 16, 32, 0.9) !important;
+  border: 1px solid rgba(0, 240, 255, 0.25) !important;
+  color: #00f0ff !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: rgba(0, 240, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+
 
 
