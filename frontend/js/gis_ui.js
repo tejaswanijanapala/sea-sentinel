@@ -19,7 +19,7 @@ class GISUIController {
     const tabWaterfall = document.getElementById('tabWaterfall');
     const tabSplit = document.getElementById('tabSplit');
     const tabMap = document.getElementById('tabMap');
-    const cardWaterfall = document.querySelector('.waterfall-panel');
+    const cardWaterfall = document.getElementById('cardWaterfall') || document.querySelector('.waterfall-panel');
     const cardMap = document.getElementById('cardMap');
 
     const switchView = (mode) => {

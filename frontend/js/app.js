@@ -777,7 +777,8 @@ class DashboardApp {
 
     sortedTargets.forEach((t, idx) => {
       const item = document.createElement('div');
-      item.className = `target-card ${t.object_id === this.selectedTargetId ? 'active' : ''}`;
+      const isSelected = (t.object_id === this.selectedTargetId);
+      item.className = `target-card-item ${isSelected ? 'active' : ''}`;
       
       item.onclick = () => this.onTargetSelected(t.object_id, { fly: true, force: true });
       item.onmouseenter = () => this.onTargetSelected(t.object_id, { fly: false });
@@ -788,120 +789,26 @@ class DashboardApp {
       const prioScore = t.priority_score != null ? Math.round(t.priority_score) : Math.round(conf * 0.95);
       const prioLevel = (t.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 60 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
       
-      const hazardScore = t.hazard_score != null ? Math.round(t.hazard_score) : (t.risk_score === 'HIGH' ? 82 : 45);
-      const hazardLevel = (t.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
-      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75 || prioScore >= 60;
-      const accVal = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100) : (t.accuracy_score != null ? (t.accuracy_score * 100) : (conf * 0.98));
-      const accStr = (typeof accVal === 'number') ? accVal.toFixed(1) : String(accVal);
-
       const vStatus = t.verification_status || "confirmed";
-      const isConfirmed = (vStatus === "confirmed");
-      const statusLabel = isConfirmed ? "CONFIRMED DEBRIS" : "SUSPICIOUS ANOMALY";
+      const isConfirmed = (vStatus === "confirmed" || vStatus === "confirmed_debris");
+      const statusLabel = isConfirmed ? "Confirmed" : "Suspicious";
       const statusClass = isConfirmed ? "confirmed" : "suspicious";
-
-      const srcCat = t.source_category || (t.sources && t.sources.length > 1 ? "BOTH" : (t.sources && t.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
-      const srcTagClass = srcCat === "BOTH" ? "both" : (srcCat === "UNET_ONLY" ? "unet" : "yolo");
-      const srcTagLabel = srcCat === "BOTH" ? "YOLO + U-NET" : srcCat.replace("_ONLY", " ONLY");
-
-      let lat = (t.latitude != null) ? Number(t.latitude) : (t.lat != null ? Number(t.lat) : null);
-      let lon = (t.longitude != null) ? Number(t.longitude) : (t.lon != null ? Number(t.lon) : null);
-      const hasCoords = (lat != null && lon != null && !isNaN(lat) && !isNaN(lon));
-
-      const formatDeg = (num, isLat) => {
-        if (num == null || isNaN(num)) return "--";
-        const val = Math.abs(Number(num)).toFixed(5);
-        const dir = isLat ? (num >= 0 ? 'N' : 'S') : (num >= 0 ? 'E' : 'W');
-        return `${val}°${dir}`;
-      };
-
-      const geoLabel = hasCoords ? `<i class="fa-solid fa-location-dot"></i> ${formatDeg(lat, true)}, ${formatDeg(lon, false)}` : `<span style="color:#94a3b8; font-weight:600;"><i class="fa-solid fa-ban"></i> UNREFERENCED (Case C)</span>`;
-      const lenM = t.length_m ? Math.round(t.length_m) : 18;
-      const widM = t.width_m ? Math.round(t.width_m) : 6;
-      const areaM = t.area_sq_m ? Math.round(t.area_sq_m) : (lenM * widM);
-
-      // Category Icon mapping
-      const typeIcons = {
-        'engine_debris': 'fa-gears',
-        'pipeline_or_cable': 'fa-bezier-curve',
-        'shipwreck_fragment': 'fa-anchor',
-        'fishing_net': 'fa-network-wired',
-        'riprap_debris': 'fa-cubes-stacked'
-      };
-      const iconClass = typeIcons[t.class] || 'fa-crosshairs';
-      const formattedName = cleanClass.toUpperCase();
 
       item.dataset.targetId = t.object_id;
       item.innerHTML = `
-        <div class="target-card-top">
-          <div class="target-id-group">
-            <span class="target-index-pill">#${String(idx + 1).padStart(2, '0')}</span>
-            <span class="target-id target-id-pill">${t.object_id}</span>
-          </div>
-          <div class="target-header-badges">
-            <span class="provenance-tag ${srcTagClass}" title="${srcCat === 'BOTH' ? 'Dual-Model Consensus: Verified by YOLOv11 & Attention U-Net' : srcTagLabel}">[${srcTagLabel}]</span>
-            <span class="hazard-badge ${risk}">${risk}</span>
+        <div class="target-card-left">
+          <span class="target-dot-indicator ${prioLevel.toLowerCase()}" title="Priority: ${prioScore}/100 (${prioLevel})"></span>
+          <div class="target-meta-col">
+            <span class="target-id-title">${t.object_id}</span>
+            <span class="target-type-lbl">${cleanClass} · ${conf}% ${prioLevel}</span>
           </div>
         </div>
-
-        <div class="target-name-clean">
-          <i class="fa-solid ${iconClass} target-type-icon"></i>
-          <span class="target-name-text">${formattedName}</span>
-        </div>
-
-        <div class="target-card-tags" style="margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
-          <span class="chip-status ${statusClass}"><i class="fa-solid fa-circle-dot"></i> ${statusLabel}</span>
-          <span class="priority-badge ${isHigher ? 'higher' : 'lower'}">${isHigher ? '▲ HIGHER' : '▼ LOWER'}</span>
-          ${t.memory_corrected ? `<span class="chip-memory-corrected" title="Auto-corrected from ${t.original_model_class || 'previous'}" style="margin-left: 2px;"><i class="fa-solid fa-lightbulb"></i> Corrected</span>` : ''}
-          <button type="button" class="btn-target-feedback" data-obj-id="${t.object_id}" title="Provide human feedback / correct detection" style="margin-left: auto;"><i class="fa-solid fa-comment-dots"></i> Feedback</button>
-        </div>
-
-        <div class="target-metrics-grid">
-          <div class="metric-badge priority ${prioLevel.toLowerCase()}" title="Inspection Priority: ${prioScore}/100 (${prioLevel})">
-            <i class="fa-solid fa-bolt"></i>
-            <span class="badge-text">PRIORITY ${prioScore}/100</span>
-          </div>
-          <div class="metric-badge status ${statusClass}" title="Verification Status: ${statusLabel}">
-            <i class="fa-solid fa-circle-dot"></i>
-            <span class="badge-text">${statusLabel}</span>
-          </div>
-          <div class="metric-badge confidence" title="AI Detection Confidence: ${conf}%">
-            <i class="fa-solid fa-crosshairs"></i>
-            <span class="badge-text">CONFIDENCE ${conf}%</span>
-          </div>
-          <div class="metric-badge hazard" title="Acoustic Hazard Risk: ${hazardScore}/100 (${hazardLevel})">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span class="badge-text">HAZARD ${hazardScore}/100</span>
-          </div>
-        </div>
-
-        <div class="target-card-meta-clean">
-          <span class="meta-item"><i class="fa-solid fa-ruler-combined"></i> ${lenM}m × ${widM}m (${areaM.toLocaleString()} m²)</span>
-          <span class="meta-item mono">${geoLabel}</span>
-        </div>
-
-        <div class="target-card-footer" style="margin-top: 6px; display: flex; justify-content: flex-end;">
-          <button class="btn-why-score" data-target-id="${t.object_id}" title="Inspect explainable score breakdown">
-            <i class="fa-solid fa-circle-question"></i> Why this score?
-          </button>
+        <div class="target-card-right">
+          <span class="badge-pill ${statusClass}">● ${statusLabel}</span>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-dim); font-size: 0.72rem;"></i>
         </div>
       `;
 
-      const whyBtn = item.querySelector('.btn-why-score');
-      if (whyBtn) {
-        whyBtn.onclick = (e) => {
-          e.stopPropagation();
-          this.onTargetSelected(t.object_id, { fly: true, force: true });
-          this.openScoreExplanationModal(t.object_id);
-        };
-      }
-
-      const fbBtn = item.querySelector('.btn-target-feedback');
-      if (fbBtn) {
-        fbBtn.onclick = (e) => {
-          e.stopPropagation();
-          this.openFeedbackModal(t.object_id);
-        };
-      }
       container.appendChild(item);
     });
 
@@ -931,8 +838,8 @@ class DashboardApp {
   onTargetSelected(targetId, options = {}) {
     this.selectedTargetId = targetId;
 
-    document.querySelectorAll('.target-card').forEach(card => {
-      const idEl = card.querySelector('.target-id');
+    document.querySelectorAll('.target-card-item, .target-card').forEach(card => {
+      const idEl = card.querySelector('.target-id, .target-id-title');
       const isMatch = (card.dataset.targetId === targetId || (idEl && idEl.textContent.trim() === targetId));
       card.classList.toggle('active', isMatch);
       if (isMatch && options.force) {
