@@ -118,9 +118,10 @@ class SonarPreprocessor:
                 "reason": "Minimum resolution required is 24x24."
             }
 
-        # Automatically adapt RGB/optical photos and images into acoustic luminance
-        is_optical = False
-        diagnostic_msg = "Valid Side-Scan Sonar acoustic raster"
+        # Strict Acoustic Spectrum Validation:
+        # Authentic Side-Scan Sonar (SSS) data consists of single-channel acoustic backscatter intensity.
+        # Optical photographs, digital illustrations, documents, and RGB color images exhibit high chromatic saturation
+        # and non-acoustic spectral signatures, and must be rejected immediately.
         if img.ndim == 3 and img.shape[2] >= 3:
             b, g, r = img[:, :, 0], img[:, :, 1], img[:, :, 2]
             diff_rg = float(np.mean(np.abs(r.astype(float) - g.astype(float))))
@@ -129,9 +130,29 @@ class SonarPreprocessor:
             max_diff = max(diff_rg, diff_rb, diff_gb)
             hsv = cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HSV)
             sat_mean = float(np.mean(hsv[:, :, 1])) / 255.0
-            if sat_mean > 0.08 or max_diff > 8.0:
-                is_optical = True
-                diagnostic_msg = "Optical/RGB photo converted to acoustic luminance grayscale for dual-path AI detection"
+
+            # Reject optical color photos with chromatic saturation or diverging color channels
+            if sat_mean > 0.08 or max_diff > 9.0:
+                return {
+                    "valid": False,
+                    "is_sonar": False,
+                    "error": "Input Rejected: The provided file is not an authentic Side-Scan Sonar (SSS) acoustic image.",
+                    "reason": f"Optical RGB color spectrum detected (mean chromatic saturation: {sat_mean * 100:.1f}%, color divergence: {max_diff:.1f}). Side-Scan Sonar pipeline exclusively processes authentic acoustic backscatter rasters.",
+                    "details": {
+                        "saturation": round(sat_mean, 3),
+                        "color_divergence": round(max_diff, 2),
+                        "expected_format": "Side-Scan Sonar (SSS) GeoTIFF or single-channel acoustic backscatter waterfall raster"
+                    }
+                }
+
+        # Check for blank / uniform non-sonar images
+        if np.std(img) < 1.5:
+            return {
+                "valid": False,
+                "is_sonar": False,
+                "error": "Input Rejected: Blank or uniform image detected.",
+                "reason": "Image lacks acoustic texture or backscatter variance (standard deviation < 1.5)."
+            }
 
         return {
             "valid": True,
@@ -141,8 +162,7 @@ class SonarPreprocessor:
             "size_bytes": file_size_bytes,
             "dimensions": {"width": w, "height": h},
             "status": "ready_for_preprocessing",
-            "is_optical_converted": is_optical,
-            "diagnostic": diagnostic_msg
+            "diagnostic": "Valid Side-Scan Sonar acoustic raster"
         }
 
     def load_image_as_grayscale(self, image_input: Any) -> Tuple[np.ndarray, Dict[str, Any]]:
