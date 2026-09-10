@@ -749,10 +749,10 @@ class DashboardApp {
       
       const hazardScore = t.hazard_score != null ? Math.round(t.hazard_score) : (t.risk_score === 'HIGH' ? 82 : 45);
       const hazardLevel = (t.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
-      const risk = t.risk_score || (hazardScore >= 80 ? 'HIGH' : hazardScore >= 50 ? 'MED' : 'LOW');
-      const isHigher = prioScore >= 60;
-      const accVal = t.accuracy_score != null ? (t.accuracy_score * 100) : (conf * 0.98);
-      const accStr = accVal.toFixed(1);
+      const risk = (t.risk_score || hazardLevel).toUpperCase();
+      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75 || prioScore >= 60;
+      const accVal = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100) : (t.accuracy_score != null ? (t.accuracy_score * 100) : (conf * 0.98));
+      const accStr = (typeof accVal === 'number') ? accVal.toFixed(1) : String(accVal);
 
       const vStatus = t.verification_status || "confirmed";
       const isConfirmed = (vStatus === "confirmed");
@@ -778,10 +778,6 @@ class DashboardApp {
       const lenM = t.length_m ? Math.round(t.length_m) : 18;
       const widM = t.width_m ? Math.round(t.width_m) : 6;
       const areaM = t.area_sq_m ? Math.round(t.area_sq_m) : (lenM * widM);
-
-      const risk = (t.risk_score || hazardLevel).toUpperCase();
-      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75;
-      const accStr = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100).toFixed(1) : conf;
 
       // Category Icon mapping
       const typeIcons = {
