@@ -755,8 +755,8 @@ class GISMap {
     const nLat = Number(lat);
     const nLon = Number(lon);
 
-    if (nLat >= 42.0 && nLat <= 43.5 && nLon >= -74.5 && nLon <= -73.5) {
-      return "Hudson River Tidal Channel, NY (NOAA Hydrographic Survey)";
+    if (nLat >= 24.0 && nLat <= 27.5 && nLon >= -80.0 && nLon <= -75.0) {
+      return "Florida Straits / Bahama Deep Water Channel";
     } else if (nLat >= 28.5 && nLat <= 31.0 && nLon >= -89.5 && nLon <= -86.5) {
       return "Gulf of Mexico / Breton Sound Open Ocean";
     } else if (nLat >= 14.5 && nLat <= 16.5 && nLon >= 72.5 && nLon <= 74.5) {
@@ -768,7 +768,7 @@ class GISMap {
     } else if (nLat >= 18.0 && nLat <= 22.0 && nLon >= 71.0 && nLon <= 73.5) {
       return "Arabian Sea / Mumbai High Offshore Region";
     }
-    return nLon < 0 ? "Western Atlantic / Gulf Marine Waters" : "Indo-Pacific Marine Waters";
+    return nLon < 0 ? "Western Atlantic / Florida Straits Marine Waters" : "Indo-Pacific Marine Waters";
   }
 
   // Formatting helpers

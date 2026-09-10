@@ -16,7 +16,7 @@ class ClusteringService:
     """
     DBSCAN spatial clustering service for geographic points (WGS84) with metric epsilon.
     """
-    def __init__(self, db: LocalDatabase, epsilon_meters: float = 50.0, min_samples: int = 2):
+    def __init__(self, db: LocalDatabase, epsilon_meters: float = 250.0, min_samples: int = 2):
         self.db = db
         self.epsilon_meters = epsilon_meters
         self.min_samples = min_samples

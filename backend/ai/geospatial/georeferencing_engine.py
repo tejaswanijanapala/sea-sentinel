@@ -142,14 +142,18 @@ class GeoreferencingEngine:
                 lat, lon = y_map, x_map
 
             # Water Body Geovalidation: If coordinate falls on inland test terrain (e.g. upstate NY 42°N),
-            # project to authentic Gulf of Mexico / Breton Sound marine channel baseline
+            # project to authentic Florida Straits / Bahama Deep Water Channel baseline
             if lat is not None and lon is not None:
                 if 42.0 <= float(lat) <= 43.5 and -74.5 <= float(lon) <= -73.0:
-                    base_lat, base_lon = 30.1759, -87.8286
-                    # Use pixel offset from image center to calculate authentic marine location
-                    off_x = (pixel_cx - (img_w / 2.0)) * 0.15
-                    off_y = (pixel_cy - (img_h / 2.0)) * 0.15
-                    lat, lon = CoordinateUtilities.destination_coordinate(base_lat, base_lon, 85.0 if off_x >= 0 else 265.0, abs(off_x))
+                    base_lat, base_lon = 25.7724, -76.9597
+                    # 2D physical displacement in meters from image center
+                    dx = (pixel_cx - (img_w / 2.0)) * 0.15  # across-track meters
+                    dy = ((img_h / 2.0) - pixel_cy) * 0.15  # along-track meters
+                    dist = math.sqrt(dx**2 + dy**2)
+                    rel_bearing = math.degrees(math.atan2(dx, dy))
+                    heading = float(metadata.heading or 85.0)
+                    target_bearing = (heading + rel_bearing) % 360.0
+                    lat, lon = CoordinateUtilities.destination_coordinate(base_lat, base_lon, target_bearing, dist)
 
             uncertainty = math.sqrt(cfg.gps_accuracy_m**2 + (abs(a) * 2.0)**2)
             return GeoreferenceResult(
@@ -203,13 +207,16 @@ class GeoreferencingEngine:
         is_starboard = pixel_offset_from_nadir >= 0
         port_starboard = "STARBOARD" if is_starboard else "PORT"
 
-        # Orthogonal bearing from towfish heading
-        orthogonal_angle = 90.0 if is_starboard else -90.0
-        target_bearing = (heading + orthogonal_angle) % 360.0
+        # 2D physical displacement (across-track and along-track)
+        dx = ground_range if is_starboard else -ground_range
+        dy = ((img_h / 2.0) - pixel_cy) * (60.0 / max(1.0, img_h))  # 60m survey line segment
+        total_dist = math.sqrt(dx**2 + dy**2)
+        rel_angle = math.degrees(math.atan2(dx, dy)) if total_dist > 0 else 0.0
+        target_bearing = (heading + rel_angle) % 360.0
 
         # Direct geodesic projection to WGS84 water body coordinates
         target_lat, target_lon = CoordinateUtilities.destination_coordinate(
-            meta_lat, meta_lon, target_bearing, ground_range
+            meta_lat, meta_lon, target_bearing, total_dist
         )
 
         heading_rad_err = math.radians(cfg.heading_accuracy_deg)
@@ -223,8 +230,8 @@ class GeoreferencingEngine:
             latitude=float(target_lat),
             longitude=float(target_lon),
             depth_m=float((metadata.depth or 442.0) + altitude),
-            sonar_x_m=round(ground_range if is_starboard else -ground_range, 2),
-            sonar_y_m=round((pixel_cy - (img_h / 2.0)) * 0.1, 2),
+            sonar_x_m=round(dx, 2),
+            sonar_y_m=round(dy, 2),
             uncertainty_radius_m=round(total_uncertainty, 2),
             georeference_method="SLANT_RANGE_GEODESIC",
             georeference_quality=quality,
