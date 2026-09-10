@@ -32,6 +32,7 @@ class DashboardApp {
 
     // 2. Setup Event Handlers
     this._setupEventListeners();
+    this._initEdgeModal();
 
     // 3. Check Backend Health & Model Status
     await this.checkBackendStatus();
@@ -778,66 +779,71 @@ class DashboardApp {
       const widM = t.width_m ? Math.round(t.width_m) : 6;
       const areaM = t.area_sq_m ? Math.round(t.area_sq_m) : (lenM * widM);
 
+      const risk = (t.risk_score || hazardLevel).toUpperCase();
+      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75;
+      const accStr = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100).toFixed(1) : conf;
+
+      // Category Icon mapping
+      const typeIcons = {
+        'engine_debris': 'fa-gears',
+        'pipeline_or_cable': 'fa-bezier-curve',
+        'shipwreck_fragment': 'fa-anchor',
+        'fishing_net': 'fa-network-wired',
+        'riprap_debris': 'fa-cubes-stacked'
+      };
+      const iconClass = typeIcons[t.class] || 'fa-crosshairs';
+      const formattedName = cleanClass.toUpperCase();
+
+      item.dataset.targetId = t.object_id;
       item.innerHTML = `
-        <div class="target-card-header">
-          <div class="target-title-left">
-            <span class="target-index-pill">#${idx + 1}</span>
-            <div>
-              <span class="target-name">${cleanClass}</span>
-              <span class="target-id">${t.object_id}</span>
-            </div>
+        <div class="target-card-top">
+          <div class="target-id-group">
+            <span class="target-index-pill">#${String(idx + 1).padStart(2, '0')}</span>
+            <span class="target-id target-id-pill">${t.object_id}</span>
           </div>
-          <div style="display:flex; align-items:center; gap:4px;">
-            <span class="provenance-tag ${srcTagClass}">${srcTagLabel}</span>
+          <div class="target-header-badges">
+            <span class="provenance-tag ${srcTagClass}" title="${srcCat === 'BOTH' ? 'Dual-Model Consensus: Verified by YOLOv11 & Attention U-Net' : srcTagLabel}">[${srcTagLabel}]</span>
             <span class="hazard-badge ${risk}">${risk}</span>
           </div>
         </div>
-        <div class="target-card-tags">
+
+        <div class="target-name-clean">
+          <i class="fa-solid ${iconClass} target-type-icon"></i>
+          <span class="target-name-text">${formattedName}</span>
+        </div>
+
+        <div class="target-card-tags" style="margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
           <span class="chip-status ${statusClass}"><i class="fa-solid fa-circle-dot"></i> ${statusLabel}</span>
           <span class="priority-badge ${isHigher ? 'higher' : 'lower'}">${isHigher ? '▲ HIGHER' : '▼ LOWER'}</span>
           ${t.memory_corrected ? `<span class="chip-memory-corrected" title="Auto-corrected from ${t.original_model_class || 'previous'}" style="margin-left: 2px;"><i class="fa-solid fa-lightbulb"></i> Corrected</span>` : ''}
           <button type="button" class="btn-target-feedback" data-obj-id="${t.object_id}" title="Provide human feedback / correct detection" style="margin-left: auto;"><i class="fa-solid fa-comment-dots"></i> Feedback</button>
         </div>
-        <div class="target-card-metrics">
-          <div class="metric-item">
-            <span class="metric-lbl">Confidence</span>
-            <span class="metric-val cyan">${conf}%</span>
+
+        <div class="target-metrics-grid">
+          <div class="metric-badge priority ${prioLevel.toLowerCase()}" title="Inspection Priority: ${prioScore}/100 (${prioLevel})">
+            <i class="fa-solid fa-bolt"></i>
+            <span class="badge-text">PRIORITY ${prioScore}/100</span>
           </div>
-          <div class="metric-item">
-            <span class="metric-lbl">Accuracy</span>
-            <span class="metric-val green">${accStr}%</span>
+          <div class="metric-badge status ${statusClass}" title="Verification Status: ${statusLabel}">
+            <i class="fa-solid fa-circle-dot"></i>
+            <span class="badge-text">${statusLabel}</span>
           </div>
-          <div class="metric-item">
-            <span class="metric-lbl">Relief</span>
-            <span class="metric-val ${t.shadow_verified ? 'cyan' : 'gray'}">${t.shadow_verified ? 'Shadow Void' : 'Low Relief'}</span>
+          <div class="metric-badge confidence" title="AI Detection Confidence: ${conf}%">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span class="badge-text">CONFIDENCE ${conf}%</span>
+          </div>
+          <div class="metric-badge hazard" title="Acoustic Hazard Risk: ${hazardScore}/100 (${hazardLevel})">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span class="badge-text">HAZARD ${hazardScore}/100</span>
           </div>
         </div>
 
-        <div class="target-score-badges-row">
-          <span class="score-pill prio-${prioLevel.toLowerCase()}" title="Inspection Priority Score: ${prioScore}/100 (${prioLevel})">
-            <i class="fa-solid fa-bolt"></i> PRIORITY ${prioScore}/100 <span class="score-level-badge">${prioLevel}</span>
-          </span>
-          <span class="score-pill conf" title="AI Detection Confidence: ${conf}%">
-            <i class="fa-solid fa-crosshairs"></i> CONF ${conf}%
-          </span>
-          <span class="score-pill hazard-${hazardLevel.toLowerCase()}" title="Environmental & Operational Hazard Risk: ${hazardScore}/100 (${hazardLevel})">
-            <i class="fa-solid fa-triangle-exclamation"></i> HAZARD ${hazardScore}/100 <span class="score-level-badge">${hazardLevel}</span>
-          </span>
+        <div class="target-card-meta-clean">
+          <span class="meta-item"><i class="fa-solid fa-ruler-combined"></i> ${lenM}m × ${widM}m (${areaM.toLocaleString()} m²)</span>
+          <span class="meta-item mono">${geoLabel}</span>
         </div>
 
-        <div class="target-card-meta">
-          <div class="meta-row">
-            <span><i class="fa-solid fa-ruler-combined"></i> Physical Extent:</span>
-            <span class="mono">${lenM}m × ${widM}m (${areaM} m²)</span>
-          </div>
-          <div class="meta-row">
-            <span><i class="fa-solid fa-compass"></i> Geolocation:</span>
-            <span class="mono">${geoLabel}</span>
-          </div>
-        </div>
-
-        <div class="target-card-footer">
-          <span class="tag-status ${statusClass}"><i class="fa-solid fa-circle-dot"></i> ${statusLabel}</span>
+        <div class="target-card-footer" style="margin-top: 6px; display: flex; justify-content: flex-end;">
           <button class="btn-why-score" data-target-id="${t.object_id}" title="Inspect explainable score breakdown">
             <i class="fa-solid fa-circle-question"></i> Why this score?
           </button>
@@ -860,7 +866,6 @@ class DashboardApp {
           this.openFeedbackModal(t.object_id);
         };
       }
-
       container.appendChild(item);
     });
 
@@ -892,7 +897,7 @@ class DashboardApp {
 
     document.querySelectorAll('.target-card').forEach(card => {
       const idEl = card.querySelector('.target-id');
-      const isMatch = (idEl && idEl.textContent.trim() === targetId);
+      const isMatch = (card.dataset.targetId === targetId || (idEl && idEl.textContent.trim() === targetId));
       card.classList.toggle('active', isMatch);
       if (isMatch && options.force) {
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -908,6 +913,11 @@ class DashboardApp {
     if (revBadge) {
       revBadge.textContent = targetId;
     }
+    // Synchronize Target List active styling
+    document.querySelectorAll('.target-card').forEach(el => {
+      const idEl = el.querySelector('.target-id');
+      el.classList.toggle('active', el.dataset.targetId === targetId || (idEl && idEl.textContent.trim() === targetId));
+    });
 
     this.waterfall.selectTarget(targetId);
     this.map.selectTarget(targetId, options);
@@ -2974,6 +2984,59 @@ class DashboardApp {
         submitBtn.innerHTML = origBtnText;
       }
     }
+  }
+
+  _initEdgeModal() {
+    const btnOpen = document.getElementById('btnOpenEdgeModal');
+    const modal = document.getElementById('edgeModal');
+    const btnClose = document.getElementById('btnCloseEdgeModal');
+
+    if (!btnOpen || !modal) return;
+
+    btnOpen.addEventListener('click', async () => {
+      modal.style.display = 'flex';
+      try {
+        const [statusRes, packetRes] = await Promise.all([
+          fetch('http://localhost:8000/api/edge/status').then(r => r.json()).catch(() => null),
+          fetch('http://localhost:8000/api/edge/telemetry/packet').then(r => r.json()).catch(() => null)
+        ]);
+
+        if (statusRes) {
+          const dev = statusRes.device_profile || {};
+          const pol = statusRes.operating_policy || {};
+          const devEl = document.getElementById('edgeDeviceClass');
+          if (devEl) devEl.textContent = dev.device_class || 'JETSON_ORIN';
+          const degEl = document.getElementById('edgeDegradationLevel');
+          if (degEl) degEl.textContent = `LEVEL ${statusRes.degradation_level} (${statusRes.degradation_level === 0 ? 'FULL AI' : statusRes.degradation_level <= 2 ? 'BALANCED' : 'LIGHTWEIGHT'})`;
+          const pwrEl = document.getElementById('edgePowerState');
+          if (pwrEl) pwrEl.textContent = `${statusRes.power_state} / ${pol.temperature_c || 48}°C`;
+        }
+
+        if (packetRes) {
+          const sizeEl = document.getElementById('edgePacketSize');
+          if (sizeEl) sizeEl.textContent = `${packetRes.packet_size_bytes} BYTES (CRC-8)`;
+          const hexEl = document.getElementById('edgeHexPacketDisplay');
+          if (hexEl) hexEl.textContent = packetRes.hex_payload || 'A501...';
+          const dec = packetRes.decoded_event || {};
+          const decEl = document.getElementById('edgePacketDecodedSummary');
+          if (decEl) {
+            decEl.textContent = `Target: ${dec.target_id || 'TGT_0001'} | Class: ${(dec.class || 'DEBRIS').toUpperCase()} | Conf: ${(dec.confidence * 100).toFixed(0)}% | Slant Range: ${dec.slant_range_m}m | Depth: ${dec.depth_m}m | CRC8: OK`;
+          }
+        }
+      } catch (e) {
+        console.warn('Edge modal fetch error:', e);
+      }
+    });
+
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
   }
 }
 

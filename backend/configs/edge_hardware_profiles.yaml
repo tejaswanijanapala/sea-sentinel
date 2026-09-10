@@ -1,0 +1,100 @@
+# =====================================================================
+# Sea Sentinel: Edge Hardware Deployment Configurations
+# Production calibration for subsea AUV/ROV embedded computing modules
+# =====================================================================
+
+hardware_profiles:
+  jetson_orin_agx:
+    display_name: "NVIDIA Jetson AGX Orin (64GB / 32GB)"
+    target_hardware: "tegra-orin-agx"
+    tdp_watts: 60
+    max_memory_gb: 64.0
+    inference_backend: "tensorrt_int8"
+    precision: "int8"
+    enable_dual_cuda_streams: true
+    input_resolution: [640, 640]
+    enable_unet: true
+    enable_tiling: true
+    target_fps: 38
+    target_inference_latency_ms: 26.0
+    thermal_warning_c: 75.0
+    thermal_critical_c: 85.0
+    memory_limit_mb: 8192
+
+  jetson_orin_nx:
+    display_name: "NVIDIA Jetson Orin NX (16GB / 8GB)"
+    target_hardware: "tegra-orin-nx"
+    tdp_watts: 25
+    max_memory_gb: 16.0
+    inference_backend: "tensorrt_int8"
+    precision: "int8"
+    enable_dual_cuda_streams: true
+    input_resolution: [640, 640]
+    enable_unet: true
+    enable_tiling: false
+    target_fps: 28
+    target_inference_latency_ms: 35.0
+    thermal_warning_c: 72.0
+    thermal_critical_c: 82.0
+    memory_limit_mb: 4096
+
+  jetson_orin_nano:
+    display_name: "NVIDIA Jetson Orin Nano (8GB / 4GB)"
+    target_hardware: "tegra-orin-nano"
+    tdp_watts: 15
+    max_memory_gb: 8.0
+    inference_backend: "tensorrt_int8_nano"
+    precision: "int8"
+    enable_dual_cuda_streams: false
+    input_resolution: [640, 640]
+    enable_unet: true
+    enable_tiling: false
+    target_fps: 20
+    target_inference_latency_ms: 48.0
+    thermal_warning_c: 70.0
+    thermal_critical_c: 80.0
+    memory_limit_mb: 2560
+
+  raspberry_pi_5:
+    display_name: "Raspberry Pi 5 (8GB / 4GB) + Coral / Hailo NPU"
+    target_hardware: "bcm2712-arm64"
+    tdp_watts: 12
+    max_memory_gb: 8.0
+    inference_backend: "onnx_int8_ncnn"
+    precision: "int8"
+    enable_dual_cuda_streams: false
+    input_resolution: [480, 480]
+    enable_unet: false  # Sparse verification mode
+    enable_tiling: false
+    target_fps: 12
+    target_inference_latency_ms: 65.0
+    thermal_warning_c: 68.0
+    thermal_critical_c: 78.0
+    memory_limit_mb: 1800
+
+  arm_generic_edge:
+    display_name: "ARM Cortex-A78 / RK3588 Embedded Computer"
+    target_hardware: "arm64-generic"
+    tdp_watts: 15
+    max_memory_gb: 8.0
+    inference_backend: "cpu_int8"
+    precision: "int8"
+    enable_dual_cuda_streams: false
+    input_resolution: [480, 480]
+    enable_unet: false
+    enable_tiling: false
+    target_fps: 10
+    target_inference_latency_ms: 80.0
+    thermal_warning_c: 70.0
+    thermal_critical_c: 80.0
+    memory_limit_mb: 2048
+
+# Global Operational Thresholds
+operational_policy:
+  bounded_buffer_capacity: 4
+  latest_frame_drop_policy: true
+  min_sonar_quality_score: 0.50
+  acoustic_telemetry_bytes: 24
+  watchdog_pulse_timeout_s: 6.0
+  max_restarts_before_fallback: 3
+  high_recall_mode_default: false

@@ -38,6 +38,10 @@ if WORKSPACE_ROOT not in sys.path:
 from agent.orchestrator import SIHPipelineAgent
 from ai.geospatial.geotagger import GeospatialEngine
 from evaluation.ablation_evaluator import AblationEvaluator
+from edge.edge_perception import EdgePerceptionPipeline
+from edge.resource_manager import EdgeResourceManager
+from edge.watchdog import EdgeWatchdogSupervisor
+from edge.telemetry_modem import AcousticTelemetryEncoder
 
 app = FastAPI(
     title="Sea Sentinel — AI Underwater Debris & Anomaly Detection API",
@@ -60,6 +64,8 @@ app.add_middleware(
 agent = SIHPipelineAgent()
 geotagger = GeospatialEngine()
 ablation_evaluator = AblationEvaluator()
+edge_pipeline = EdgePerceptionPipeline(yolo_detector=agent.detector, unet_segmenter=agent.segmenter)
+edge_watchdog = EdgeWatchdogSupervisor()
 CACHED_ANALYSES = {}
 CACHED_ABLATION = None
 
@@ -220,6 +226,68 @@ def models_status():
             "weight_yolo": agent.fusion_engine.weight_yolo,
             "weight_unet": agent.fusion_engine.weight_unet
         }
+    }
+
+
+# -----------------------------------------------------------------
+# Edge AI & AUV/ROV Deployment Diagnostics Endpoints
+# -----------------------------------------------------------------
+@app.get("/api/edge/status")
+def get_edge_status():
+    """Returns edge hardware profile, power state, degradation level, and watchdog health."""
+    edge_watchdog.pulse("telemetry")
+    health = edge_watchdog.check_health()
+    deg_level, power_state, policy = edge_pipeline.resource_manager.evaluate_operating_state()
+    return {
+        "status": "OPERATIONAL",
+        "device_profile": edge_pipeline.resource_manager.device_profile,
+        "operating_policy": policy,
+        "degradation_level": deg_level,
+        "power_state": power_state,
+        "buffer_stats": edge_pipeline.frame_buffer.get_stats(),
+        "watchdog_health": health,
+        "high_recall_mode": edge_pipeline.high_recall_mode
+    }
+
+
+@app.get("/api/edge/telemetry/packet")
+def get_latest_telemetry_packet(
+    target_id: int = 1,
+    class_name: str = "fishing_net",
+    confidence: float = 0.92,
+    range_m: float = 35.0,
+    depth_m: float = 18.0
+):
+    """Generates an authentic 24-byte binary acoustic modem packet and hex payload."""
+    raw_packet = edge_pipeline.telemetry_encoder.encode(
+        target_id_num=target_id,
+        class_name=class_name,
+        confidence=confidence,
+        slant_range_m=range_m,
+        bearing_deg=85.0,
+        local_x_m=15.0,
+        local_y_m=31.5,
+        depth_m=depth_m
+    )
+    decoded = edge_pipeline.telemetry_encoder.decode(raw_packet)
+    return {
+        "hex_payload": edge_pipeline.telemetry_encoder.to_hex(raw_packet),
+        "packet_size_bytes": len(raw_packet),
+        "crc8_valid": decoded["crc_valid"],
+        "decoded_event": decoded
+    }
+
+
+@app.get("/api/edge/benchmark")
+def get_edge_benchmark():
+    """Returns the latest edge benchmark results."""
+    bench_file = os.path.join(PROJECT_ROOT, "outputs", "benchmarks", "edge_realtime_benchmark.json")
+    if os.path.exists(bench_file):
+        with open(bench_file, "r") as f:
+            return json.load(f)
+    return {
+        "status": "NOT_YET_RUN",
+        "message": "Run scripts/run_edge_realtime_benchmark.py to generate benchmarks."
     }
 
 

@@ -1254,12 +1254,12 @@ body {
   background: var(--cyan-beam);
 }
 
-/* 2-Debris Display Card */
+/* Enhanced Target Item Card *//* 2-Debris Display Card */
 .target-card {
-  background: rgba(3, 11, 24, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(3, 11, 24, 0.94);
+  border: 1px solid rgba(0, 240, 255, 0.16);
   border-radius: var(--radius-md);
-  padding: 8px 11px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1271,16 +1271,16 @@ body {
 }
 
 .target-card:hover {
-  background: rgba(8, 24, 48, 0.96);
-  border-color: rgba(0, 229, 255, 0.45);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  background: rgba(7, 22, 46, 0.98);
+  border-color: rgba(0, 240, 255, 0.5);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 240, 255, 0.18);
 }
 
 .target-card.active {
-  background: rgba(6, 28, 58, 0.98);
+  background: rgba(8, 28, 58, 0.98);
   border-color: var(--cyan-beam);
-  box-shadow: 0 0 14px rgba(0, 229, 255, 0.3), inset 0 0 8px rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.32), inset 0 0 10px rgba(0, 229, 255, 0.08);
 }
 
 .target-card.active::before {
@@ -1289,20 +1289,21 @@ body {
   left: 0;
   top: 8px;
   bottom: 8px;
-  width: 3px;
+  width: 3.5px;
   background: var(--cyan-beam);
   border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 8px var(--cyan-beam);
+  box-shadow: 0 0 10px var(--cyan-beam);
 }
 
-.target-card-header {
+/* Clean, spacious target card header */
+.target-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
 }
 
-.target-title-left {
+.target-id-group {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1312,14 +1313,13 @@ body {
 
 .target-index-pill {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  background: rgba(0, 229, 255, 0.14);
+  background: rgba(0, 229, 255, 0.16);
   color: var(--cyan-beam);
-  border: 1px solid rgba(0, 229, 255, 0.35);
-  padding: 1px 5px;
-  border-radius: 3px;
-  flex-shrink: 0;
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .target-name {
@@ -1341,40 +1341,236 @@ body {
   flex-shrink: 0;
 }
 
+.target-id-pill {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
 .target-header-badges {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+.provenance-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+
+.provenance-tag.both {
+  background: rgba(0, 229, 255, 0.18);
+  color: #00f0ff;
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+}
+
+.provenance-tag.unet {
+  background: rgba(217, 70, 239, 0.18);
+  color: #e879f9;
+  border: 1px solid rgba(217, 70, 239, 0.5);
+  box-shadow: 0 0 8px rgba(217, 70, 239, 0.25);
+}
+
+.provenance-tag.yolo {
+  background: rgba(0, 230, 118, 0.18);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.5);
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.25);
 }
 
 .hazard-badge {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+
+.hazard-badge.CRITICAL {
+  background: rgba(255, 51, 102, 0.24);
+  color: #ff3366;
+  border: 1px solid rgba(255, 51, 102, 0.5);
 }
 
 .hazard-badge.HIGH {
-  background: rgba(255, 51, 102, 0.2);
-  color: var(--coral-danger);
-  border: 1px solid rgba(255, 51, 102, 0.4);
+  background: rgba(255, 145, 0, 0.22);
+  color: #ff9100;
+  border: 1px solid rgba(255, 145, 0, 0.5);
 }
 
 .hazard-badge.MEDIUM {
-  background: rgba(255, 145, 0, 0.2);
-  color: var(--amber-warn);
-  border: 1px solid rgba(255, 145, 0, 0.4);
+  background: rgba(0, 229, 255, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(0, 229, 255, 0.4);
 }
 
 .hazard-badge.LOW {
-  background: rgba(0, 230, 118, 0.2);
-  color: var(--emerald-safe);
+  background: rgba(0, 230, 118, 0.18);
+  color: #00e676;
   border: 1px solid rgba(0, 230, 118, 0.4);
 }
 
 .target-card-row-prio {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+/* DEBRIS NAME: Crystal-Clear Full Vision (Never truncated, full word visible) */
+.target-name-clean {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin: 1px 0;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
+}
+
+.target-name-clean .target-type-icon {
+  color: var(--cyan-beam);
+  font-size: 0.84rem;
+  flex-shrink: 0;
+}
+
+.target-name-clean .target-name-text {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+/* Metrics 2x2 Grid: Zero Overlap, Balanced Geometry, Full Vision */
+.target-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.metric-badge {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.metric-badge i {
+  font-size: 0.68rem;
+  flex-shrink: 0;
+}
+
+.metric-badge .badge-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-badge.priority.critical {
+  background: rgba(255, 51, 102, 0.18);
+  color: #ff4d79;
+  border: 1px solid rgba(255, 51, 102, 0.45);
+}
+
+.metric-badge.priority.high {
+  background: rgba(255, 145, 0, 0.18);
+  color: #ffaa33;
+  border: 1px solid rgba(255, 145, 0, 0.45);
+}
+
+.metric-badge.priority.medium {
+  background: rgba(0, 229, 255, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(0, 229, 255, 0.38);
+}
+
+.metric-badge.priority.low {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+}
+
+.metric-badge.confidence {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.42);
+}
+
+.metric-badge.hazard {
+  background: rgba(255, 171, 0, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(255, 171, 0, 0.42);
+}
+
+.metric-badge.status.confirmed {
+  background: rgba(0, 240, 255, 0.15);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 240, 255, 0.42);
+}
+
+.metric-badge.status.suspicious {
+  background: rgba(255, 145, 0, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(255, 145, 0, 0.42);
+}
+
+/* Clean Footer: Physical Extent & Geolocation (Uncluttered, No Redundant Action Buttons) */
+.target-card-meta-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 6px;
+  margin-top: 2px;
+
+}
+
+.target-card-meta-clean .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.target-card-meta-clean .meta-item i {
+  color: var(--cyan-beam);
+  font-size: 0.7rem;
+}
+
+.target-card-meta-clean .meta-item.mono {
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  color: #cbd5e1;
+}
+
+.target-card-tags {
   display: flex;
   align-items: center;
   gap: 5px;
