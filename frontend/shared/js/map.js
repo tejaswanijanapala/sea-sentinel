@@ -9,17 +9,13 @@ class GISMap {
     this.containerId = containerId;
     this.map = null;
     this.markers = {};
-    if (typeof L === 'undefined') {
-      console.warn("Leaflet (L) is not defined yet. GISMap initialization deferred.");
-      return;
-    }
-    this.surveyLayers = L.layerGroup();
+    this.surveyLayers = (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null;
     this.gisLayers = {
-      coral_reefs: L.layerGroup(),
-      marine_protected_areas: L.layerGroup(),
-      seagrass_meadows: L.layerGroup(),
-      underwater_infrastructure: L.layerGroup(),
-      shipping_lanes: L.layerGroup()
+      coral_reefs: (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null,
+      marine_protected_areas: (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null,
+      seagrass_meadows: (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null,
+      underwater_infrastructure: (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null,
+      shipping_lanes: (typeof L !== 'undefined' && L.layerGroup) ? L.layerGroup() : null
     };
     this.lastTargets = [];
     this.lastCoords = [];
@@ -27,11 +23,20 @@ class GISMap {
     this.lastCenter = [42.7474, -73.7945];
     this.lastZoom = 14;
     this.showSwath = true;
-    this._initMap();
-    this.loadLocalGISLayers();
+    if (typeof L !== 'undefined' && document.getElementById(containerId)) {
+      try {
+        this._initMap();
+        this.loadLocalGISLayers();
+      } catch (err) {
+        console.warn("GISMap init warning:", err);
+      }
+    }
   }
 
   _initMap() {
+    if (typeof L === 'undefined') return;
+    const container = document.getElementById(this.containerId);
+    if (!container) return;
     // Default center: Hudson River / Albany hydrographic survey corridor
     this.map = L.map(this.containerId, {
       center: this.lastCenter,
@@ -118,12 +123,15 @@ class GISMap {
   }
 
   setTargets(targets, surveyMeta = {}) {
+    if (!this.map) return;
     this.lastTargets = targets || [];
 
     // Clear existing markers & survey layers
-    Object.values(this.markers).forEach(m => this.map.removeLayer(m));
+    Object.values(this.markers).forEach(m => {
+      try { this.map.removeLayer(m); } catch (e) {}
+    });
     this.markers = {};
-    this.surveyLayers.clearLayers();
+    if (this.surveyLayers) this.surveyLayers.clearLayers();
 
     const validCoords = [];
 
@@ -327,7 +335,7 @@ class GISMap {
   }
 
   _renderSurveySwath(validCoords, surveyMeta) {
-    if (!validCoords || validCoords.length === 0) return;
+    if (!this.map || !this.surveyLayers || !validCoords || validCoords.length === 0 || typeof L === 'undefined') return;
 
     // Determine survey track midpoint
     const centerLat = validCoords.reduce((a, c) => a + c[0], 0) / validCoords.length;
@@ -393,6 +401,7 @@ class GISMap {
   }
 
   selectTarget(targetId, options = {}) {
+    if (!this.map) return;
     const marker = this.markers[targetId];
     if (marker) {
       if (options.fly) {
@@ -405,6 +414,7 @@ class GISMap {
   }
 
   flyToTarget(targetId) {
+    if (!this.map) return;
     const marker = this.markers[targetId];
     if (marker) {
       this.map.flyTo(marker.getLatLng(), 17, { duration: 1.0 });
@@ -413,6 +423,7 @@ class GISMap {
   }
 
   highlightTarget(targetId) {
+    if (!this.map) return;
     const marker = this.markers[targetId];
     if (marker && !marker.isPopupOpen()) {
       marker.openPopup();
@@ -424,6 +435,7 @@ class GISMap {
   }
 
   toggleSwath() {
+    if (!this.map || !this.surveyLayers) return false;
     this.showSwath = !this.showSwath;
     if (this.showSwath) {
       this.map.addLayer(this.surveyLayers);
@@ -434,6 +446,7 @@ class GISMap {
   }
 
   async loadLocalGISLayers() {
+    if (!this.map || typeof L === 'undefined') return;
     try {
       const geojsonData = await window.apiService.getGISLayers();
       if (!geojsonData || !geojsonData.features) return;
@@ -465,7 +478,7 @@ class GISMap {
 
       // Add all GIS layers to map by default
       for (const group of Object.values(this.gisLayers)) {
-        group.addTo(this.map);
+        if (group) group.addTo(this.map);
       }
     } catch (e) {
       console.warn("Failed loading offline GIS layers:", e);

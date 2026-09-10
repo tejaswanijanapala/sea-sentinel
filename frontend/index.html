@@ -26,7 +26,7 @@
   <div class="toast-container" id="appToastContainer"></div>
 
   <!-- Cinematic Splash Screen Intro -->
-  <div class="splash-screen" id="appSplashScreen">
+  <div class="splash-screen" id="appSplashScreen" onclick="this.classList.add('fade-out'); setTimeout(()=>{this.style.display='none'}, 800);">
     <div class="splash-content">
       <div class="splash-logo-wrap">
         <img src="assets/sea_sentinel_splash.png" alt="Sea Sentinel Logo" class="splash-logo-img" />
@@ -39,6 +39,16 @@
       </div>
     </div>
   </div>
+  <script>
+    // Inline fallback: auto-dismiss splash screen after 1.8s regardless of external script timing
+    setTimeout(function() {
+      var sp = document.getElementById('appSplashScreen');
+      if (sp && !sp.classList.contains('fade-out')) {
+        sp.classList.add('fade-out');
+        setTimeout(function() { sp.style.display = 'none'; }, 850);
+      }
+    }, 1800);
+  </script>
 
   <!-- Top Navigation Header -->
   <header class="navbar">

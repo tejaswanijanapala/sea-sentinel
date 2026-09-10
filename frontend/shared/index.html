@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <!-- Custom Design System -->
-  <link rel="stylesheet" href="css/style.css?v=3.0">
+  <link rel="stylesheet" href="css/style.css?v=3.2">
 </head>
 <body>
 
@@ -26,7 +26,7 @@
   <div class="toast-container" id="appToastContainer"></div>
 
   <!-- Cinematic Splash Screen Intro -->
-  <div class="splash-screen" id="appSplashScreen">
+  <div class="splash-screen" id="appSplashScreen" onclick="this.classList.add('fade-out'); setTimeout(()=>{this.style.display='none'}, 800);">
     <div class="splash-content">
       <div class="splash-logo-wrap">
         <img src="assets/sea_sentinel_splash.png" alt="Sea Sentinel Logo" class="splash-logo-img" />
@@ -40,21 +40,14 @@
     </div>
   </div>
   <script>
-    // Failsafe splash screen auto-dismissal
-    (function() {
-      const s = document.getElementById('appSplashScreen');
-      if (!s) return;
-      s.addEventListener('click', function() {
-        s.classList.add('fade-out');
-        setTimeout(function() { s.style.display = 'none'; }, 500);
-      });
-      setTimeout(function() {
-        if (s && s.style.display !== 'none') {
-          s.classList.add('fade-out');
-          setTimeout(function() { s.style.display = 'none'; }, 500);
-        }
-      }, 1800);
-    })();
+    // Inline fallback: auto-dismiss splash screen after 1.8s regardless of external script timing
+    setTimeout(function() {
+      var sp = document.getElementById('appSplashScreen');
+      if (sp && !sp.classList.contains('fade-out')) {
+        sp.classList.add('fade-out');
+        setTimeout(function() { sp.style.display = 'none'; }, 850);
+      }
+    }, 1800);
   </script>
 
   <!-- Top Navigation Header -->
@@ -96,6 +89,9 @@
       </button>
       <button class="btn-ablation-pill" id="btnOpenModelModal" title="Edge AI Model Registry & Checksum Rollback">
         <i class="fa-solid fa-microchip"></i> Models
+      </button>
+      <button class="btn-ablation-pill" id="btnOpenEdgeModal" title="View Edge AI, Watchdog & Acoustic Modem Telemetry" style="border-color: #38bdf8; color: #38bdf8;">
+        <i class="fa-solid fa-satellite-dish"></i> Edge / Modem
       </button>
       <button class="btn-ablation-pill" id="btnOpenAblationModal" title="View Scientific Ablation Benchmarks">
         <i class="fa-solid fa-chart-line"></i> Ablation Study
@@ -200,15 +196,15 @@
 
         <!-- Dual-Path Source Breakdown -->
         <div class="fusion-breakdown-section">
-          <div class="export-title"><i class="fa-solid fa-code-merge"></i> Detection Provenance (Dual-Path)</div>
+          <div class="export-title"><i class="fa-solid fa-code-merge"></i> Detection Provenance</div>
           <div class="fusion-pills-row">
-            <div class="provenance-pill both" title="Agreed simultaneously by both YOLOv11 (Boxes) and Attention U-Net (Masks)">
-              <span class="prov-dot cyan"></span> BOTH (YOLO+U-NET): <b id="kpiBothCount">0</b>
+            <div class="provenance-pill both" title="Agreed by both YOLO and U-Net">
+              <span class="prov-dot cyan"></span> BOTH: <b id="kpiBothCount">0</b>
             </div>
-            <div class="provenance-pill yolo" title="Discovered by YOLOv11 only">
+            <div class="provenance-pill yolo" title="Discovered by YOLO only">
               <span class="prov-dot orange"></span> YOLO ONLY: <b id="kpiYoloOnlyCount">0</b>
             </div>
-            <div class="provenance-pill unet" title="Discovered by Attention U-Net only (Recovered YOLO Misses)">
+            <div class="provenance-pill unet" title="Discovered by U-Net only (Recovered YOLO Misses)">
               <span class="prov-dot magenta"></span> U-NET ONLY: <b id="kpiUnetOnlyCount">0</b>
             </div>
           </div>
@@ -545,43 +541,17 @@
           <span class="panel-title"><i class="fa-solid fa-brain"></i> AI Hydrographic Explainability</span>
           <span class="panel-tag green" id="explainabilityStatusTag">ACOUSTIC INFERENCE</span>
         </div>
-
-        <!-- Target Navigation Bar for Easy Per-Debris Inspection -->
-        <div class="explainability-nav-bar" style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; background:rgba(15,23,42,0.65); border-bottom:1px solid rgba(56,189,248,0.15); font-size:0.78rem;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" id="btnPrevExplainTarget" class="btn-micro" title="Previous Target" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#e2e8f0; border-radius:4px; padding:3px 8px; cursor:pointer;"><i class="fa-solid fa-chevron-left"></i> Prev</button>
-            <select id="explainTargetSelect" class="sort-select" style="padding:2px 6px; font-size:0.75rem; background:rgba(10,15,29,0.9); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; border-radius:4px; max-width:140px;">
-              <option value="">Select Debris...</option>
-            </select>
-            <button type="button" id="btnNextExplainTarget" class="btn-micro" title="Next Target" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#e2e8f0; border-radius:4px; padding:3px 8px; cursor:pointer;">Next <i class="fa-solid fa-chevron-right"></i></button>
-          </div>
-          <span id="explainTargetCounter" style="font-family:var(--font-mono); font-size:0.72rem; color:#94a3b8; font-weight:700;">-- / --</span>
-        </div>
-
-        <div class="explainability-body" id="explainabilityBodyContent">
-          <!-- 1. Executive Assessment & Debris Categorization -->
+        <div class="explainability-body">
           <div class="explain-card">
             <div class="explain-card-header">
-              <span class="explain-card-title"><i class="fa-solid fa-file-waveform"></i> Executive Assessment &amp; Categorization</span>
+              <span class="explain-card-title"><i class="fa-solid fa-file-waveform"></i> Executive Assessment</span>
               <span class="sub-chip" id="targetClassChip">Awaiting Selection</span>
             </div>
             <p class="narrative-text" id="targetNarrative">
-              Select or hover any detected seabed target to inspect acoustic backscatter morphology, shadow verification, accuracy score aspects, and intervention protocols.
+              Select or hover any detected seabed target to inspect acoustic backscatter morphology, shadow verification, and intervention protocols.
             </p>
           </div>
 
-          <!-- 2. Accuracy Score & Multi-Aspect Contribution Breakdown -->
-          <div class="explain-card" id="targetAccuracyAspectsCard">
-            <div class="explain-card-header">
-              <span class="explain-card-title"><i class="fa-solid fa-chart-pie"></i> Accuracy Score &amp; Aspect Breakdown</span>
-              <span class="sub-chip cyan" id="targetAccuracyScoreBadge">98% Accuracy</span>
-            </div>
-            <div id="targetAccuracyAspectsList" style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-
-          <!-- 3. Acoustic Verification Telemetry & Physics -->
           <div class="explain-card">
             <div class="explain-card-header">
               <span class="explain-card-title"><i class="fa-solid fa-microchip"></i> Acoustic Verification Telemetry</span>
@@ -594,7 +564,6 @@
             </div>
           </div>
 
-          <!-- 4. Operational Intervention Protocol -->
           <div class="action-rec-wrap" id="targetActionRec">
             <div class="action-rec-badge idle">
               <i class="fa-solid fa-compass"></i> Awaiting target selection from inspector list.
@@ -1485,14 +1454,76 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       Edge AI, Hardware Health & Acoustic Modem Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="edgeModal" style="display: none;">
+    <div class="modal-card" style="max-width: 820px;">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-subtitle">OFFLINE-FIRST AUV/ROV SUBSEA PERCEPTION ENGINE</div>
+          <h2 class="modal-title"><i class="fa-solid fa-microchip" style="color: var(--cyan-beam);"></i> Edge AI &amp; Acoustic Telemetry Modem</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button class="modal-close" id="btnCloseEdgeModal" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">HARDWARE CLASS</div>
+            <div id="edgeDeviceClass" style="font-size: 1.05rem; font-weight: 700; color: #38bdf8; margin-top: 4px;">NVIDIA JETSON / ARM</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">DEGRADATION LEVEL</div>
+            <div id="edgeDegradationLevel" style="font-size: 1.05rem; font-weight: 700; color: #10b981; margin-top: 4px;">LEVEL 0 (FULL AI)</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">POWER &amp; THERMAL</div>
+            <div id="edgePowerState" style="font-size: 1.05rem; font-weight: 700; color: #f59e0b; margin-top: 4px;">BALANCED / 48°C</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-dark); border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">MODEM PACKET</div>
+            <div id="edgePacketSize" style="font-size: 1.05rem; font-weight: 700; color: #a855f7; margin-top: 4px;">24 BYTES (CRC-8)</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <h4 style="font-size: 0.88rem; margin: 0 0 10px 0; color: #38bdf8;"><i class="fa-solid fa-satellite-dish"></i> Live Subsea Acoustic Modem Binary Frame (16-32B Envelope)</h4>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; background: #070b14; padding: 10px 14px; border-radius: 6px; border: 1px solid #1e293b; color: #00ffc8; word-break: break-all;" id="edgeHexPacketDisplay">
+            A5010001015C015E035200009600013B00B46AA249C60FC6
+          </div>
+          <div id="edgePacketDecodedSummary" style="font-size: 0.78rem; color: #94a3b8; margin-top: 8px;">
+            Target: TGT_0001 | Class: FISHING_NET | Confidence: 92% | Slant Range: 35.0m | Depth: 18.0m | CRC8: OK
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
+            <h4 style="font-size: 0.85rem; margin: 0 0 8px 0; color: #f8fafc;"><i class="fa-solid fa-shield-halved"></i> AUV/ROV Autopilot Safety Isolation</h4>
+            <p style="font-size: 0.78rem; color: #94a3b8; margin: 0;">
+              Sea Sentinel acts as an advisory observer only. MAVLink / ROS 2 actuation write commands to thrusters, ballast, and rudder are cryptographically quarantined to guarantee vehicle safety.
+            </p>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-dark); border-radius: 8px; padding: 14px;">
+            <h4 style="font-size: 0.85rem; margin: 0 0 8px 0; color: #f8fafc;"><i class="fa-solid fa-heart-pulse"></i> Autonomous Self-Healing Watchdog</h4>
+            <p style="font-size: 0.78rem; color: #94a3b8; margin: 0;">
+              Supervises inference heartbeats (&lt;6s timeout). Automatically triggers emergency memory release, restarts failed pipeline threads, and verifies model SHA-256 integrity before reload.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet GIS JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <!-- Application Scripts -->
-  <script src="js/api.js?v=3.0"></script>
-  <script src="js/waterfall.js?v=3.0"></script>
-  <script src="js/map.js?v=3.0"></script>
-  <script src="js/app.js?v=3.0"></script>
+  <script src="js/api.js?v=3.2"></script>
+  <script src="js/waterfall.js?v=3.2"></script>
+  <script src="js/map.js?v=3.2"></script>
+  <script src="js/app.js?v=3.2"></script>
 
 </body>
 </html>

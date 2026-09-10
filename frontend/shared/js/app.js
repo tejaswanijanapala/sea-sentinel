@@ -24,24 +24,54 @@ class DashboardApp {
 
   async _init() {
     // 0. Initialize Splash Screen Intro
-    this._initSplashScreen();
+    try {
+      this._initSplashScreen();
+    } catch (e) {
+      console.warn("Splash screen error:", e);
+    }
 
     // 1. Initialize Visual Engines
-    this.waterfall = new WaterfallViewer('sonarCanvas');
-    this.map = new GISMap('leafletMap');
+    try {
+      this.waterfall = new WaterfallViewer('sonarCanvas');
+    } catch (e) {
+      console.error("Waterfall init error:", e);
+    }
+
+    try {
+      this.map = new GISMap('leafletMap');
+    } catch (e) {
+      console.error("GIS Map init error:", e);
+    }
 
     // 2. Setup Event Handlers
-    this._setupEventListeners();
+    try {
+      this._setupEventListeners();
+      this._initEdgeModal();
+    } catch (e) {
+      console.error("Event listeners error:", e);
+    }
 
     // 3. Check Backend Health & Model Status
-    await this.checkBackendStatus();
+    try {
+      await this.checkBackendStatus();
+    } catch (e) {
+      console.warn("Backend status check error:", e);
+    }
 
     // 4. Load Sample Catalog
-    await this.loadSampleCatalog();
+    try {
+      await this.loadSampleCatalog();
+    } catch (e) {
+      console.warn("Sample catalog loading error:", e);
+    }
 
     // 5. Automatically select and run the first sample
-    if (this.samples && this.samples.length > 0) {
-      await this.selectSampleMission(this.samples[0].id, { autoRun: true });
+    try {
+      if (this.samples && this.samples.length > 0) {
+        await this.selectSampleMission(this.samples[0].id, { autoRun: true });
+      }
+    } catch (e) {
+      console.warn("Auto-run mission error:", e);
     }
   }
 
@@ -778,6 +808,10 @@ class DashboardApp {
       const widM = t.width_m ? Math.round(t.width_m) : 6;
       const areaM = t.area_sq_m ? Math.round(t.area_sq_m) : (lenM * widM);
 
+      const risk = (t.risk_score || hazardLevel).toUpperCase();
+      const isHigher = prioLevel === 'CRITICAL' || prioLevel === 'HIGH' || conf > 75;
+      const accStr = t.calibrated_accuracy != null ? (t.calibrated_accuracy * 100).toFixed(1) : conf;
+
       // Category Icon mapping
       const typeIcons = {
         'engine_debris': 'fa-gears',
@@ -807,6 +841,13 @@ class DashboardApp {
           <span class="target-name-text">${formattedName}</span>
         </div>
 
+        <div class="target-card-tags" style="margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+          <span class="chip-status ${statusClass}"><i class="fa-solid fa-circle-dot"></i> ${statusLabel}</span>
+          <span class="priority-badge ${isHigher ? 'higher' : 'lower'}">${isHigher ? '▲ HIGHER' : '▼ LOWER'}</span>
+          ${t.memory_corrected ? `<span class="chip-memory-corrected" title="Auto-corrected from ${t.original_model_class || 'previous'}" style="margin-left: 2px;"><i class="fa-solid fa-lightbulb"></i> Corrected</span>` : ''}
+          <button type="button" class="btn-target-feedback" data-obj-id="${t.object_id}" title="Provide human feedback / correct detection" style="margin-left: auto;"><i class="fa-solid fa-comment-dots"></i> Feedback</button>
+        </div>
+
         <div class="target-metrics-grid">
           <div class="metric-badge priority ${prioLevel.toLowerCase()}" title="Inspection Priority: ${prioScore}/100 (${prioLevel})">
             <i class="fa-solid fa-bolt"></i>
@@ -830,8 +871,30 @@ class DashboardApp {
           <span class="meta-item"><i class="fa-solid fa-ruler-combined"></i> ${lenM}m × ${widM}m (${areaM.toLocaleString()} m²)</span>
           <span class="meta-item mono">${geoLabel}</span>
         </div>
+
+        <div class="target-card-footer" style="margin-top: 6px; display: flex; justify-content: flex-end;">
+          <button class="btn-why-score" data-target-id="${t.object_id}" title="Inspect explainable score breakdown">
+            <i class="fa-solid fa-circle-question"></i> Why this score?
+          </button>
+        </div>
       `;
 
+      const whyBtn = item.querySelector('.btn-why-score');
+      if (whyBtn) {
+        whyBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.onTargetSelected(t.object_id, { fly: true, force: true });
+          this.openScoreExplanationModal(t.object_id);
+        };
+      }
+
+      const fbBtn = item.querySelector('.btn-target-feedback');
+      if (fbBtn) {
+        fbBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.openFeedbackModal(t.object_id);
+        };
+      }
       container.appendChild(item);
     });
 
@@ -1018,6 +1081,8 @@ class DashboardApp {
     if (nextIdx < 0) nextIdx = this.targets.length - 1;
     if (nextIdx >= this.targets.length) nextIdx = 0;
     const nextTarget = this.targets[nextIdx];
+    if (nextTarget) {
+      this.onTargetSelected(nextTarget.object_id, { fly: true, force: true });
     }
   }
 
@@ -2948,6 +3013,59 @@ class DashboardApp {
         submitBtn.innerHTML = origBtnText;
       }
     }
+  }
+
+  _initEdgeModal() {
+    const btnOpen = document.getElementById('btnOpenEdgeModal');
+    const modal = document.getElementById('edgeModal');
+    const btnClose = document.getElementById('btnCloseEdgeModal');
+
+    if (!btnOpen || !modal) return;
+
+    btnOpen.addEventListener('click', async () => {
+      modal.style.display = 'flex';
+      try {
+        const [statusRes, packetRes] = await Promise.all([
+          fetch('http://localhost:8000/api/edge/status').then(r => r.json()).catch(() => null),
+          fetch('http://localhost:8000/api/edge/telemetry/packet').then(r => r.json()).catch(() => null)
+        ]);
+
+        if (statusRes) {
+          const dev = statusRes.device_profile || {};
+          const pol = statusRes.operating_policy || {};
+          const devEl = document.getElementById('edgeDeviceClass');
+          if (devEl) devEl.textContent = dev.device_class || 'JETSON_ORIN';
+          const degEl = document.getElementById('edgeDegradationLevel');
+          if (degEl) degEl.textContent = `LEVEL ${statusRes.degradation_level} (${statusRes.degradation_level === 0 ? 'FULL AI' : statusRes.degradation_level <= 2 ? 'BALANCED' : 'LIGHTWEIGHT'})`;
+          const pwrEl = document.getElementById('edgePowerState');
+          if (pwrEl) pwrEl.textContent = `${statusRes.power_state} / ${pol.temperature_c || 48}°C`;
+        }
+
+        if (packetRes) {
+          const sizeEl = document.getElementById('edgePacketSize');
+          if (sizeEl) sizeEl.textContent = `${packetRes.packet_size_bytes} BYTES (CRC-8)`;
+          const hexEl = document.getElementById('edgeHexPacketDisplay');
+          if (hexEl) hexEl.textContent = packetRes.hex_payload || 'A501...';
+          const dec = packetRes.decoded_event || {};
+          const decEl = document.getElementById('edgePacketDecodedSummary');
+          if (decEl) {
+            decEl.textContent = `Target: ${dec.target_id || 'TGT_0001'} | Class: ${(dec.class || 'DEBRIS').toUpperCase()} | Conf: ${(dec.confidence * 100).toFixed(0)}% | Slant Range: ${dec.slant_range_m}m | Depth: ${dec.depth_m}m | CRC8: OK`;
+          }
+        }
+      } catch (e) {
+        console.warn('Edge modal fetch error:', e);
+      }
+    });
+
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
   }
 }
 

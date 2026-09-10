@@ -24,25 +24,54 @@ class DashboardApp {
 
   async _init() {
     // 0. Initialize Splash Screen Intro
-    this._initSplashScreen();
+    try {
+      this._initSplashScreen();
+    } catch (e) {
+      console.warn("Splash screen error:", e);
+    }
 
     // 1. Initialize Visual Engines
-    this.waterfall = new WaterfallViewer('sonarCanvas');
-    this.map = new GISMap('leafletMap');
+    try {
+      this.waterfall = new WaterfallViewer('sonarCanvas');
+    } catch (e) {
+      console.error("Waterfall init error:", e);
+    }
+
+    try {
+      this.map = new GISMap('leafletMap');
+    } catch (e) {
+      console.error("GIS Map init error:", e);
+    }
 
     // 2. Setup Event Handlers
-    this._setupEventListeners();
-    this._initEdgeModal();
+    try {
+      this._setupEventListeners();
+      this._initEdgeModal();
+    } catch (e) {
+      console.error("Event listeners error:", e);
+    }
 
     // 3. Check Backend Health & Model Status
-    await this.checkBackendStatus();
+    try {
+      await this.checkBackendStatus();
+    } catch (e) {
+      console.warn("Backend status check error:", e);
+    }
 
     // 4. Load Sample Catalog
-    await this.loadSampleCatalog();
+    try {
+      await this.loadSampleCatalog();
+    } catch (e) {
+      console.warn("Sample catalog loading error:", e);
+    }
 
     // 5. Automatically select and run the first sample
-    if (this.samples && this.samples.length > 0) {
-      await this.selectSampleMission(this.samples[0].id, { autoRun: true });
+    try {
+      if (this.samples && this.samples.length > 0) {
+        await this.selectSampleMission(this.samples[0].id, { autoRun: true });
+      }
+    } catch (e) {
+      console.warn("Auto-run mission error:", e);
     }
   }
 
