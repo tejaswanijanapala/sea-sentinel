@@ -109,54 +109,60 @@ class GISMap {
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-    // 1. Primary Default Basemap: Clean Nautical Maritime & Coastlines (CARTO Voyager - 100% Free, No API Key, Ultra High-Res)
-    const voyagerBase = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
+    // 1. Primary Default Basemap: OpenStreetMap Standard (100% Free, Truly Open-Source, Zero API Keys, No Watermarks)
+    const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
       maxNativeZoom: 19
     });
 
-    // 2. High-Resolution Satellite Imagery & Coastal Reefs (ESRI World Imagery)
+    // 2. High-Resolution Satellite Imagery & Coastal Reefs (ESRI World Imagery - Free, No API Key)
     const satBase = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: '&copy; Esri, Maxar, Earthstar Geographics',
       maxZoom: 19,
       maxNativeZoom: 18
     });
 
-    // 3. Real Ocean Bathymetry & Seabed Contours (GEBCO / NOAA / ESRI) - maxNativeZoom: 10 prevents "Map data not yet available" placeholders
+    // 3. Real Ocean Bathymetry & Seabed Contours (GEBCO / NOAA / ESRI - maxNativeZoom: 10 prevents missing tile placeholders)
     const oceanBase = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
       attribution: '&copy; Esri, GEBCO, NOAA, National Geographic',
       maxZoom: 19,
       maxNativeZoom: 10
     });
 
-    // 4. Dark Tactical Marine Canvas (CARTO Dark Matter - 100% Free, High Resolution)
-    const darkBase = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
+    // 4. ESRI World Topographic & Physical Ocean Map (Free, No API Key)
+    const topoBase = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri, HERE, Garmin, USGS, Intermap, INCREMENT P',
+      maxZoom: 19,
+      maxNativeZoom: 18
+    });
+
+    // 5. Dark Tactical Marine Canvas (ESRI World Dark Canvas - Free, No API Key)
+    const darkBase = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors',
+      maxZoom: 19,
+      maxNativeZoom: 16
+    });
+
+    // 6. OpenStreetMap Humanitarian / Coastal Relief (100% Free, No API Key)
+    const hotBase = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors, Humanitarian OpenStreetMap Team',
       maxZoom: 19,
       maxNativeZoom: 19
     });
 
-    // 5. OpenStreetMap Standard Marine (OpenStreetMap Foundation - 100% Free)
-    const osmBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-      maxNativeZoom: 19
-    });
-
-    // Default: Add High-Resolution Nautical Voyager as primary base
-    voyagerBase.addTo(this.map);
+    // Default: Add OpenStreetMap Standard as primary base (Guaranteed zero API keys, no watermarks)
+    osmBase.addTo(this.map);
     this.layers.offlineGrid.addTo(this.map);
 
     // Basemaps selector (All 100% Free, Zero API Keys Required)
     const baseMaps = {
-      "<span style='color:#059669; font-weight:700;'>🧭 Nautical Coast &amp; Ocean</span>": voyagerBase,
+      "<span style='color:#059669; font-weight:700;'>🗺️ OpenStreetMap Marine</span>": osmBase,
       "<span style='color:#0284c7; font-weight:700;'>🛰️ Satellite &amp; Coastal Reefs</span>": satBase,
       "<span style='color:#00f0ff; font-weight:700;'>🌊 Ocean Bathymetry (GEBCO)</span>": oceanBase,
+      "<span style='color:#0d9488; font-weight:700;'>🧭 Topographic &amp; Seabed</span>": topoBase,
       "<span style='color:#6366f1; font-weight:700;'>◈ Dark Tactical Marine</span>": darkBase,
-      "<span style='color:#10b981; font-weight:700;'>🗺️ OpenStreetMap</span>": osmBase
+      "<span style='color:#f59e0b; font-weight:700;'>🏖️ Humanitarian Coastal</span>": hotBase
     };
 
     // Overlay layers selector
