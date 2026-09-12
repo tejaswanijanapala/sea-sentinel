@@ -2061,8 +2061,15 @@ class DashboardApp {
     let dossierCards = '';
 
     detections.forEach((d, idx) => {
-      const conf = Math.round((d.yolo_confidence_pct != null ? d.yolo_confidence_pct : ((d.yolo_confidence != null ? d.yolo_confidence : (d.calibrated_confidence || d.confidence || 0.85)) * 100)));
-      const sonarConf = Math.round(d.sonar_aware_confidence != null ? d.sonar_aware_confidence : (d.calibrated_confidence != null ? (d.calibrated_confidence * 100) : (conf >= 90 ? conf - 2 : Math.min(99, conf + 4))));
+      // 1. AI Detection Confidence (independent)
+      const conf = Math.round(d.detection_confidence_pct != null 
+        ? d.detection_confidence_pct 
+        : ((d.calibrated_confidence != null ? d.calibrated_confidence : (d.confidence || 0.85)) * 100));
+
+      // 2. Sonar-Aware Confidence (strictly independent from AI confidence)
+      const hasSonarConf = (d.sonar_aware_confidence != null && !isNaN(d.sonar_aware_confidence));
+      const sonarConf = hasSonarConf ? Math.round(Number(d.sonar_aware_confidence)) : null;
+
       const risk = (d.risk_score || 'HIGH').toUpperCase();
       const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
       const srcTagClass = srcCat === "BOTH" ? "both" : (srcCat === "UNET_ONLY" ? "unet" : "yolo");
@@ -2103,12 +2110,16 @@ class DashboardApp {
             </div>
           </td>
           <td>
+            ${hasSonarConf ? `
             <div class="accuracy-bar-wrap" style="display:flex; align-items:center; gap:8px;">
               <span class="mono" style="font-weight:800; color:#0284c7; min-width:38px; font-size:0.80rem;">${sonarConf}%</span>
               <div class="accuracy-bar-track" style="width:54px; height:7px; background:#e0f2fe; border-radius:4px; overflow:hidden;">
                 <div class="accuracy-bar-fill" style="width: ${sonarConf}%; height:100%; background:linear-gradient(90deg, #38bdf8, #0284c7); border-radius:4px;"></div>
               </div>
             </div>
+            ` : `
+            <span class="mono" style="color:#94a3b8; font-size:0.75rem; font-weight:600;">N/A</span>
+            `}
           </td>
           <td>
             <span class="score-pill hazard-${hazardLevel.toLowerCase()}" style="padding: 3px 9px; font-size: 0.72rem; border-radius: 12px;">
@@ -2132,7 +2143,7 @@ class DashboardApp {
             </div>
           </div>
           <div style="font-size: 0.80rem; color: #334155; line-height: 1.45; margin-top: 4px;">
-            ${(d.score_explanation && d.score_explanation.narrative) || d.explanation || `This target has been assigned an inspection priority of ${prioScore}/100 (${prioLevel}) because it was classified as '${cleanClass}' with ${conf}% AI detection confidence and ${sonarConf}% Sonar-Aware physical confidence, large estimated extent (${areaM} m²), and high potential marine impact. Standard unreferenced acoustic survey sector.`}
+            ${(d.score_explanation && d.score_explanation.narrative) || d.explanation || `This target has been assigned an inspection priority of ${prioScore}/100 (${prioLevel}) because it was classified as '${cleanClass}' with ${conf}% AI detection confidence${hasSonarConf ? ` and ${sonarConf}% Sonar-Aware physical confidence` : ''}, large estimated extent (${areaM} m²), and high potential marine impact. Standard unreferenced acoustic survey sector.`}
           </div>
           <div class="report-metric-pill-row">
             <div class="report-metric-pill">
@@ -2145,7 +2156,7 @@ class DashboardApp {
             </div>
             <div class="report-metric-pill">
               <span class="report-metric-lbl">SONAR-AWARE CONF</span>
-              <span class="report-metric-val" style="color:#0284c7; font-weight:800;">${sonarConf}%</span>
+              <span class="report-metric-val" style="color:#0284c7; font-weight:800;">${hasSonarConf ? `${sonarConf}%` : 'N/A'}</span>
             </div>
             <div class="report-metric-pill">
               <span class="report-metric-lbl">HAZARD RISK</span>
