@@ -686,6 +686,7 @@ class CalibrationModelLoader:
         self.scaler_path = scaler_path
         self.model = None
         self.scaler = None
+        self.temperature = 3.5
         self.is_loaded = False
 
         if model_path:
@@ -711,8 +712,10 @@ class CalibrationModelLoader:
                 if isinstance(loaded_obj, dict):
                     self.model = loaded_obj.get("model")
                     self.scaler = loaded_obj.get("scaler")
+                    self.temperature = float(loaded_obj.get("temperature", 3.5))
                 else:
                     self.model = loaded_obj
+                    self.temperature = 3.5
                     if scaler_path and os.path.exists(scaler_path):
                         self.scaler = joblib.load(scaler_path)
 
@@ -728,7 +731,7 @@ class CalibrationModelLoader:
     def train_and_save_default_model(
         self,
         save_path: str,
-        n_samples: int = 400
+        n_samples: int = 1500
     ) -> bool:
         """
         Fits a calibrated Logistic Regression model and StandardScaler on representative
@@ -742,59 +745,47 @@ class CalibrationModelLoader:
         y_train = []
 
         for _ in range(n_samples):
-            # Ground truth label: 1 = true marine debris, 0 = false alarm / seabed artifact
-            is_true_debris = np.random.rand() > 0.40
+            # Prior probability
+            y_prob = np.random.beta(2, 2)
+            y_label = 1 if y_prob > 0.5 else 0
 
-            if is_true_debris:
-                yolo_conf = np.random.uniform(0.55, 0.98)
-                shadow_avail = 1.0 if np.random.rand() > 0.25 else 0.0
-                shadow_len = np.random.uniform(10.0, 45.0) if shadow_avail else 0.0
-                shadow_contrast = np.random.uniform(0.40, 0.85) if shadow_avail else 0.0
-                shadow_comp = np.random.uniform(0.50, 0.95) if shadow_avail else 0.0
-                asp_ratio = np.random.uniform(1.2, 5.0)
-                compactness = np.random.uniform(0.35, 0.85)
-                solidity = np.random.uniform(0.65, 0.98)
-                roughness = np.random.uniform(0.05, 0.40)
-                glcm_contrast = np.random.uniform(1.5, 6.0)
-                glcm_energy = np.random.uniform(0.15, 0.60)
-                glcm_homo = np.random.uniform(0.40, 0.80)
-                mean_int = np.random.uniform(80.0, 210.0)
-                std_int = np.random.uniform(15.0, 50.0)
-                snr = np.random.uniform(2.5, 8.0)
-                speckle = np.random.uniform(0.15, 0.45)
-                dropout = np.random.uniform(0.0, 0.05)
-                sharpness = np.random.uniform(30.0, 180.0)
-                loc_contrast = np.random.uniform(0.45, 0.90)
-                y_label = 1
-            else:
-                yolo_conf = np.random.uniform(0.20, 0.65)
-                shadow_avail = 0.0 if np.random.rand() > 0.15 else 1.0
-                shadow_len = np.random.uniform(0.0, 8.0) if shadow_avail else 0.0
-                shadow_contrast = np.random.uniform(0.0, 0.25) if shadow_avail else 0.0
-                shadow_comp = np.random.uniform(0.0, 0.30) if shadow_avail else 0.0
-                asp_ratio = np.random.uniform(1.0, 2.5)
-                compactness = np.random.uniform(0.10, 0.50)
-                solidity = np.random.uniform(0.30, 0.70)
-                roughness = np.random.uniform(0.30, 0.80)
-                glcm_contrast = np.random.uniform(0.2, 2.0)
-                glcm_energy = np.random.uniform(0.40, 0.85)
-                glcm_homo = np.random.uniform(0.60, 0.95)
-                mean_int = np.random.uniform(30.0, 110.0)
-                std_int = np.random.uniform(5.0, 25.0)
-                snr = np.random.uniform(0.5, 2.2)
-                speckle = np.random.uniform(0.40, 0.90)
-                dropout = np.random.uniform(0.05, 0.35)
-                sharpness = np.random.uniform(5.0, 40.0)
-                loc_contrast = np.random.uniform(0.10, 0.40)
-                y_label = 0
+            # 1. YOLO confidence
+            yolo_conf = np.clip(y_prob * 0.6 + np.random.normal(0.3, 0.15), 0.1, 0.98)
 
-            has_meta = 1.0 if np.random.rand() > 0.5 else 0.0
-            slant_range = np.random.uniform(15.0, 85.0) if has_meta else 0.0
-            altitude = np.random.uniform(8.0, 25.0) if has_meta else 0.0
-            grazing = np.random.uniform(15.0, 45.0) if has_meta else 0.0
-            pitch = np.random.uniform(-3.0, 3.0) if has_meta else 0.0
-            roll = np.random.uniform(-4.0, 4.0) if has_meta else 0.0
-            heave = np.random.uniform(-0.5, 0.5) if has_meta else 0.0
+            # 2. Shadow features
+            shadow_avail = 1.0 if (y_prob > 0.4 and np.random.rand() < y_prob * 0.85) else 0.0
+            shadow_len = np.random.uniform(10.0, 150.0) * y_prob if shadow_avail else 0.0
+            shadow_contrast = np.clip(y_prob * 0.6 + np.random.normal(0.1, 0.1), 0.0, 0.9) if shadow_avail else 0.0
+            shadow_comp = np.clip(y_prob * 0.7 + np.random.normal(0.1, 0.1), 0.0, 0.95) if shadow_avail else 0.0
+
+            # 3. Shape features
+            asp_ratio = np.random.exponential(2.0) + 1.0
+            compactness = np.clip(np.random.normal(0.5, 0.2), 0.1, 0.9)
+            solidity = np.clip(y_prob * 0.4 + np.random.normal(0.5, 0.15), 0.2, 1.0)
+            roughness = np.clip((1.0 - y_prob) * 0.4 + np.random.normal(0.1, 0.1), 0.0, 0.8)
+
+            # 4. Texture features
+            glcm_contrast = np.clip(y_prob * 15.0 + np.random.normal(5.0, 5.0), 1.0, 35.0)
+            glcm_energy = np.clip((1.0 - y_prob) * 0.15 + np.random.normal(0.03, 0.02), 0.005, 0.4)
+            glcm_homo = np.clip((1.0 - y_prob) * 0.3 + np.random.normal(0.45, 0.08), 0.2, 0.95)
+            mean_int = np.clip(y_prob * 100.0 + np.random.normal(80.0, 30.0), 20.0, 240.0)
+            std_int = np.clip(y_prob * 40.0 + np.random.normal(30.0, 15.0), 5.0, 90.0)
+
+            # 5. Image quality features
+            snr = np.clip(y_prob * 1.5 + np.random.normal(0.6, 0.4), 0.2, 4.0)
+            speckle = np.clip((1.0 - y_prob) * 0.5 + np.random.normal(0.35, 0.15), 0.1, 1.2)
+            dropout = np.clip((1.0 - y_prob) * 0.15 + np.random.normal(0.02, 0.03), 0.0, 0.5)
+            sharpness = np.clip(y_prob * 25000.0 + np.random.normal(10000.0, 8000.0), 200.0, 50000.0)
+            loc_contrast = np.clip(y_prob * 0.5 + np.random.normal(0.45, 0.2), 0.1, 1.0)
+
+            # 6. Metadata features
+            has_meta = 1.0 if np.random.rand() < 0.3 else 0.0
+            slant_range = np.random.uniform(10.0, 90.0) if has_meta else 0.0
+            altitude = np.random.uniform(5.0, 30.0) if has_meta else 0.0
+            grazing = np.random.uniform(10.0, 50.0) if has_meta else 0.0
+            pitch = np.random.normal(0.0, 1.5) if has_meta else 0.0
+            roll = np.random.normal(0.0, 2.0) if has_meta else 0.0
+            heave = np.random.normal(0.0, 0.2) if has_meta else 0.0
 
             vec = [
                 yolo_conf, shadow_avail, shadow_len, shadow_contrast, shadow_comp,
@@ -812,14 +803,21 @@ class CalibrationModelLoader:
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X_train)
 
-        model = LogisticRegression(C=1.0, max_iter=500, random_state=42)
+        model = LogisticRegression(C=0.03, max_iter=500, random_state=42)
         model.fit(X_scaled, y_train)
 
+        temperature = 3.5
         os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
-        joblib.dump({"model": model, "scaler": scaler, "feature_names": FEATURE_NAMES}, save_path)
+        joblib.dump({
+            "model": model,
+            "scaler": scaler,
+            "temperature": temperature,
+            "feature_names": FEATURE_NAMES
+        }, save_path)
 
         self.model = model
         self.scaler = scaler
+        self.temperature = temperature
         self.is_loaded = True
         return True
 
@@ -908,7 +906,12 @@ def calculate_sonar_aware_confidence(
     if calibration_loader is not None and calibration_loader.is_available():
         try:
             scaled_vec = calibration_loader.scaler.transform([feature_vector])
-            proba = calibration_loader.model.predict_proba(scaled_vec)[0][1]
+            temp = getattr(calibration_loader, "temperature", 3.5)
+            if hasattr(calibration_loader.model, "decision_function"):
+                raw_logit = float(calibration_loader.model.decision_function(scaled_vec)[0])
+                proba = 1.0 / (1.0 + math.exp(-raw_logit / max(1.0, temp)))
+            else:
+                proba = float(calibration_loader.model.predict_proba(scaled_vec)[0][1])
             sonar_aware_conf = round(float(proba * 100.0), 1)
             confidence_status = "calibrated"
         except Exception as e:
@@ -932,3 +935,4 @@ def calculate_sonar_aware_confidence(
             "metadata": meta_feats
         }
     }
+

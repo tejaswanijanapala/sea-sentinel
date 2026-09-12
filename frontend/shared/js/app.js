@@ -2054,7 +2054,8 @@ class DashboardApp {
 
       // 2. Sonar-Aware Confidence (strictly independent from AI confidence)
       const hasSonarConf = (d.sonar_aware_confidence != null && !isNaN(d.sonar_aware_confidence));
-      const sonarConf = hasSonarConf ? Math.round(Number(d.sonar_aware_confidence)) : null;
+      const sonarConfVal = hasSonarConf ? Number(d.sonar_aware_confidence) : null;
+      const sonarConfStr = hasSonarConf ? (sonarConfVal % 1 === 0 ? sonarConfVal.toFixed(0) : sonarConfVal.toFixed(1)) : null;
 
       const risk = (d.risk_score || 'HIGH').toUpperCase();
       const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
@@ -2098,9 +2099,9 @@ class DashboardApp {
           <td>
             ${hasSonarConf ? `
             <div class="accuracy-bar-wrap" style="display:flex; align-items:center; gap:8px;">
-              <span class="mono" style="font-weight:800; color:#0284c7; min-width:38px; font-size:0.80rem;">${sonarConf}%</span>
+              <span class="mono" style="font-weight:800; color:#0284c7; min-width:44px; font-size:0.80rem;">${sonarConfStr}%</span>
               <div class="accuracy-bar-track" style="width:54px; height:7px; background:#e0f2fe; border-radius:4px; overflow:hidden;">
-                <div class="accuracy-bar-fill" style="width: ${sonarConf}%; height:100%; background:linear-gradient(90deg, #38bdf8, #0284c7); border-radius:4px;"></div>
+                <div class="accuracy-bar-fill" style="width: ${Math.min(100, Math.max(0, sonarConfVal))}%; height:100%; background:linear-gradient(90deg, #38bdf8, #0284c7); border-radius:4px;"></div>
               </div>
             </div>
             ` : `
@@ -2129,7 +2130,7 @@ class DashboardApp {
             </div>
           </div>
           <div style="font-size: 0.80rem; color: #334155; line-height: 1.45; margin-top: 4px;">
-            ${(d.score_explanation && d.score_explanation.narrative) || d.explanation || `This target has been assigned an inspection priority of ${prioScore}/100 (${prioLevel}) because it was classified as '${cleanClass}' with ${conf}% AI detection confidence${hasSonarConf ? ` and ${sonarConf}% Sonar-Aware physical confidence` : ''}, large estimated extent (${areaM} m²), and high potential marine impact. Standard unreferenced acoustic survey sector.`}
+            ${(d.score_explanation && d.score_explanation.narrative) || d.explanation || `This target has been assigned an inspection priority of ${prioScore}/100 (${prioLevel}) because it was classified as '${cleanClass}' with ${conf}% AI detection confidence${hasSonarConf ? ` and ${sonarConfStr}% Sonar-Aware physical confidence` : ''}, large estimated extent (${areaM} m²), and high potential marine impact. Standard unreferenced acoustic survey sector.`}
           </div>
           <div class="report-metric-pill-row">
             <div class="report-metric-pill">
@@ -2142,7 +2143,7 @@ class DashboardApp {
             </div>
             <div class="report-metric-pill">
               <span class="report-metric-lbl">SONAR-AWARE CONF</span>
-              <span class="report-metric-val" style="color:#0284c7; font-weight:800;">${hasSonarConf ? `${sonarConf}%` : 'N/A'}</span>
+              <span class="report-metric-val" style="color:#0284c7; font-weight:800;">${hasSonarConf ? `${sonarConfStr}%` : 'N/A'}</span>
             </div>
             <div class="report-metric-pill">
               <span class="report-metric-lbl">HAZARD RISK</span>
