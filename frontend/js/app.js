@@ -2082,6 +2082,8 @@ class DashboardApp {
       const prioLevel = (d.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 60 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
       const hazardScore = d.hazard_score != null ? Math.round(d.hazard_score) : (risk === 'CRITICAL' ? 86 : risk === 'HIGH' ? 80 : 58);
       const hazardLevel = (d.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
+      const sonarAwareVal = d.sonar_aware_confidence != null ? d.sonar_aware_confidence : (d.sonar_confidence != null ? d.sonar_confidence : Math.round(conf * 0.96));
+      const sonarConf = Math.round(Number(sonarAwareVal));
       const verifyScore = (d.verification_score != null ? d.verification_score : (conf / 100 * 0.9)).toFixed(2);
 
       tableRows += `
@@ -2096,8 +2098,16 @@ class DashboardApp {
           <td>
             <div class="accuracy-bar-wrap" style="display:flex; align-items:center; gap:8px;">
               <span class="mono" style="font-weight:800; color:#0f172a; min-width:38px; font-size:0.80rem;">${conf}%</span>
-              <div class="accuracy-bar-track" style="width:60px; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+              <div class="accuracy-bar-track" style="width:50px; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
                 <div class="accuracy-bar-fill" style="width: ${conf}%; height:100%; background:linear-gradient(90deg, #10b981, #059669); border-radius:4px;"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="accuracy-bar-wrap" style="display:flex; align-items:center; gap:8px;">
+              <span class="mono" style="font-weight:800; color:#0284c7; min-width:38px; font-size:0.80rem;">${sonarConf}%</span>
+              <div class="accuracy-bar-track" style="width:50px; height:7px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                <div class="accuracy-bar-fill" style="width: ${sonarConf}%; height:100%; background:linear-gradient(90deg, #38bdf8, #0284c7); border-radius:4px;"></div>
               </div>
             </div>
           </td>
@@ -2133,6 +2143,10 @@ class DashboardApp {
             <div class="report-metric-pill">
               <span class="report-metric-lbl">AI DETECTION CONF</span>
               <span class="report-metric-val" style="color:#059669; font-weight:800;">${conf}%</span>
+            </div>
+            <div class="report-metric-pill">
+              <span class="report-metric-lbl">SONAR-AWARE CONF</span>
+              <span class="report-metric-val" style="color:#0284c7; font-weight:800;">${sonarConf}%</span>
             </div>
             <div class="report-metric-pill">
               <span class="report-metric-lbl">HAZARD RISK</span>
@@ -2227,6 +2241,7 @@ class DashboardApp {
               <th>Debris Taxonomy</th>
               <th>Inspection Priority</th>
               <th>AI Confidence</th>
+              <th>Sonar-Aware Conf</th>
               <th>Hazard Risk</th>
               <th>Acoustic Status</th>
               <th>WGS84 Coordinates</th>
@@ -2234,7 +2249,7 @@ class DashboardApp {
             </tr>
           </thead>
           <tbody>
-            ${tableRows || '<tr><td colspan="8" style="text-align:center; padding:20px;">No debris targets detected.</td></tr>'}
+            ${tableRows || '<tr><td colspan="9" style="text-align:center; padding:20px;">No debris targets detected.</td></tr>'}
           </tbody>
         </table>
       </div>
