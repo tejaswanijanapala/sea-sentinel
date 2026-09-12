@@ -25,6 +25,8 @@ import cv2
 import concurrent.futures
 import numpy as np
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 from ai.preprocessing.pipeline import SonarPreprocessor
 from ai.detection.yolo_detector import YOLODetector
 from ai.segmentation.unet_segmenter import UNetSegmenter
@@ -45,6 +47,7 @@ from inference.tiled_inference import TiledInferenceEngine
 from inference.fusion_engine import FusionEngine
 from inference.verifier import CandidateVerifier
 from inference.multiframe import MultiFrameTracker
+from inference.sonar_aware_confidence import CalibrationModelLoader, calculate_sonar_aware_confidence
 from evaluation.ablation_evaluator import AblationEvaluator
 from shared.hardware import HardwareDetector, PipelineProfiler, warmup_ai_models
 
@@ -217,6 +220,12 @@ class SIHPipelineAgent:
         self.retraining_orchestrator = ModelRetrainingOrchestrator()
         self.champion_challenger = ChampionChallengerEvaluator(error_memory=self.error_memory)
         self.deployment_manager = AdaptiveDeploymentManager()
+
+        # Sonar-Aware Confidence Calibrator (Physics + Calibration Model)
+        calib_model_path = os.path.join(PROJECT_ROOT, "models", "checkpoints", "sonar_confidence_calibrator.joblib")
+        self.confidence_calibrator = CalibrationModelLoader(calib_model_path)
+        if not self.confidence_calibrator.is_available():
+            self.confidence_calibrator.train_and_save_default_model(calib_model_path)
 
         # Version tracking
         self.current_yolo_version = "YOLO-v3.2"
@@ -896,6 +905,20 @@ class SIHPipelineAgent:
             rec["mask_available"] = True
             rec["yolo_bbox"] = det.get("yolo_bbox", bbox if "yolo" in det.get("sources", ["yolo"]) else None)
             rec["unet_bbox"] = det.get("unet_bbox", bbox if "unet" in det.get("sources", []) else None)
+
+            # Sonar-Aware Confidence Calibration (Acoustic Shadow + Shape + Texture + Quality + Metadata)
+            sonar_calib_res = calculate_sonar_aware_confidence(
+                image=raw_img,
+                detection=det,
+                unet_mask=roi_masks.get(obj_id),
+                sonar_metadata=active_nav_log or raster_meta,
+                calibration_loader=self.confidence_calibrator
+            )
+            rec["yolo_confidence"] = sonar_calib_res.get("yolo_confidence")
+            rec["yolo_confidence_pct"] = sonar_calib_res.get("yolo_confidence_pct")
+            rec["sonar_aware_confidence"] = sonar_calib_res.get("sonar_aware_confidence")
+            rec["confidence_status"] = sonar_calib_res.get("confidence_status")
+            rec["extracted_sonar_features"] = sonar_calib_res.get("extracted_features")
 
             # Ensure coordinates and georeferencing status are populated for GIS mapping
             has_valid_coords = (lat is not None and lon is not None)

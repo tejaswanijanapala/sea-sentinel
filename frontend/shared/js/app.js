@@ -2092,7 +2092,6 @@ class DashboardApp {
               <b>${hazardScore}/100</b> (${hazardLevel})
             </span>
           </td>
-          <td><span class="provenance-tag ${srcTagClass}">[${srcTagLabel}]</span></td>
           <td><span style="color:${vStatus === 'CONFIRMED' ? '#059669' : '#d97706'}; font-weight:800; letter-spacing:0.5px;">${vStatus}</span></td>
           <td><span class="mono" style="color:#1e293b; font-weight:600;">${geoText}</span></td>
           <td><span class="mono" style="color:#334155;">${lenM}m × ${widM}m (${areaM.toLocaleString()} m²)</span></td>
@@ -2215,14 +2214,13 @@ class DashboardApp {
               <th>Inspection Priority</th>
               <th>AI Confidence</th>
               <th>Hazard Risk</th>
-              <th>Dual Provenance</th>
               <th>Acoustic Status</th>
               <th>WGS84 Coordinates</th>
               <th>Physical Dimensions</th>
             </tr>
           </thead>
           <tbody>
-            ${tableRows || '<tr><td colspan="9" style="text-align:center; padding:20px;">No debris targets detected.</td></tr>'}
+            ${tableRows || '<tr><td colspan="8" style="text-align:center; padding:20px;">No debris targets detected.</td></tr>'}
           </tbody>
         </table>
       </div>
