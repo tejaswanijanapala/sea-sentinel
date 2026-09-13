@@ -15,6 +15,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import os
 import json
 import sqlite3
+import uuid
 from datetime import datetime
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -636,12 +637,21 @@ class LocalDatabase:
             ))
 
             for d in detections:
-                bbox = d.get("bbox", [])
-                bx = bbox[0] if len(bbox) > 0 else 0.0
-                by = bbox[1] if len(bbox) > 1 else 0.0
-                bw = bbox[2] if len(bbox) > 2 else 0.0
-                bh = bbox[3] if len(bbox) > 3 else 0.0
-                det_id = d.get("detection_id") or f"DET_{uuid_short()}"
+                bbox = d.get("bbox") or d.get("pixel_bbox") or d.get("yolo_bbox") or d.get("unet_bbox") or []
+                if isinstance(bbox, dict):
+                    bx = float(bbox.get("x1", 0.0))
+                    by = float(bbox.get("y1", 0.0))
+                    bw = max(1.0, float(bbox.get("x2", bx + 50.0)) - bx)
+                    bh = max(1.0, float(bbox.get("y2", by + 50.0)) - by)
+                elif isinstance(bbox, (list, tuple)):
+                    bx = float(bbox[0]) if len(bbox) > 0 else 0.0
+                    by = float(bbox[1]) if len(bbox) > 1 else 0.0
+                    bw = float(bbox[2]) if len(bbox) > 2 else 50.0
+                    bh = float(bbox[3]) if len(bbox) > 3 else 50.0
+                else:
+                    bx, by, bw, bh = 0.0, 0.0, 50.0, 50.0
+
+                det_id = d.get("detection_id") or f"DET_{uuid.uuid4().hex[:8].upper()}"
                 
                 conn.execute("""
                 INSERT OR REPLACE INTO detections 

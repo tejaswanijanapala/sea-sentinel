@@ -72,13 +72,21 @@
             <i class="fa-solid fa-water"></i>
             <span>Surveys</span>
           </a>
-          <a class="nav-item" id="navMaps" href="#cardMap">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Maps</span>
+          <a class="nav-item" id="navCurrentInputGis" href="#cardMap">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>Current Input GIS</span>
+          </a>
+          <a class="nav-item" id="navEntireOceanMap" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span>Entire Ocean Map</span>
           </a>
           <a class="nav-item" id="navModels" onclick="document.getElementById('btnOpenModelModal').click();">
             <i class="fa-solid fa-microchip"></i>
             <span>Models</span>
+          </a>
+          <a class="nav-item" id="navMetrics" onclick="document.getElementById('btnOpenMetricsModal').click();">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Metrics</span>
           </a>
           <a class="nav-item" id="navReports" onclick="document.getElementById('btnOpenReportTop').click();">
             <i class="fa-solid fa-file-waveform"></i>
@@ -139,6 +147,11 @@
             <span>Models</span>
           </button>
 
+          <button class="gis-btn" id="btnOpenMetricsModal" title="YOLOv11 & U-Net Model Evaluation & Metrics Dashboard">
+            <i class="fa-solid fa-chart-pie" style="color: var(--emerald-600);"></i>
+            <span>Metrics</span>
+          </button>
+
           <button class="gis-btn" id="btnOpenEdgeModal" title="Edge AI, Watchdog & Modem Telemetry">
             <i class="fa-solid fa-satellite-dish" style="color: var(--teal-accent);"></i>
             <span>Edge</span>
@@ -167,6 +180,12 @@
 
           <button class="nav-icon-btn" title="Messages & Logs" onclick="document.getElementById('btnOpenEdgeModal').click();">
             <i class="fa-regular fa-comment-dots"></i>
+          </button>
+
+          <!-- Entire Ocean Map Button -->
+          <button class="btn-emerald" id="btnOpenEntireOceanTop" title="Open Global Ocean Debris GIS Map" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
+            <i class="fa-solid fa-earth-americas"></i>
+            <span>Entire Ocean Map</span>
           </button>
 
           <!-- Report Button -->
@@ -466,83 +485,52 @@
             </div>
           </div>
 
-          <!-- 6. Ocean Debris GIS & Geospatial Intelligence Map Card -->
+          <!-- 6. Current Input GIS Map Card (Level 1: Strictly Current Input) -->
           <div class="clean-card gis-map-card" id="cardMap">
             <div class="gis-map-header">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="card-title"><i class="fa-solid fa-map-location-dot" style="color: var(--emerald-600);"></i> Ocean Debris GIS &amp; Geospatial Intelligence</span>
-                <span class="badge-pill confirmed">● OFFLINE READY</span>
+                <span class="card-title"><i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> Current Input GIS</span>
+                <span class="badge-pill confirmed">● ACTIVE INPUT</span>
                 <span class="meta-pill" style="padding: 2px 8px; font-size: 0.68rem;">WGS84 (EPSG:4326)</span>
               </div>
 
-              <!-- GIS Map Controls -->
+              <!-- Current Input Map Controls -->
               <div class="gis-toolbar-btns">
-                <button class="gis-btn" id="btnFocusCurrentScan" title="Focus Current Input Image Debris" onclick="if(window.gisMap) window.gisMap.fitCurrentScan(); else if(window.app && window.app.map) window.app.map.fitCurrentScan();">
+                <button class="btn-emerald" id="btnViewInEntireOceanMap" title="View Current Detection in Entire Ocean Map" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap({focusCurrent: true});" style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 4px 10px; font-size: 0.74rem;">
+                  <i class="fa-solid fa-earth-americas"></i>
+                  <span>View in Entire Ocean Map</span>
+                </button>
+                <button class="gis-btn" id="btnFocusCurrentScan" title="Center on Current Input" onclick="if(window.gisMap) window.gisMap.fitCurrentInput();">
                   <i class="fa-solid fa-crosshairs" style="color: var(--sky-blue);"></i>
-                  <span>Current Input</span>
+                  <span>Center Input</span>
                 </button>
-                <button class="gis-btn active" id="btnFitEntireOcean" title="View Cumulative Entire Ocean Survey Map" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();">
-                  <i class="fa-solid fa-globe" style="color: var(--emerald-600);"></i>
-                  <span>Entire Ocean Map</span>
-                </button>
-                <button class="gis-btn" id="btnOpenBatchModal" title="Batch Process SSS Imagery Folder">
-                  <i class="fa-solid fa-folder-plus" style="color: var(--purple-accent);"></i>
-                  <span>Batch Import</span>
-                </button>
-                <button class="gis-btn" id="btnExportGisMenu" title="Export GIS Intelligence (GeoJSON / CSV / KML)">
-                  <i class="fa-solid fa-file-export" style="color: var(--emerald-600);"></i>
-                  <span>Export GIS</span>
-                </button>
-                <button class="gis-btn" id="btnFitMap" title="Focus All Georeferenced Targets" onclick="if(window.gisMap) window.gisMap.fitEntireOcean(); else if(window.app && window.app.map) window.app.map.fitEntireOcean();">
-                  <i class="fa-solid fa-expand"></i>
-                  <span>Fit All</span>
-                </button>
-                <button class="gis-btn" id="btnToggleSwath" title="Toggle Sonar Swath &amp; Nadir Trackline">
+                <button class="gis-btn" id="btnToggleSwath" title="Toggle Current Swath Bounds">
                   <i class="fa-solid fa-water"></i>
-                  <span>Swath</span>
+                  <span>Swath Extent</span>
+                </button>
+                <button class="gis-btn" id="btnToggleMinMaxCurrentInput" title="Minimize / Maximize Current Input Map" style="padding: 4px 8px; color: var(--emerald-800);">
+                  <i class="fa-solid fa-minus" id="iconMinMaxCurrentInput"></i>
                 </button>
               </div>
             </div>
 
-            <!-- GIS Stats Bar -->
-            <div class="gis-stats-bar" style="display: flex; align-items: center; justify-content: space-around; background: #ffffff; border-bottom: 1px solid var(--border-light); padding: 8px 14px; font-size: 0.78rem;">
-              <div><span style="color: var(--text-muted);">Targets:</span> <b id="gisStatTargets" style="color: var(--sky-blue); font-family: var(--font-mono);">0</b></div>
-              <div><span style="color: var(--text-muted);">Verified:</span> <b id="gisStatVerified" style="color: var(--emerald-600); font-family: var(--font-mono);">0</b></div>
-              <div><span style="color: var(--text-muted);">Clusters:</span> <b id="gisStatClusters" style="color: var(--purple-accent); font-family: var(--font-mono);">0</b></div>
-              <div><span style="color: var(--text-muted);">Surveyed Area:</span> <b id="gisStatArea" style="color: var(--amber-warn); font-family: var(--font-mono);">0.0 km²</b></div>
-              <div><span style="color: var(--text-muted);">Images:</span> <b id="gisStatImages" style="color: var(--emerald-700); font-family: var(--font-mono);">0</b></div>
-            </div>
-
-            <!-- GIS Spatial Filter Bar -->
-            <div class="gis-filter-bar" style="display: flex; align-items: center; gap: 8px; background: var(--bg-card-subtle); padding: 8px 14px; border-bottom: 1px solid var(--border-light); font-size: 0.76rem;">
-              <div style="display: flex; align-items: center; gap: 6px; flex: 1; background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 4px 10px;">
-                <i class="fa-solid fa-magnifying-glass" style="color: var(--text-dim);"></i>
-                <input type="text" id="gisSearchInput" placeholder="Search Target ID (SS-0001), Class, or Cluster..." style="border: none; outline: none; background: transparent; width: 100%; font-size: 0.75rem; color: var(--text-primary);" />
+            <!-- Current Input Telemetry & Metadata Strip -->
+            <div class="current-input-banner" id="currentInputBanner">
+              <div style="display: flex; align-items: center; gap: 16px; font-size: 0.76rem; flex-wrap: wrap;">
+                <span class="current-input-pill"><i class="fa-solid fa-circle-dot"></i> CURRENT INPUT</span>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Active Survey:</span> <b id="currentInputSurveyId" style="color: var(--emerald-800); font-family: var(--font-mono);">--</b></div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Input SSS:</span> <b id="currentInputImageName" style="color: var(--text-primary); font-family: var(--font-mono);">Standby</b></div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">Detected Targets:</span> <b id="currentInputTargetCount" style="color: var(--sky-blue); font-family: var(--font-mono);">0</b></div>
+                <div><span style="color: var(--text-muted); font-weight: 600;">GIS Location:</span> <b id="currentInputCoordinates" style="color: var(--emerald-700); font-family: var(--font-mono);">--</b></div>
               </div>
-              <select id="gisClassFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
-                <option value="all">All Classes</option>
-                <option value="ghost_net">Ghost Net</option>
-                <option value="fishing_gear">Fishing Gear</option>
-                <option value="plastic">Plastic</option>
-                <option value="metal">Metal / Container</option>
-                <option value="rope">Rope</option>
-                <option value="unknown">Unknown</option>
-              </select>
-              <select id="gisConfFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
-                <option value="0.0">All Confidence</option>
-                <option value="0.5">≥ 50% Conf</option>
-                <option value="0.7">≥ 70% Conf</option>
-                <option value="0.8">≥ 80% Conf</option>
-                <option value="0.9">≥ 90% Conf</option>
-              </select>
-              <button id="btnRecalcClusters" class="gis-btn" style="color: var(--purple-accent); font-weight: 700;">
-                <i class="fa-solid fa-shapes"></i> Re-Cluster
-              </button>
+              <div style="font-size: 0.72rem; color: var(--emerald-700); font-weight: 600;">
+                <i class="fa-solid fa-circle-info"></i> Showing localized targets from current upload only
+              </div>
             </div>
 
-            <!-- Marine GIS Layers Bar -->
+            <!-- Marine Habitat GIS Reference Layers Bar -->
             <div class="layer-selector-bar" id="gisLayersBar" style="padding: 6px 14px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; font-size: 0.74rem;">
-              <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-layer-group"></i> Local GIS:</span>
+              <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-layer-group"></i> Environmental Ref:</span>
               <label class="layer-toggle-btn active" id="lblGisReefs">
                 <input type="checkbox" id="chkGisReefs" checked>
                 <i class="fa-solid fa-gem" style="color: var(--rose-danger);"></i>
@@ -570,17 +558,17 @@
               </label>
             </div>
 
-            <!-- Leaflet Container -->
+            <!-- Leaflet Container (Current Input Only) -->
             <div class="map-viewport" style="position: relative; width: 100%; height: 500px; min-height: 500px;">
               <div id="leafletMap" style="width: 100%; height: 500px; min-height: 500px;"></div>
               <div class="map-coords-hud" id="mapCoordsHud">
-                <i class="fa-solid fa-crosshairs"></i> Cursor: <b>30.17350° N, 87.82500° W</b> &nbsp;|&nbsp; Datum: <span style="color: var(--emerald-400);">WGS84 (EPSG:4326)</span>
+                <i class="fa-solid fa-crosshairs"></i> Cursor: <b>30.17350° N, 87.82500° W</b> &nbsp;|&nbsp; Datum: <span style="color: var(--emerald-400);">WGS84 (EPSG:4326)</span> &nbsp;|&nbsp; Layer: <span style="color: #00f0ff;">Current Input</span>
               </div>
               <div class="map-legend-overlay">
+                <span class="legend-chip"><span class="legend-dot cyan"></span> Active Input Target</span>
                 <span class="legend-chip"><span class="legend-dot red"></span> High Risk</span>
-                <span class="legend-chip"><span class="legend-dot yellow"></span> Med Risk</span>
-                <span class="legend-chip"><span class="legend-dot green"></span> Low Risk</span>
-                <span class="legend-chip"><span class="legend-line"></span> Trackline</span>
+                <span class="legend-chip"><span class="legend-dot green"></span> Verified</span>
+                <span class="legend-chip"><span class="legend-line"></span> Swath Bounds</span>
               </div>
             </div>
           </div>
@@ -705,7 +693,26 @@
             </div>
           </div>
 
+          <!-- 3. IMO-Aligned Marine Debris Hazard Assessment Sub-Panel -->
+          <div class="clean-card" id="imoRiskPanel" style="margin-top: 14px;">
+            <div class="card-header-row" style="margin-bottom: 8px;">
+              <span class="card-title" style="font-size: 0.90rem;"><i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i> IMO Hazard Assessment</span>
+              <span class="imo-framework-pill" title="IMO-aligned project-specific formal safety assessment framework based on IMO FSA principles">IMO FSA ALIGNED</span>
+            </div>
 
+            <div id="imoRiskContainer">
+              <div class="physics-placeholder" style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 0.74rem;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.1rem; margin-bottom: 4px; display: block; color: var(--amber-warn);"></i>
+                <span>Awaiting target selection for 15-parameter IMO hazard calculation</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 10px;">
+              <button class="btn-ghost" id="btnOpenImoAuditModal" style="width: 100%; justify-content: center; font-size: 0.72rem; padding: 6px 10px;" onclick="if(window.app && window.app.selectedTargetId) window.app.openScoreExplanationModal(window.app.selectedTargetId);">
+                <i class="fa-solid fa-scale-balanced" style="color: var(--emerald-600);"></i> Inspect 5x5 Decision Matrix &amp; 15-Param Audit
+              </button>
+            </div>
+          </div>
 
           <!-- 4. Recent Activity Stream Card -->
           <div class="clean-card">
@@ -1303,6 +1310,471 @@
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button type="button" class="gis-btn" id="btnCancelReviewModal">Cancel</button>
           <button type="button" class="btn-emerald" id="btnSaveTargetReview"><i class="fa-solid fa-floppy-disk"></i> Save &amp; Update Map</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       Model Evaluation & Metrics Dashboard Modal
+       ========================================================= -->
+  <div class="modal-backdrop" id="evaluationMetricsModal" style="display: none; z-index: 9999;">
+    <div class="modal-card" style="max-width: 1100px; width: 95vw; max-height: 92vh; overflow-y: auto; padding: 24px;">
+      <!-- Header -->
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border-light); padding-bottom: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="font-size: 0.72rem; color: var(--emerald-600); font-weight: 700; letter-spacing: 0.5px;">PERFORMANCE AUDIT &amp; BENCHMARKING ENGINE</div>
+          <h2 class="modal-title" style="margin: 2px 0 0 0; font-size: 1.3rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-chart-pie" style="color: var(--emerald-600);"></i>
+            Model Evaluation &amp; Metrics Dashboard
+          </h2>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="gis-btn" id="btnRunFreshEval" title="Re-run evaluation on test dataset">
+            <i class="fa-solid fa-arrows-rotate" style="color: var(--emerald-600);"></i>
+            <span>Re-Run Evaluation</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnExportEvalJson" title="Download JSON Metrics Report">
+            <i class="fa-solid fa-file-code" style="color: var(--sky-blue);"></i>
+            <span>Export JSON</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnExportEvalCsv" title="Download CSV Summary Report">
+            <i class="fa-solid fa-file-csv" style="color: var(--emerald-700);"></i>
+            <span>Export CSV</span>
+          </button>
+          <button class="gis-btn" id="btnCloseEvaluationModal" title="Close" style="padding: 6px 10px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- Dataset Split & Execution Banner with Dynamic Image Scope Switcher -->
+      <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 18px; font-size: 0.76rem; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="color: var(--text-primary);"><i class="fa-solid fa-layer-group" style="color: var(--emerald-600);"></i> Evaluation Scope:</strong>
+            <select id="evalImageScopeSelect" class="gis-select" style="padding: 4px 10px; font-size: 0.74rem; border-radius: 4px; border: 1px solid var(--border-light); font-weight: 700; background: #ffffff; color: var(--emerald-900);">
+              <option value="active" selected>Active Sonar Scan (Dynamic Input Image)</option>
+              <option value="benchmark">Test Split Benchmark (27 SSS Images)</option>
+            </select>
+          </div>
+          <span><strong style="color: var(--text-primary);">Active Target:</strong> <span class="status-pill complete" style="padding: 2px 8px; font-size: 0.70rem;" id="evalDatasetSplit">ACTIVE INPUT IMAGE</span></span>
+          <span><strong style="color: var(--text-primary);">Scope Target:</strong> <span id="evalSampleCount" style="color: var(--emerald-700); font-weight: 700;">Active Sonar Scan</span></span>
+          <span><strong style="color: var(--text-primary);">Ground Truth:</strong> <span id="evalGtCount" style="color: var(--emerald-700); font-weight: 700;">Real-Time Acoustic Verification</span></span>
+        </div>
+        <div>
+          <span style="color: var(--text-muted);">Execution Time:</span> <span id="evalExecTime" style="font-family: var(--font-mono); font-weight: 600; color: var(--text-secondary);">--</span>
+        </div>
+      </div>
+
+      <!-- Section 1: YOLOv11 Object Detection -->
+      <div class="clean-card" style="padding: 18px; margin-bottom: 20px; border: 1px solid rgba(5, 150, 105, 0.25); box-shadow: var(--shadow-card);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: var(--emerald-100); color: var(--emerald-800); font-size: 0.70rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">OBJECT DETECTION</span>
+              <h3 style="margin: 0; font-size: 1.05rem; color: var(--emerald-900); font-weight: 700;">
+                <i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> YOLOv11 Debris Detection Metrics
+              </h3>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+              Evaluates bounding box localization, spatial overlap (IoU), precision, recall, F1, and mean average precision (mAP) against ground truth.
+            </div>
+          </div>
+          <span class="status-pill complete" style="font-size: 0.70rem;">Ultralytics YOLO API Active</span>
+        </div>
+
+        <!-- 6 YOLO KPI Cards -->
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px;">
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">PRECISION</div>
+            <div id="yoloKpiPrecision" style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-700); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">TP / (TP + FP)</div>
+          </div>
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">RECALL</div>
+            <div id="yoloKpiRecall" style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-700); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">TP / (TP + FN)</div>
+          </div>
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">F1-SCORE</div>
+            <div id="yoloKpiF1" style="font-size: 1.15rem; font-weight: 800; color: var(--emerald-700); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">2 * P * R / (P+R)</div>
+          </div>
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">MEAN BBOX IoU</div>
+            <div id="yoloKpiIou" style="font-size: 1.15rem; font-weight: 800; color: var(--sky-blue); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">Inter / Union</div>
+          </div>
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">mAP@50</div>
+            <div id="yoloKpiMap50" style="font-size: 1.15rem; font-weight: 800; color: var(--purple-accent); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">IoU = 0.50</div>
+          </div>
+          <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">mAP@50-95</div>
+            <div id="yoloKpiMap5095" style="font-size: 1.15rem; font-weight: 800; color: var(--purple-accent); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.62rem; color: var(--text-dim);">IoU 0.50:0.95</div>
+          </div>
+        </div>
+
+        <!-- YOLO Charts Grid: PR Curve & Confusion Matrix -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <!-- PR & F1 Curve Chart Container -->
+          <div class="clean-card" style="padding: 12px; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--emerald-800);"><i class="fa-solid fa-chart-line"></i> Detection Performance Curves</span>
+              <div style="display: flex; gap: 4px;">
+                <button type="button" class="gis-btn active" id="btnCurvePR" style="padding: 2px 6px; font-size: 0.68rem;">PR Curve</button>
+                <button type="button" class="gis-btn" id="btnCurveF1" style="padding: 2px 6px; font-size: 0.68rem;">F1-Conf</button>
+                <button type="button" class="gis-btn" id="btnCurveP" style="padding: 2px 6px; font-size: 0.68rem;">P-Conf</button>
+                <button type="button" class="gis-btn" id="btnCurveR" style="padding: 2px 6px; font-size: 0.68rem;">R-Conf</button>
+              </div>
+            </div>
+            <div id="yoloCurveCanvasWrap" style="width: 100%; height: 180px; position: relative; background: #fafbfc; border-radius: 4px; border: 1px solid #f1f5f9;">
+              <svg id="yoloCurveSvg" style="width: 100%; height: 100%;"></svg>
+            </div>
+            <div id="yoloCurveLegend" style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;">
+              <span id="yoloCurveXLabel">Recall (0.0 → 1.0)</span>
+              <span id="yoloCurveYLabel">Precision (0.0 → 1.0)</span>
+            </div>
+          </div>
+
+          <!-- Confusion Matrix Heatmap -->
+          <div class="clean-card" style="padding: 12px; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--emerald-800);"><i class="fa-solid fa-table-cells"></i> Confusion Matrix</span>
+              <span style="font-size: 0.68rem; color: var(--text-dim);">Predicted vs Ground Truth</span>
+            </div>
+            <div id="confusionMatrixContainer" style="overflow-x: auto; max-height: 185px;"></div>
+          </div>
+        </div>
+
+        <!-- Per-Class Metrics Table & IoU Distribution -->
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px;">
+          <!-- Per-Class Table -->
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 700; color: var(--emerald-800); margin-bottom: 6px;"><i class="fa-solid fa-list-check"></i> Per-Class Debris Performance Breakdown</div>
+            <div style="overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.72rem; text-align: left;">
+                <thead style="background: var(--bg-card-subtle); color: var(--text-muted); font-weight: 700;">
+                  <tr>
+                    <th style="padding: 6px 8px;">Class</th>
+                    <th style="padding: 6px 8px;">Targets</th>
+                    <th style="padding: 6px 8px;">Precision</th>
+                    <th style="padding: 6px 8px;">Recall</th>
+                    <th style="padding: 6px 8px;">F1-Score</th>
+                    <th style="padding: 6px 8px;">mAP@50</th>
+                    <th style="padding: 6px 8px;">mAP@50-95</th>
+                  </tr>
+                </thead>
+                <tbody id="yoloPerClassTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- IoU Distribution Bar Chart -->
+          <div class="clean-card" style="padding: 12px; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.76rem; font-weight: 700; color: var(--emerald-800); margin-bottom: 6px;"><i class="fa-solid fa-chart-simple"></i> Bounding-Box IoU Distribution</div>
+            <div id="yoloIouDistributionWrap" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 8px; border-top: 1px dashed var(--border-light); padding-top: 4px;">
+              <span>Min: <strong id="yoloIouMin" style="font-family: var(--font-mono);">--</strong></span>
+              <span>Median: <strong id="yoloIouMed" style="font-family: var(--font-mono);">--</strong></span>
+              <span>Max: <strong id="yoloIouMax" style="font-family: var(--font-mono);">--</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: U-Net Semantic Segmentation -->
+      <div class="clean-card" style="padding: 18px; margin-bottom: 20px; border: 1px solid rgba(2, 132, 199, 0.25); box-shadow: var(--shadow-card);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: var(--sky-light); color: var(--sky-blue); font-size: 0.70rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">SEMANTIC SEGMENTATION</span>
+              <h3 style="margin: 0; font-size: 1.05rem; color: #0369a1; font-weight: 700;">
+                <i class="fa-solid fa-draw-polygon" style="color: var(--sky-blue);"></i> U-Net Semantic Segmentation Metrics
+              </h3>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+              Evaluates pixel-level binary masks comparing dense predictions with ground truth. Major metrics are <strong>Pixel IoU</strong>, <strong>Dice Coefficient</strong>, and <strong>Mask mAP</strong> (Mean Average Precision over segmentation contours).
+            </div>
+          </div>
+          <span class="status-pill complete" style="font-size: 0.70rem; background: var(--sky-light); color: var(--sky-blue); border-color: #bae6fd;">Attention U-Net Active</span>
+        </div>
+
+        <!-- 7 U-Net KPI Cards -->
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px;">
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">PIXEL PRECISION</div>
+            <div id="unetKpiPrecision" style="font-size: 1.1rem; font-weight: 800; color: #0284c7; font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">TP / (TP + FP)</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">PIXEL RECALL</div>
+            <div id="unetKpiRecall" style="font-size: 1.1rem; font-weight: 800; color: #0284c7; font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">TP / (TP + FN)</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">PIXEL F1-SCORE</div>
+            <div id="unetKpiF1" style="font-size: 1.1rem; font-weight: 800; color: #0284c7; font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">2 * P * R / (P+R)</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">PIXEL IoU</div>
+            <div id="unetKpiIou" style="font-size: 1.1rem; font-weight: 800; color: var(--emerald-600); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">Jaccard Index</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">DICE SCORE</div>
+            <div id="unetKpiDice" style="font-size: 1.1rem; font-weight: 800; color: var(--emerald-600); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">2TP / (2TP+FP+FN)</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">MASK mAP@50</div>
+            <div id="unetKpiMap50" style="font-size: 1.1rem; font-weight: 800; color: var(--purple-accent); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">IoU &ge; 0.50</div>
+          </div>
+          <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">MASK mAP@50-95</div>
+            <div id="unetKpiMap5095" style="font-size: 1.1rem; font-weight: 800; color: var(--purple-accent); font-family: var(--font-mono); margin: 2px 0;">--</div>
+            <div style="font-size: 0.58rem; color: var(--text-dim);">IoU 0.50:0.95</div>
+          </div>
+        </div>
+
+        <!-- U-Net Breakdown: Per-Target Table & Dice Distribution -->
+        <div style="display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px;">
+          <!-- Per Target Table -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="font-size: 0.76rem; font-weight: 700; color: #0369a1;"><i class="fa-solid fa-draw-polygon"></i> Per-Target & ROI Segmentation Mask Breakdown</div>
+              <span style="font-size: 0.68rem; color: var(--text-dim);">Active Sonar Targets</span>
+            </div>
+            <div style="overflow-x: auto; max-height: 220px; border: 1px solid var(--border-light); border-radius: var(--radius-sm);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.70rem; text-align: left;">
+                <thead style="background: var(--bg-card-subtle); color: var(--text-muted); font-weight: 700; position: sticky; top: 0; z-index: 1;">
+                  <tr>
+                    <th style="padding: 5px 8px;">Target ID / Mask</th>
+                    <th style="padding: 5px 8px;">Debris Class</th>
+                    <th style="padding: 5px 8px;">Pixel Precision</th>
+                    <th style="padding: 5px 8px;">Pixel Recall</th>
+                    <th style="padding: 5px 8px;">Pixel IoU</th>
+                    <th style="padding: 5px 8px;">Dice Score</th>
+                    <th style="padding: 5px 8px;">Mask mAP@50</th>
+                    <th style="padding: 5px 8px;">Mask mAP@50-95</th>
+                  </tr>
+                </thead>
+                <tbody id="unetPerImageTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Dice Score Distribution Bar Chart -->
+          <div class="clean-card" style="padding: 12px; background: #ffffff; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #0369a1; margin-bottom: 6px;"><i class="fa-solid fa-chart-column"></i> Dice Similarity Distribution</div>
+            <div id="unetDiceDistributionWrap" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 8px; border-top: 1px dashed var(--border-light); padding-top: 4px;">
+              <span>Dataset Total Pixels: <strong id="unetTotalPixels" style="font-family: var(--font-mono);">--</strong></span>
+              <span>Micro Dice: <strong id="unetMicroDice" style="font-family: var(--font-mono);">--</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Model Architecture Distinction Guide -->
+      <div class="clean-card" style="padding: 14px; background: var(--bg-card-subtle); border: 1px solid var(--border-light);">
+        <h4 style="font-size: 0.82rem; margin: 0 0 8px 0; color: var(--emerald-900); font-weight: 700;"><i class="fa-solid fa-scale-balanced"></i> Architectural Evaluation Distinction: YOLOv11 vs U-Net</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.72rem; color: var(--text-secondary);">
+          <div style="background: #ffffff; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <strong style="color: var(--emerald-700);"><i class="fa-solid fa-crosshairs"></i> YOLOv11 Object Detection:</strong>
+            <ul style="margin: 4px 0 0 16px; line-height: 1.4;">
+              <li>Evaluates 2D Bounding Box coordinates $(x, y, w, h)$ &amp; class classification.</li>
+              <li>IoU computes <em>Intersection Area / Union Area</em> of predicted bounding boxes.</li>
+              <li>Calculates <strong>mAP@50</strong> and <strong>mAP@50-95</strong> across confidence thresholds.</li>
+            </ul>
+          </div>
+          <div style="background: #ffffff; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <strong style="color: var(--sky-blue);"><i class="fa-solid fa-draw-polygon"></i> U-Net Semantic Segmentation:</strong>
+            <ul style="margin: 4px 0 0 16px; line-height: 1.4;">
+              <li>Evaluates dense pixel-wise binary segmentation masks $\hat{M} \in \{0, 1\}^{H \times W}$.</li>
+              <li>Pixel IoU measures exact pixel mask overlap: $TP / (TP + FP + FN)$.</li>
+              <li>Calculates <strong>Dice Coefficient</strong>: $2TP / (2TP + FP + FN)$.</li>
+              <li>Calculates <strong>Mask mAP@50 &amp; mAP@50-95</strong> for dense morphological contour overlap.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="entireOceanMapModal" style="display: none; z-index: 9999;">
+    <div class="entire-ocean-modal-card is-minimized" id="entireOceanModalCard">
+      <!-- Modal Header -->
+      <div class="entire-ocean-modal-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--emerald-100); color: var(--emerald-700); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+            <i class="fa-solid fa-earth-americas"></i>
+          </div>
+          <div>
+            <h2 style="margin: 0; font-size: 1.20rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              Entire Ocean Debris Map
+              <span class="badge-pill confirmed" style="font-size: 0.65rem;">CUMULATIVE GIS</span>
+            </h2>
+            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+              Cumulative historical + current debris data across all surveys &amp; SSS inputs
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="gis-btn" id="btnRecalcClustersGlobal" title="Recalculate DBSCAN Clusters" style="color: var(--purple-accent); font-weight: 700;">
+            <i class="fa-solid fa-shapes"></i>
+            <span>Re-Cluster</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnFitGlobalOcean" title="Fit All Global Ocean Targets">
+            <i class="fa-solid fa-globe" style="color: var(--emerald-600);"></i>
+            <span>Fit All</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnFocusCurrentScanGlobal" title="Focus Current Input Detection" style="color: var(--sky-blue);">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>Focus Current Input</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnExportGisGlobal" title="Export GIS Data (GeoJSON / CSV / KML)">
+            <i class="fa-solid fa-file-export" style="color: var(--emerald-700);"></i>
+            <span>Export GIS</span>
+          </button>
+          <button type="button" class="gis-btn" id="btnToggleMinMaxEntireOcean" title="Maximize / Minimize Entire Ocean Map" style="padding: 6px 10px; color: var(--emerald-700); font-weight: 700;">
+            <i class="fa-solid fa-expand" id="iconMinMaxEntireOcean"></i>
+          </button>
+          <button type="button" class="gis-btn" id="btnCloseEntireOceanModal" title="Close Entire Ocean Map" style="padding: 6px 10px;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Minimized Compact State Body (Default view on open) -->
+      <div class="entire-ocean-minimized-body" id="entireOceanMinimizedBody">
+        <div style="background: var(--bg-card-subtle); border-radius: var(--radius-md); padding: 14px 18px; border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-database" style="color: var(--emerald-600);"></i>
+              Cumulative Ocean Debris Intelligence Database
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 4px;">
+              Global persistent spatial dataset containing all historical and active survey detections, tracks, and clusters.
+            </div>
+          </div>
+          <button type="button" class="btn-emerald" id="btnExpandGlobalOceanCta" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);">
+            <i class="fa-solid fa-expand"></i>
+            <span>Maximize Map View</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Global Statistics Bar -->
+      <div class="entire-ocean-stats-bar">
+        <div><span style="color: var(--text-muted);">Total Targets:</span> <b id="globalStatTargets" style="color: var(--sky-blue); font-family: var(--font-mono);">0</b></div>
+        <div><span style="color: var(--text-muted);">Total Surveys:</span> <b id="globalStatSurveys" style="color: var(--emerald-700); font-family: var(--font-mono);">0</b></div>
+        <div><span style="color: var(--text-muted);">Active/Recent Targets:</span> <b id="globalStatRecentTargets" style="color: #00f0ff; font-family: var(--font-mono);">0</b></div>
+        <div><span style="color: var(--text-muted);">Geographic Coverage:</span> <b id="globalStatArea" style="color: var(--amber-warn); font-family: var(--font-mono);">0.0 km²</b></div>
+        <div><span style="color: var(--text-muted);">Target Clusters:</span> <b id="globalStatClusters" style="color: var(--purple-accent); font-family: var(--font-mono);">0</b></div>
+      </div>
+
+      <!-- Global Spatial Filter Bar -->
+      <div class="entire-ocean-filter-bar">
+        <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 200px; background: var(--bg-card-subtle); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 4px 10px;">
+          <i class="fa-solid fa-magnifying-glass" style="color: var(--text-dim);"></i>
+          <input type="text" id="globalGisSearchInput" placeholder="Search Target ID (TGT_001), Class, Cluster, Survey..." style="border: none; outline: none; background: transparent; width: 100%; font-size: 0.75rem; color: var(--text-primary);" />
+        </div>
+        <select id="globalGisClassFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+          <option value="all">All Classes</option>
+          <option value="ghost_net">Ghost Net</option>
+          <option value="fishing_gear">Fishing Gear</option>
+          <option value="plastic">Plastic</option>
+          <option value="metal">Metal Debris</option>
+          <option value="rope">Rope</option>
+          <option value="shipwreck">Shipwreck Fragment</option>
+          <option value="pipe">Pipe / Cable</option>
+          <option value="unknown">Unknown</option>
+        </select>
+        <select id="globalGisConfFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+          <option value="0.0">All Confidence</option>
+          <option value="0.5">≥ 50% Conf</option>
+          <option value="0.7">≥ 70% Conf</option>
+          <option value="0.8">≥ 80% Conf</option>
+          <option value="0.9">≥ 90% Conf</option>
+        </select>
+        <select id="globalGisSurveyFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+          <option value="all">All Surveys</option>
+        </select>
+        <select id="globalGisStatusFilter" style="background: #ffffff; border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.75rem; outline: none; color: var(--text-secondary);">
+          <option value="all">All Status</option>
+          <option value="verified">Verified Only</option>
+          <option value="unverified">Unverified Only</option>
+        </select>
+      </div>
+
+      <!-- Environmental & Marine Layers Bar -->
+      <div class="layer-selector-bar" style="padding: 6px 18px; background: var(--bg-card-subtle); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 8px; font-size: 0.72rem; flex-wrap: wrap;">
+        <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-layer-group"></i> Layers:</span>
+        <label class="layer-toggle-btn active" id="lblGlobalDebris">
+          <input type="checkbox" id="chkGlobalDebris" checked>
+          <i class="fa-solid fa-crosshairs" style="color: var(--sky-blue);"></i>
+          <span>Debris Targets</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalClusters">
+          <input type="checkbox" id="chkGlobalClusters" checked>
+          <i class="fa-solid fa-shapes" style="color: var(--purple-accent);"></i>
+          <span>DBSCAN Clusters</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalTracks">
+          <input type="checkbox" id="chkGlobalTracks" checked>
+          <i class="fa-solid fa-ship" style="color: var(--amber-warn);"></i>
+          <span>Survey Tracks</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalSwaths">
+          <input type="checkbox" id="chkGlobalSwaths" checked>
+          <i class="fa-solid fa-vector-square" style="color: #06b6d4;"></i>
+          <span>Swaths</span>
+        </label>
+        <span style="color: var(--border-light); margin: 0 4px;">|</span>
+        <label class="layer-toggle-btn active" id="lblGlobalReefs">
+          <input type="checkbox" id="chkGlobalReefs" checked>
+          <i class="fa-solid fa-gem" style="color: var(--rose-danger);"></i>
+          <span>Coral Reefs</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalMPA">
+          <input type="checkbox" id="chkGlobalMPA" checked>
+          <i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i>
+          <span>MPAs</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalSeagrass">
+          <input type="checkbox" id="chkGlobalSeagrass" checked>
+          <i class="fa-solid fa-seedling" style="color: var(--emerald-500);"></i>
+          <span>Seagrass</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalCables">
+          <input type="checkbox" id="chkGlobalCables" checked>
+          <i class="fa-solid fa-bolt" style="color: var(--amber-warn);"></i>
+          <span>Subsea Infra</span>
+        </label>
+        <label class="layer-toggle-btn active" id="lblGlobalShipping">
+          <input type="checkbox" id="chkGlobalShipping" checked>
+          <i class="fa-solid fa-ship" style="color: var(--sky-blue);"></i>
+          <span>Shipping Lanes</span>
+        </label>
+      </div>
+
+      <!-- Entire Ocean Leaflet Map Viewport -->
+      <div class="entire-ocean-map-container">
+        <div id="globalLeafletMap"></div>
+        <div class="map-coords-hud" id="globalMapCoordsHud">
+          <i class="fa-solid fa-crosshairs"></i> Cursor: <b>30.17350° N, 87.82500° W</b> &nbsp;|&nbsp; Datum: <span style="color: var(--emerald-400);">WGS84 (EPSG:4326)</span> &nbsp;|&nbsp; Dataset: <span style="color: var(--sky-blue);">Cumulative Ocean Database</span>
+        </div>
+        <div class="map-legend-overlay">
+          <span class="legend-chip"><span class="legend-dot cyan"></span> Current Input</span>
+          <span class="legend-chip"><span class="legend-dot purple"></span> Target Cluster</span>
+          <span class="legend-chip"><span class="legend-dot red"></span> High Risk</span>
+          <span class="legend-chip"><span class="legend-dot green"></span> Verified</span>
+          <span class="legend-chip"><span class="legend-line"></span> Survey Trackline</span>
         </div>
       </div>
     </div>

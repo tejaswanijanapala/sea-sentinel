@@ -43,7 +43,8 @@ class TargetMatchingService:
         depth: float = 0.0,
         uncertainty_radius_m: float = 5.0,
         georeference_quality: str = "EXACT",
-        thumbnail_path: str = ""
+        thumbnail_path: str = "",
+        exclude_target_ids: Optional[set] = None
     ) -> Tuple[str, bool, Dict[str, Any]]:
         """
         Matches a detection to an existing target or creates a new one.
@@ -78,6 +79,9 @@ class TargetMatchingService:
         normalized_class = class_name.lower().replace(" ", "_").replace("-", "_")
 
         for cand in candidates:
+            cand_id = cand.get("target_id")
+            if exclude_target_ids and cand_id in exclude_target_ids:
+                continue
             cand_lat = cand.get("latitude")
             cand_lon = cand.get("longitude")
             if cand_lat is None or cand_lon is None:

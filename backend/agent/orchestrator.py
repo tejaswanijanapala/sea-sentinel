@@ -903,6 +903,8 @@ class SIHPipelineAgent:
             rec["polygon"] = poly
             rec["norm_polygon"] = norm_poly
             rec["mask_available"] = True
+            rec["bbox"] = bbox
+            rec["pixel_bbox"] = bbox
             rec["yolo_bbox"] = det.get("yolo_bbox", bbox if "yolo" in det.get("sources", ["yolo"]) else None)
             rec["unet_bbox"] = det.get("unet_bbox", bbox if "unet" in det.get("sources", []) else None)
 
@@ -927,6 +929,7 @@ class SIHPipelineAgent:
             rec["longitude"] = lon
             rec["lat"] = lat
             rec["lon"] = lon
+            rec["coordinates"] = [lat, lon] if has_valid_coords else None
             rec["coordinate_system"] = (
                 raster_meta.get("crs") or "WGS84 (EPSG:4326)"
             ) if has_valid_coords else "UNREFERENCED"

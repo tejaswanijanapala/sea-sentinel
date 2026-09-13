@@ -1627,4 +1627,490 @@ body {
   margin-top: 2px;
 }
 
+/* =================================================================
+   Sea Sentinel: GIS Architecture Separation (Current Input vs Global Ocean)
+   ================================================================= */
+.current-input-banner {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.08) 0%, rgba(2, 132, 199, 0.08) 100%);
+  border-bottom: 1px solid var(--border-light);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.current-input-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--emerald-100);
+  color: var(--emerald-800);
+  font-size: 0.70rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--emerald-400);
+  letter-spacing: 0.5px;
+}
+
+.entire-ocean-modal-card {
+  max-width: 1480px;
+  width: 96vw;
+  height: 94vh;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
+}
+
+.entire-ocean-modal-header {
+  padding: 14px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.entire-ocean-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--bg-card-subtle);
+  border-bottom: 1px solid var(--border-light);
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.entire-ocean-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.76rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.entire-ocean-map-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+}
+
+#globalLeafletMap {
+  width: 100%;
+  height: 100%;
+}
+
+.custom-cluster-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.active-scan-marker {
+  z-index: 1000 !important;
+}
+
+/* =========================================================
+   Current Input GIS & Entire Ocean Map Minimize / Maximize Styles
+   ========================================================= */
+
+/* 1. Current Input GIS Minimized State */
+.gis-map-card.is-minimized .layer-selector-bar,
+.gis-map-card.is-minimized .map-viewport {
+  display: none !important;
+}
+
+.gis-map-card.is-minimized {
+  margin-bottom: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.gis-map-card.is-minimized .current-input-banner {
+  border-bottom: none;
+}
+
+/* 2. Entire Ocean Map Minimized State (Starts minimized by default) */
+.entire-ocean-modal-card.is-minimized {
+  max-width: 740px !important;
+  width: 90vw !important;
+  height: auto !important;
+  max-height: 85vh !important;
+  margin: auto;
+  border: 1px solid var(--emerald-400);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  animation: modal-pop 0.22s ease-out;
+}
+
+.entire-ocean-modal-card.is-minimized .entire-ocean-filter-bar,
+.entire-ocean-modal-card.is-minimized .layer-selector-bar,
+.entire-ocean-modal-card.is-minimized .entire-ocean-map-container,
+.entire-ocean-modal-card.is-minimized #btnFitGlobalOcean,
+.entire-ocean-modal-card.is-minimized #btnFocusCurrentScanGlobal,
+.entire-ocean-modal-card.is-minimized #btnExportGisGlobal,
+.entire-ocean-modal-card.is-minimized #btnRecalcClustersGlobal {
+  display: none !important;
+}
+
+.entire-ocean-minimized-body {
+  display: none;
+  padding: 18px 22px;
+  background: #ffffff;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.entire-ocean-modal-card.is-minimized .entire-ocean-minimized-body {
+  display: flex !important;
+}
+
+/* ==========================================================================
+   Leaflet Custom GIS Markers, Pulses & Badges
+   ========================================================================== */
+.current-scan-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.current-input-marker {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.current-input-marker .marker-center-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--marker-color, #00f0ff);
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  font-size: 0.5rem;
+  box-shadow: 0 0 12px var(--marker-color, #00f0ff), 0 2px 6px rgba(0,0,0,0.5);
+  z-index: 2;
+}
+
+.current-input-marker .marker-pulse-ring {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--marker-color, #00f0ff);
+  animation: sonar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: 1;
+}
+
+.current-input-marker .marker-tag {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--marker-color, #00f0ff);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  pointer-events: none;
+  z-index: 3;
+}
+
+@keyframes sonar-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  80%, 100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.global-ocean-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.global-ocean-target-marker {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.global-ocean-target-marker .marker-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--marker-color, #38bdf8);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.45);
+}
+
+.global-ocean-target-marker .marker-label {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.ocean-cluster-badge {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.95), rgba(126, 34, 206, 0.95));
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.82rem;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.7);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.ocean-cluster-badge:hover {
+  transform: scale(1.12);
+}
+
+/* ==========================================================================
+   IMO-Aligned Marine Debris Hazard Assessment Engine UI
+   ========================================================================== */
+.imo-risk-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-top: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.imo-risk-card.critical { border-left: 4px solid var(--rose-danger); }
+.imo-risk-card.high { border-left: 4px solid #ea580c; }
+.imo-risk-card.moderate { border-left: 4px solid #d97706; }
+.imo-risk-card.low { border-left: 4px solid var(--emerald-600); }
+
+.imo-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.imo-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.imo-framework-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+  border: 1px solid var(--emerald-400);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+}
+
+.imo-layer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.imo-layer-box {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.72rem;
+}
+
+.imo-layer-lbl {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.imo-layer-val {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.imo-equation-box {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin: 8px 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+.imo-equation-title {
+  color: #38bdf8;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.imo-equation-math {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.imo-context-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.70rem;
+  margin: 3px 0;
+}
+
+.imo-context-track {
+  flex: 1;
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  margin: 0 8px;
+  overflow: hidden;
+}
+
+.imo-context-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.position-verification-alert {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  animation: alertPulse 2s infinite;
+}
+
+@keyframes alertPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.2); }
+  50% { box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15); }
+}
+
+/* 5x5 Decision Matrix Table */
+.risk-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.risk-matrix-table th,
+.risk-matrix-table td {
+  border: 1px solid #cbd5e1;
+  padding: 5px 3px;
+}
+
+.risk-matrix-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #334155;
+}
+
+.matrix-cell-l { background: #dcfce7; color: #166534; font-weight: 600; }
+.matrix-cell-m { background: #fef9c3; color: #854d0e; font-weight: 600; }
+.matrix-cell-h { background: #ffedd5; color: #9a3412; font-weight: 700; }
+.matrix-cell-c { background: #ffe4e6; color: #9f1239; font-weight: 800; }
+
+.matrix-cell.active {
+  outline: 3px solid #0284c7;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.8);
+  position: relative;
+  z-index: 2;
+  font-weight: 900;
+}
+
+.drift-forecast-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.drift-pill {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xs);
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 0.64rem;
+}
+
+.drift-pill.warn {
+  border-color: #f97316;
+  background: #fff7ed;
+  color: #c2410c;
+  font-weight: 700;
+}
 

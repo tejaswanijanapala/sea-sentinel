@@ -79,6 +79,8 @@ for p in [
     'frontend/js/api.js',
     'frontend/js/waterfall.js',
     'frontend/js/map.js',
+    'frontend/shared/js/map.js',
+    'frontend/js/gis_ui.js',
     'frontend/js/app.js',
     'frontend/shared/js/app.js'
 ]:

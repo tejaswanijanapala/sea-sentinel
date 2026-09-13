@@ -97,57 +97,43 @@ class WaterfallViewer {
     return Boolean(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
   }
 
+  _loadImage(url, callback) {
+    if (!url) {
+      callback(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      callback(img);
+    };
+    img.onerror = () => {
+      // Retry without CORS header if local static file
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => callback(fallbackImg);
+      fallbackImg.onerror = () => {
+        console.warn("Could not decode sonar scan image at URL:", url);
+        callback(null);
+      };
+      fallbackImg.src = url;
+    };
+    img.src = url;
+  }
+
   loadSonarImages({ rawUrl, enhancedUrl, annotatedUrl }) {
-    if (rawUrl) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        this.rawImage = img;
-        this.render();
-      };
-      img.onerror = () => {
-        console.warn("Raw sonar image could not be decoded by browser:", rawUrl);
-        this.rawImage = null;
-        this.render();
-      };
-      img.src = rawUrl;
-    } else {
-      this.rawImage = null;
-    }
+    this._loadImage(rawUrl, (img) => {
+      this.rawImage = img;
+      this.render();
+    });
 
-    if (enhancedUrl) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        this.enhancedImage = img;
-        this.render();
-      };
-      img.onerror = () => {
-        console.warn("Enhanced sonar image could not be decoded:", enhancedUrl);
-        this.enhancedImage = null;
-        this.render();
-      };
-      img.src = enhancedUrl;
-    } else {
-      this.enhancedImage = null;
-    }
+    this._loadImage(enhancedUrl, (img) => {
+      this.enhancedImage = img;
+      this.render();
+    });
 
-    if (annotatedUrl) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        this.annotatedImage = img;
-        this.render();
-      };
-      img.onerror = () => {
-        console.warn("Annotated sonar image could not be decoded:", annotatedUrl);
-        this.annotatedImage = null;
-        this.render();
-      };
-      img.src = annotatedUrl;
-    } else {
-      this.annotatedImage = null;
-    }
+    this._loadImage(annotatedUrl, (img) => {
+      this.annotatedImage = img;
+      this.render();
+    });
   }
 
   clearImages() {
@@ -313,10 +299,16 @@ class WaterfallViewer {
     const w = this.canvas.width;
     const h = this.canvas.height;
 
-    // 1. Draw Base Background (Raw or Enhanced)
-    let baseImg = (this.currentMode === "raw" && this._isImageValid(this.rawImage)) ? this.rawImage :
-                  (this._isImageValid(this.enhancedImage) ? this.enhancedImage :
-                  (this._isImageValid(this.rawImage) ? this.rawImage : null));
+    // 1. Draw Base Background (Raw or Enhanced or Annotated)
+    let baseImg = null;
+    if (this.currentMode === "raw") {
+      baseImg = this._isImageValid(this.rawImage) ? this.rawImage : (this._isImageValid(this.enhancedImage) ? this.enhancedImage : (this._isImageValid(this.annotatedImage) ? this.annotatedImage : null));
+    } else if (this.currentMode === "enhanced") {
+      baseImg = this._isImageValid(this.enhancedImage) ? this.enhancedImage : (this._isImageValid(this.rawImage) ? this.rawImage : (this._isImageValid(this.annotatedImage) ? this.annotatedImage : null));
+    } else {
+      // "overlay" / default
+      baseImg = this._isImageValid(this.enhancedImage) ? this.enhancedImage : (this._isImageValid(this.rawImage) ? this.rawImage : (this._isImageValid(this.annotatedImage) ? this.annotatedImage : null));
+    }
 
     if (baseImg && this._isImageValid(baseImg)) {
       try {

@@ -25,13 +25,26 @@ class RiskPriorityEngine:
 
         # 1. Configurable Hazard Weights by Debris Type
         raw_hw = risk_cfg.get("hazard_weights", {
-            "fishing_net": 90,        # Very High (wildlife entanglement, ghost fishing)
-            "shipwreck_fragment": 85, # High (navigation obstacle, structural hazard)
-            "engine_debris": 80,      # High (pollutant leaching, heavy snag hazard)
-            "pipeline_or_cable": 70,  # Medium-High (infrastructure risk, anchor snag)
-            "plastic_debris": 60,     # Medium (macroplastic, ecosystem degradation)
-            "riprap_debris": 45,      # Medium-Low (quarry stone, localized obstruction)
-            "default": 50
+            "fishing_net": 92,        # Critical (wildlife entanglement, ghost fishing)
+            "ghost_net": 94,          # Critical (wildlife entanglement, ghost fishing)
+            "ghost_gear": 94,         # Critical
+            "shipwreck_fragment": 88, # High-Critical (navigation obstacle, structural hazard)
+            "shipwreck": 90,
+            "cargo_container": 92,    # High-Critical (subsurface hull collision risk)
+            "container": 92,
+            "engine_debris": 85,      # High (pollutant leaching, heavy snag hazard)
+            "engine": 85,
+            "heavy_machinery": 85,
+            "pipeline_or_cable": 80,  # High (infrastructure asset, anchor snag)
+            "pipe_cable": 80,
+            "marine_plastic_drum": 78,
+            "drum_or_barrel": 78,
+            "plastic_debris": 58,     # Moderate (macroplastic, ecosystem degradation)
+            "plastic_fragment": 58,
+            "riprap_debris": 48,      # Moderate (quarry stone, localized obstruction)
+            "tire_or_rubber": 52,
+            "munitions_or_uxo": 99,
+            "default": 65
         })
         self.hazard_weights = {}
         for k, v in raw_hw.items():
@@ -40,7 +53,7 @@ class RiskPriorityEngine:
                 clean_v = str(v).split("#")[0].strip()
                 self.hazard_weights[k] = float(clean_v)
             except Exception:
-                self.hazard_weights[k] = 50.0
+                self.hazard_weights[k] = 65.0
 
         # 2. Configurable Priority Formula Weights
         self.priority_weights = risk_cfg.get("priority_formula_weights", {
@@ -53,9 +66,9 @@ class RiskPriorityEngine:
         # 3. Sonar Quality Reliability Modulation
         self.reliability_modulation = risk_cfg.get("reliability_modulation", {
             "optimal": 1.00,
-            "good": 0.95,
-            "moderate": 0.85,
-            "noisy": 0.75
+            "good": 0.98,
+            "moderate": 0.92,
+            "noisy": 0.85
         })
 
         # 4. Area thresholds (sq meters)
@@ -66,12 +79,12 @@ class RiskPriorityEngine:
 
     def categorize_score(self, score: float) -> str:
         """Categorizes 0-100 score into standard 4-tier risk categories."""
-        if score >= 81.0:
+        if score >= 80.0:
             return "CRITICAL"
-        elif score >= 61.0:
+        elif score >= 60.0:
             return "HIGH"
-        elif score >= 31.0:
-            return "MEDIUM"
+        elif score >= 40.0:
+            return "MODERATE"
         else:
             return "LOW"
 
@@ -217,11 +230,21 @@ class RiskPriorityEngine:
         # -------------------------------------------------------------
         # 2. Debris Type Base Hazard
         # -------------------------------------------------------------
-        raw_val = self.hazard_weights.get(raw_class, self.hazard_weights.get("default", 50.0))
+        raw_val = None
+        if raw_class in self.hazard_weights:
+            raw_val = self.hazard_weights[raw_class]
+        else:
+            for k, v in self.hazard_weights.items():
+                if k in raw_class or raw_class in k:
+                    raw_val = v
+                    break
+        if raw_val is None:
+            raw_val = self.hazard_weights.get("default", 65.0)
+
         try:
             base_hazard = float(raw_val)
         except Exception:
-            base_hazard = 50.0
+            base_hazard = 65.0
         
         # Determine qualitative marine hazard impact
         if base_hazard >= 85.0:

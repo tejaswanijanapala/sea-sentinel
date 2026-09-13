@@ -11,7 +11,7 @@ if PROJECT_ROOT not in sys.path:
 
 from ai.detection.yolo_detector import YOLODetector
 from training.train_yolo import validate_dataset_compatibility
-from evaluation.evaluate_yolo import compute_synthetic_confusion_matrix
+from evaluation.metrics_engine import calculate_bbox_iou
 
 def test_dataset_compatibility():
     data_yaml = os.path.join(PROJECT_ROOT, "datasets", "processed", "yolo_dataset", "data.yaml")
@@ -50,12 +50,12 @@ def test_draw_detections():
     # Check that drawing modified pixels
     assert np.any(annotated > 0)
 
-def test_confusion_matrix_generation():
-    out_cm = os.path.join(PROJECT_ROOT, "outputs", "evaluation", "test_cm.png")
-    classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engine_debris", "riprap_debris"]
-    res_path = compute_synthetic_confusion_matrix(classes, out_cm)
-    assert os.path.exists(res_path)
-    assert os.path.getsize(res_path) > 1000
+def test_bbox_iou_computation():
+    b1 = [10, 10, 50, 50]
+    b2 = [10, 10, 50, 50]
+    assert abs(calculate_bbox_iou(b1, b2) - 1.0) < 1e-4
+    b3 = [60, 60, 100, 100]
+    assert calculate_bbox_iou(b1, b3) == 0.0
 
 if __name__ == "__main__":
     test_dataset_compatibility()

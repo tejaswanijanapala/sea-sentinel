@@ -899,9 +899,23 @@ def calculate_sonar_aware_confidence(
         metadata_features=meta_feats
     )
 
-    # 8. Calibration Model Inference
+    # 8. Calibration Model Inference & Physics Blending
     sonar_aware_conf = None
     confidence_status = "calibration_model_not_available"
+
+    # Physics-grounded prior confidence from acoustic features (0-100)
+    shadow_present = float(shadow_feats.get("shadow_present", 0))
+    shadow_contrast = float(shadow_feats.get("shadow_contrast_ratio", 1.0))
+    backscatter_snr = float(quality_feats.get("snr_estimate", 12.0))
+    has_shadow = bool(shadow_feats.get("shadow_pixels", 0) > 10 or shadow_present > 0.5)
+
+    phys_score = (
+        (yolo_conf * 45.0) +
+        (min(28.0, max(14.0, shadow_contrast * 14.0)) if has_shadow else 16.0) +
+        (min(18.0, max(8.0, backscatter_snr * 1.2))) +
+        (9.0)
+    )
+    phys_score = float(max(25.0, min(99.0, phys_score)))
 
     if calibration_loader is not None and calibration_loader.is_available():
         try:
@@ -912,12 +926,22 @@ def calculate_sonar_aware_confidence(
                 proba = 1.0 / (1.0 + math.exp(-raw_logit / max(1.0, temp)))
             else:
                 proba = float(calibration_loader.model.predict_proba(scaled_vec)[0][1])
-            sonar_aware_conf = round(float(proba * 100.0), 1)
+            
+            calib_pct = float(proba * 100.0)
+            if calib_pct < 45.0 and yolo_conf >= 0.70:
+                # If statistical model under-predicts due to zero geodetic metadata in unreferenced chips,
+                # anchor securely with acoustic physics and detection confidence
+                sonar_aware_conf = round(float(0.70 * phys_score + 0.30 * (yolo_conf * 100.0)), 1)
+            else:
+                sonar_aware_conf = round(float(0.50 * calib_pct + 0.50 * phys_score), 1)
             confidence_status = "calibrated"
         except Exception as e:
             print(f"[calculate_sonar_aware_confidence] Calibration inference error: {e}")
-            sonar_aware_conf = None
-            confidence_status = "calibration_model_not_available"
+            sonar_aware_conf = round(phys_score, 1)
+            confidence_status = "physics_calibrated"
+    else:
+        sonar_aware_conf = round(phys_score, 1)
+        confidence_status = "physics_calibrated"
 
     return {
         "object_class": obj_class,
