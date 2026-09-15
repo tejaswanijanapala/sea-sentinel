@@ -2097,3 +2097,12 @@ def export_evaluation_csv(
     )
 
 
+# -------------------------------------------------------------
+# Static Frontend Mount for Unified Production Deployment
+# -------------------------------------------------------------
+FRONTEND_DIR = os.path.join(WORKSPACE_ROOT, "frontend")
+if os.path.exists(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
+
+
