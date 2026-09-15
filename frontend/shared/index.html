@@ -44,6 +44,101 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       Two-Portal Gateway Selection Screen (User vs Admin)
+       Appears right after the emblem logo intro
+       ========================================================= -->
+  <div class="portal-selection-overlay" id="portalSelectionScreen" style="display: none;">
+    <div class="portal-selection-container">
+      
+      <!-- Top Gateway Brand Header -->
+      <div class="portal-header">
+        <div class="portal-brand-badge">
+          <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="portal-emblem-small" />
+          <span>MoES / NIOT Marine Intelligence Platform</span>
+        </div>
+        <h1 class="portal-main-title">Select Operational Portal</h1>
+        <p class="portal-subtitle">Choose your authenticated profile to initialize the appropriate oceanographic workspace</p>
+      </div>
+
+      <!-- The Two Portals Cards Grid -->
+      <div class="portal-cards-grid">
+        
+        <!-- Portal 1: User / Operator Portal -->
+        <div class="portal-card user-portal" id="btnSelectUserPortal" onclick="window.app && window.app.selectPortal ? window.app.selectPortal('USER') : (window.authManager.switchRole('USER'), document.getElementById('portalSelectionScreen').style.display='none');">
+          <div class="portal-card-glow"></div>
+          <div class="portal-badge badge-user">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>USER PROFILE</span>
+          </div>
+
+          <div class="portal-icon-wrap user-icon">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+
+          <h2 class="portal-card-title">Sonar Operator Portal</h2>
+          <p class="portal-card-desc">Tactical real-time surveillance, active Side-Scan Sonar debris analysis, and isolated mission GIS.</p>
+
+          <ul class="portal-features-list">
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Current Input GIS:</b> Strict single-survey data isolation</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Debris Scanner:</b> YOLOv11 + U-Net dual-path detection</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Risk & Verification:</b> IMO hazard classification & physics review</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Survey Reports:</b> Official PDF hydrographic mission export</span></li>
+          </ul>
+
+          <div class="portal-btn-wrap">
+            <button class="portal-action-btn btn-user-portal">
+              <span>Enter Operator Portal</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="portal-account-hint">Default Operator Account: <code>operator@seasentinel.ocean</code></div>
+        </div>
+
+        <!-- Portal 2: Admin / ML Administrator Portal -->
+        <div class="portal-card admin-portal" id="btnSelectAdminPortal" onclick="window.app && window.app.selectPortal ? window.app.selectPortal('ADMIN') : (window.authManager.switchRole('ADMIN'), document.getElementById('portalSelectionScreen').style.display='none');">
+          <div class="portal-card-glow"></div>
+          <div class="portal-badge badge-admin">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>ADMINISTRATOR PROFILE</span>
+          </div>
+
+          <div class="portal-icon-wrap admin-icon">
+            <i class="fa-solid fa-earth-americas"></i>
+          </div>
+
+          <h2 class="portal-card-title">ML Administrator Portal</h2>
+          <p class="portal-card-desc">Multi-mission ocean repository, global spatial database, AI/ML model management & active learning.</p>
+
+          <ul class="portal-features-list">
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Entire Ocean Map:</b> Cumulative 48+ debris targets & DBSCAN clusters</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>AI/ML Models:</b> YOLOv11 & U-Net weights & model management</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Model Performance:</b> Benchmark ablation evaluation & metrics</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Adaptive Learning:</b> Error memory, active queue & challenger training</span></li>
+          </ul>
+
+          <div class="portal-btn-wrap">
+            <button class="portal-action-btn btn-admin-portal">
+              <span>Enter Admin Portal</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="portal-account-hint">Default Admin Account: <code>admin@seasentinel.ocean</code></div>
+        </div>
+
+      </div>
+
+      <!-- Quick Password Login Option -->
+      <div class="portal-footer-auth">
+        <span>Need custom credentials?</span>
+        <button class="portal-link-btn" onclick="document.getElementById('roleAuthModal').style.display='flex';">
+          <i class="fa-solid fa-key"></i> Sign in with password
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- App Layout Wrapper -->
   <div class="app-layout">
 
@@ -66,35 +161,43 @@
         <nav class="sidebar-nav">
           <a class="nav-item active" id="navOverview" href="#overview">
             <i class="fa-solid fa-grip"></i>
-            <span>Overview</span>
+            <span>Dashboard</span>
           </a>
-          <a class="nav-item" id="navSurveys" href="#cardWaterfall">
-            <i class="fa-solid fa-water"></i>
-            <span>Surveys</span>
-          </a>
-          <a class="nav-item" id="navCurrentInputGis" href="#cardMap">
+          <a class="nav-item role-user-only" id="navCurrentInputGis" href="#cardMap">
             <i class="fa-solid fa-crosshairs"></i>
             <span>Current Input GIS</span>
           </a>
-          <a class="nav-item" id="navEntireOceanMap" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();">
+          <a class="nav-item role-admin-only" id="navEntireOceanMap" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();">
             <i class="fa-solid fa-earth-americas"></i>
             <span>Entire Ocean Map</span>
           </a>
-          <a class="nav-item" id="navModels" onclick="document.getElementById('btnOpenModelModal').click();">
+          <a class="nav-item role-user-only" id="navSurveys" href="#cardWaterfall">
+            <i class="fa-solid fa-water"></i>
+            <span>Debris Scanner</span>
+          </a>
+          <a class="nav-item role-admin-only" id="navModels" onclick="document.getElementById('btnOpenModelModal').click();">
             <i class="fa-solid fa-microchip"></i>
-            <span>Models</span>
+            <span>AI/ML Models</span>
+          </a>
+          <a class="nav-item role-admin-only" id="navModelPerf" onclick="document.getElementById('btnOpenAblationModal').click();">
+            <i class="fa-solid fa-gauge-high"></i>
+            <span>Model Performance</span>
           </a>
           <a class="nav-item" id="navMetrics" onclick="document.getElementById('btnOpenMetricsModal').click();">
             <i class="fa-solid fa-chart-pie"></i>
-            <span>Metrics</span>
+            <span id="navMetricsTitle">Metrics</span>
           </a>
-          <a class="nav-item" id="navReports" onclick="document.getElementById('btnOpenReportTop').click();">
+          <a class="nav-item role-user-only" id="navReports" onclick="document.getElementById('btnOpenReportTop').click();">
             <i class="fa-solid fa-file-waveform"></i>
-            <span>Reports</span>
+            <span>Survey Reports</span>
           </a>
-          <a class="nav-item" id="navSettings" onclick="document.getElementById('btnOpenEdgeModal').click();">
+          <a class="nav-item role-admin-only" id="navSettings" onclick="document.getElementById('btnOpenEdgeModal').click();">
             <i class="fa-solid fa-gear"></i>
-            <span>Settings</span>
+            <span>Admin Settings</span>
+          </a>
+          <a class="nav-item" id="navOpenPortals" onclick="window.app && window.app.openPortalSelection ? window.app.openPortalSelection() : document.getElementById('portalSelectionScreen').style.display='flex';" style="border-top: 1px dashed rgba(255,255,255,0.15); margin-top: 8px; padding-top: 8px;">
+            <i class="fa-solid fa-door-open" style="color: #38bdf8;"></i>
+            <span>Switch Portal</span>
           </a>
         </nav>
       </div>
@@ -131,33 +234,33 @@
             <button class="tab-btn" id="tabMap" data-tab="map">GIS Map</button>
           </div>
 
-          <!-- Feature Action Buttons -->
-          <button class="gis-btn" id="btnOpenLearningModal" title="Adaptive Learning & Error Prevention Engine">
+          <!-- Feature Action Buttons (Role Scoped) -->
+          <button class="gis-btn role-admin-only" id="btnOpenLearningModal" title="Adaptive Learning & Error Prevention Engine">
             <i class="fa-solid fa-brain" style="color: var(--emerald-600);"></i>
             <span>Learning</span>
           </button>
 
-          <button class="gis-btn" id="btnOpenSyncModal" title="Store-and-Forward Cloud Sync Queue">
+          <button class="gis-btn role-admin-only" id="btnOpenSyncModal" title="Store-and-Forward Cloud Sync Queue">
             <i class="fa-solid fa-cloud-arrow-up" style="color: var(--sky-blue);"></i>
             <span>Sync (<span id="badgePendingSync">0</span>)</span>
           </button>
 
-          <button class="gis-btn" id="btnOpenModelModal" title="Edge AI Model Registry">
+          <button class="gis-btn role-admin-only" id="btnOpenModelModal" title="Edge AI Model Registry">
             <i class="fa-solid fa-microchip" style="color: var(--purple-accent);"></i>
             <span>Models</span>
           </button>
 
-          <button class="gis-btn" id="btnOpenMetricsModal" title="YOLOv11 & U-Net Model Evaluation & Metrics Dashboard">
+          <button class="gis-btn" id="btnOpenMetricsModal" title="Model Evaluation & Survey Metrics">
             <i class="fa-solid fa-chart-pie" style="color: var(--emerald-600);"></i>
             <span>Metrics</span>
           </button>
 
-          <button class="gis-btn" id="btnOpenEdgeModal" title="Edge AI, Watchdog & Modem Telemetry">
+          <button class="gis-btn role-admin-only" id="btnOpenEdgeModal" title="Edge AI, Watchdog & Modem Telemetry">
             <i class="fa-solid fa-satellite-dish" style="color: var(--teal-accent);"></i>
             <span>Edge</span>
           </button>
 
-          <button class="gis-btn" id="btnOpenAblationModal" title="Scientific Ablation Benchmarks">
+          <button class="gis-btn role-admin-only" id="btnOpenAblationModal" title="Scientific Ablation Benchmarks">
             <i class="fa-solid fa-chart-line" style="color: var(--amber-warn);"></i>
             <span>Ablation</span>
           </button>
@@ -172,47 +275,227 @@
             <span id="pipelineStatusText">STANDBY</span>
           </div>
 
-          <!-- Notification Bell & Chat -->
-          <button class="nav-icon-btn" title="Notifications">
-            <i class="fa-regular fa-bell"></i>
-            <span class="nav-badge-dot"></span>
-          </button>
-
-          <button class="nav-icon-btn" title="Messages & Logs" onclick="document.getElementById('btnOpenEdgeModal').click();">
-            <i class="fa-regular fa-comment-dots"></i>
-          </button>
-
-          <!-- Entire Ocean Map Button -->
-          <button class="btn-emerald" id="btnOpenEntireOceanTop" title="Open Global Ocean Debris GIS Map" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
+          <!-- Entire Ocean Map Button (Admin Only) -->
+          <button class="btn-emerald role-admin-only" id="btnOpenEntireOceanTop" title="Open Global Ocean Debris GIS Map" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
             <i class="fa-solid fa-earth-americas"></i>
             <span>Entire Ocean Map</span>
           </button>
 
-          <!-- Report Button -->
-          <button class="btn-emerald" id="btnOpenReportTop" title="Generate Hydrographic Survey Report">
+          <!-- Portals Gateway Switcher Button -->
+          <button class="gis-btn" id="btnOpenPortalSelectionTop" title="Switch Operational Portal (Operator / Admin)" onclick="document.getElementById('portalSelectionScreen').style.display='flex';" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3);">
+            <i class="fa-solid fa-door-open" style="color: #0284c7;"></i>
+            <span>Portals</span>
+          </button>
+
+          <!-- Report Button (Operator / User Only) -->
+          <button class="btn-emerald role-user-only" id="btnOpenReportTop" title="Generate Hydrographic Survey Report">
             <i class="fa-solid fa-file-waveform"></i>
             <span>Report</span>
           </button>
 
-          <!-- Operator Profile -->
-          <div class="operator-profile">
-            <div class="operator-avatar">SO</div>
-            <div class="operator-info">
-              <span class="operator-name">Surveillance Operator</span>
-              <span class="operator-status">Online</span>
+          <!-- User Profile & Role Switcher Widget -->
+          <div class="user-profile-widget" id="userProfileWidget" style="position: relative;">
+            <div class="operator-profile" id="btnToggleRoleDropdown" onclick="const dd=document.getElementById('roleSwitcherDropdown'); dd.style.display = dd.style.display === 'none' ? 'block' : 'none';" style="cursor: pointer; user-select: none;">
+              <div class="operator-avatar" id="navUserAvatar">SO</div>
+              <div class="operator-info">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <span class="operator-name" id="navUserName">Sonar Operator</span>
+                  <span class="role-badge badge-user" id="navUserRoleBadge">OPERATOR</span>
+                </div>
+                <span class="operator-status" id="navUserEmail">operator@seasentinel.ocean</span>
+              </div>
+              <i class="fa-solid fa-chevron-down" style="font-size: 0.65rem; color: var(--text-dim); margin-left: 4px;"></i>
+            </div>
+
+            <!-- Role Switcher Dropdown Menu -->
+            <div class="role-switcher-dropdown" id="roleSwitcherDropdown" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 260px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2); z-index: 99999; padding: 8px;">
+              <div style="padding: 6px 10px; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #f1f5f9;">Active User Profile</div>
+              
+              <div class="role-opt-item" onclick="window.authManager.switchRole('USER'); document.getElementById('roleSwitcherDropdown').style.display='none';" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s ease;">
+                <div style="width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #00f0ff, #0284c7); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.78rem;">SO</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.82rem; font-weight: 600; color: #0f172a;">Sonar Operator <span class="role-badge badge-user" style="margin-left: 4px;">USER</span></div>
+                  <div style="font-size: 0.7rem; color: #64748b;">Current Input GIS & Debris</div>
+                </div>
+              </div>
+
+              <div class="role-opt-item" onclick="window.authManager.switchRole('ADMIN'); document.getElementById('roleSwitcherDropdown').style.display='none';" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: background 0.15s ease;">
+                <div style="width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #ef4444, #f59e0b); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.78rem;">AD</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.82rem; font-weight: 600; color: #0f172a;">ML Admin <span class="role-badge badge-admin" style="margin-left: 4px;">ADMIN</span></div>
+                  <div style="font-size: 0.7rem; color: #64748b;">Global Ocean Map & AI Models</div>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid #f1f5f9; padding-top: 6px; margin-top: 4px;">
+                <div class="role-opt-item" onclick="document.getElementById('roleAuthModal').style.display='flex'; document.getElementById('roleSwitcherDropdown').style.display='none';" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; color: #0284c7; font-weight: 600;">
+                  <i class="fa-solid fa-right-to-bracket"></i>
+                  <span>Sign in with Password</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- Dashboard 2-Column Grid Layout -->
+      <!-- Dashboard Layout -->
       <main class="dashboard-container" id="overview">
 
-        <!-- Left / Center Main Column -->
-        <div class="main-feed-column">
+        <!-- =========================================================
+             Admin Operations Workspace (Role: Admin Only)
+             Replaces Sonar Waterfall & Survey Reports with Global Ocean
+             Analytics, Model Management, Ablation & Telemetry
+             ========================================================= -->
+        <div class="admin-workspace-grid role-admin-only" id="adminWorkspaceContainer" style="grid-column: 1 / -1; width: 100%;">
+          
+          <!-- Admin Intelligence Banner -->
+          <div class="admin-banner">
+            <div>
+              <h2 class="admin-banner-title">
+                <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
+                <span>Ocean Intelligence &amp; ML Operations Hub</span>
+              </h2>
+              <div class="admin-banner-sub">
+                Global multi-mission geospatial repository, AI/ML model registry, scientific ablation benchmarks, and autonomous edge watchdog telemetry.
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="meta-pill live" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
+                ● DUAL-PATH AI ONLINE
+              </span>
+              <span class="meta-pill" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8;">
+                <i class="fa-solid fa-earth-americas"></i> 48 GLOBAL TARGETS
+              </span>
+              <button class="btn-emerald" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();" style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 8px 16px; font-size: 0.82rem;">
+                <i class="fa-solid fa-earth-americas"></i> Open Entire Ocean Map
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Executive Analytics KPI Strip -->
+          <div class="admin-kpi-strip">
+            <div class="admin-kpi-card">
+              <span class="admin-kpi-lbl"><i class="fa-solid fa-globe" style="color: #38bdf8;"></i> Global Ocean Debris</span>
+              <span class="admin-kpi-val" style="color: #38bdf8;">48</span>
+              <span class="admin-kpi-desc">Deduplicated across 3 survey mosaics</span>
+            </div>
+            <div class="admin-kpi-card">
+              <span class="admin-kpi-lbl"><i class="fa-solid fa-microchip" style="color: #a855f7;"></i> Model Precision / Recall</span>
+              <span class="admin-kpi-val" style="color: #a855f7;">98.7%</span>
+              <span class="admin-kpi-desc">mAP@50: 0.94 · Dual-Path YOLO + U-Net</span>
+            </div>
+            <div class="admin-kpi-card">
+              <span class="admin-kpi-lbl"><i class="fa-solid fa-wave-square" style="color: #10b981;"></i> Anomaly Verifier Score</span>
+              <span class="admin-kpi-val" style="color: #10b981;">0.96</span>
+              <span class="admin-kpi-desc">Physics acoustic shadow verification</span>
+            </div>
+            <div class="admin-kpi-card">
+              <span class="admin-kpi-lbl"><i class="fa-solid fa-satellite-dish" style="color: #f59e0b;"></i> Edge Inference Latency</span>
+              <span class="admin-kpi-val" style="color: #f59e0b;">0.34s</span>
+              <span class="admin-kpi-desc">FP16 accelerated (&lt;20s budget: PASS)</span>
+            </div>
+          </div>
+
+          <!-- 4 Core Admin Action Cards Grid -->
+          <div class="admin-hub-grid">
+            
+            <!-- Card 1: Entire Ocean Map -->
+            <div class="admin-hub-card">
+              <div>
+                <div class="admin-hub-header">
+                  <div class="admin-hub-icon" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8;">
+                    <i class="fa-solid fa-earth-americas"></i>
+                  </div>
+                  <div>
+                    <h3 class="admin-hub-title">Entire Ocean Map (Global Dataset)</h3>
+                    <p class="admin-hub-text">Unified multi-mission geospatial repository with all historical debris detections, cross-survey tracks, swath coverage extents, and DBSCAN spatial clusters.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-hub-footer">
+                <span class="admin-hub-stats"><i class="fa-solid fa-database"></i> 48 Detections · 12 Clusters</span>
+                <button class="btn-emerald" onclick="if(window.app && window.app.openEntireOceanMap) window.app.openEntireOceanMap();" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.8rem; padding: 6px 14px;">
+                  <span>Launch Global Map</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 2: AI/ML Models Registry -->
+            <div class="admin-hub-card">
+              <div>
+                <div class="admin-hub-header">
+                  <div class="admin-hub-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+                    <i class="fa-solid fa-microchip"></i>
+                  </div>
+                  <div>
+                    <h3 class="admin-hub-title">AI/ML Model Registry</h3>
+                    <p class="admin-hub-text">Inspect Edge AI architecture, YOLOv11 acoustic box detection heads, U-Net semantic segmentation contours, and INT8/FP16 quantization weights.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-hub-footer">
+                <span class="admin-hub-stats"><i class="fa-solid fa-code-branch"></i> 3 Models Active · FP16</span>
+                <button class="gis-btn" onclick="document.getElementById('btnOpenModelModal').click();" style="font-size: 0.8rem; padding: 6px 14px;">
+                  <span>Manage Models</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 3: Scientific Ablation Benchmarks -->
+            <div class="admin-hub-card">
+              <div>
+                <div class="admin-hub-header">
+                  <div class="admin-hub-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                    <i class="fa-solid fa-chart-line"></i>
+                  </div>
+                  <div>
+                    <h3 class="admin-hub-title">Model Performance &amp; Ablation</h3>
+                    <p class="admin-hub-text">Scientific ablation benchmarks comparing Single YOLO vs Single U-Net vs Dual-Path Fusion across mAP@50-95, precision-recall curves, and latency headroom.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-hub-footer">
+                <span class="admin-hub-stats"><i class="fa-solid fa-gauge-high"></i> mAP@50: 0.94 · F1: 98.7%</span>
+                <button class="gis-btn" onclick="document.getElementById('btnOpenAblationModal').click();" style="font-size: 0.8rem; padding: 6px 14px;">
+                  <span>View Benchmarks</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 4: Adaptive Learning & Edge Watchdog -->
+            <div class="admin-hub-card">
+              <div>
+                <div class="admin-hub-header">
+                  <div class="admin-hub-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                    <i class="fa-solid fa-brain"></i>
+                  </div>
+                  <div>
+                    <h3 class="admin-hub-title">Adaptive Learning &amp; Edge Sync</h3>
+                    <p class="admin-hub-text">Continuous feedback memory, human-in-the-loop correction accumulator, store-and-forward cloud sync queue, and acoustic modem watchdog telemetry.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="admin-hub-footer">
+                <span class="admin-hub-stats"><i class="fa-solid fa-cloud-arrow-up"></i> Sync Queue Ready · Watchdog Active</span>
+                <button class="gis-btn" onclick="document.getElementById('btnOpenLearningModal').click();" style="font-size: 0.8rem; padding: 6px 14px;">
+                  <span>Learning Engine</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Left / Center Main Column (Role: Operator / User Only) -->
+        <div class="main-feed-column role-user-only">
 
           <!-- 1. Section Header: Survey Overview Banner -->
-          <div class="section-header-banner">
+          <div class="section-header-banner role-user-only">
             <div>
               <h1 class="card-title" style="font-size: 1.3rem;">Survey Overview</h1>
               <div class="card-subtitle">Real-time Side-Scan Sonar ingestion, parallel YOLO11 + U-Net inference & georeferencing</div>
@@ -221,23 +504,23 @@
             <div class="header-meta-pills">
               <span class="meta-pill live">● Live Feed</span>
               <span class="meta-pill"><i class="fa-solid fa-layer-group"></i> All Layers</span>
-              <span class="meta-pill"><i class="fa-solid fa-crosshairs"></i> <span id="hpDebrisNamePreview">TGT-001</span></span>
+              <span class="meta-pill"><i class="fa-solid fa-crosshairs"></i> <span id="hpDebrisNamePreview">STANDBY</span></span>
               <span class="meta-pill"><i class="fa-regular fa-clock"></i> Today, 11:22</span>
             </div>
           </div>
 
           <!-- 2. Minimal Upload & Latency Strip Drawer -->
-          <div class="clean-card" style="padding: 14px 18px;">
+          <div class="clean-card role-user-only" style="padding: 14px 18px;">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
               <div class="lbs-left" style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);"><i class="fa-solid fa-stopwatch" style="color: var(--emerald-600);"></i> Pipeline:</span>
-                <span class="lbs-val" id="lbsTotalTime" style="font-family: var(--font-mono); font-weight: 800; color: var(--emerald-700);">0.34s</span>
-                <span class="lbs-budget-badge pass" id="lbsBudgetBadge">✓ PASS (&lt;20s)</span>
-                <span class="lbs-headroom" id="lbsHeadroom" style="font-size: 0.72rem; color: var(--text-muted);">19.66s Headroom</span>
+                <span class="lbs-val" id="lbsTotalTime" style="font-family: var(--font-mono); font-weight: 800; color: var(--emerald-700);">--</span>
+                <span class="lbs-budget-badge pass" id="lbsBudgetBadge">Standby (&lt;20s)</span>
+                <span class="lbs-headroom" id="lbsHeadroom" style="font-size: 0.72rem; color: var(--text-muted);">Awaiting Input</span>
               </div>
 
               <div class="lbs-right" style="display: flex; align-items: center; gap: 10px;">
-                <span class="lbs-bottleneck" id="lbsBottleneck" style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-gauge-simple-high"></i> Slowest: <b>Parallel AI (0.24s)</b></span>
+                <span class="lbs-bottleneck" id="lbsBottleneck" style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-gauge-simple-high"></i> Status: <b>Standing by for sonar scan</b></span>
                 <div class="pipeline-mode-selector" id="pipelineModeSelector">
                   <button class="mode-btn" data-mode="fast" title="Fast Mode: Field operations (&lt;10s target)"><i class="fa-solid fa-bolt"></i> Fast</button>
                   <button class="mode-btn active" data-mode="balanced" title="Balanced Mode: Standard High-Accuracy (&lt;20s target)"><i class="fa-solid fa-scale-balanced"></i> Balanced</button>
@@ -294,8 +577,8 @@
             </div>
           </div>
 
-          <!-- 3. Side-Scan Sonar Waterfall Scan Viewer Card -->
-          <div class="clean-card sonar-viewer-card" id="cardWaterfall">
+          <!-- 3. Side-Scan Sonar Waterfall Scan Viewer Card (Operator / User Only) -->
+          <div class="clean-card sonar-viewer-card role-user-only" id="cardWaterfall">
             <div class="sonar-viewer-toolbar">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span class="card-title"><i class="fa-solid fa-water" style="color: var(--emerald-600);"></i> Side-Scan Sonar Waterfall Scan</span>
@@ -374,54 +657,54 @@
             </div>
           </div>
 
-          <!-- 4. Pipeline Stepper Progress Card -->
-          <div class="clean-card pipeline-stepper-card">
+          <!-- 4. Pipeline Stepper Progress Card (Operator / User Only) -->
+          <div class="clean-card pipeline-stepper-card role-user-only">
             <div class="pipeline-header">
               <span class="card-title" style="font-size: 0.92rem;"><i class="fa-solid fa-network-wired" style="color: var(--emerald-600);"></i> Autonomous Detection Pipeline Monitor</span>
               <span class="badge-pill confirmed" style="font-size: 0.68rem;">PARALLEL DUAL-PATH</span>
             </div>
 
             <div class="pipeline-stepper-track" id="pipelineStepper">
-              <div class="step-node completed" id="stepUpload">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepUpload">
+                <div class="step-circle">1</div>
                 <span class="step-name">Unfolding</span>
-                <span class="step-time" id="timeStepUpload">0.05s</span>
+                <span class="step-time" id="timeStepUpload">--</span>
               </div>
-              <div class="step-node completed" id="stepPrep">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepPrep">
+                <div class="step-circle">2</div>
                 <span class="step-name">Preprocessing</span>
-                <span class="step-time" id="timeStepPrep">0.08s</span>
+                <span class="step-time" id="timeStepPrep">--</span>
               </div>
-              <div class="step-node active" id="stepYolo">
+              <div class="step-node" id="stepYolo">
                 <div class="step-circle">3</div>
                 <span class="step-name">Parallel YOLOv8-Net</span>
-                <span class="step-time" id="timeStepYolo">0.14s</span>
+                <span class="step-time" id="timeStepYolo">--</span>
               </div>
-              <div class="step-node completed" id="stepUnet">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepUnet">
+                <div class="step-circle">4</div>
                 <span class="step-name">Fusion Engine</span>
-                <span class="step-time" id="timeStepFusion">0.03s</span>
+                <span class="step-time" id="timeStepFusion">--</span>
               </div>
-              <div class="step-node completed" id="stepAuto">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepAuto">
+                <div class="step-circle">5</div>
                 <span class="step-name">Verification</span>
-                <span class="step-time" id="timeStepVerify">0.01s</span>
+                <span class="step-time" id="timeStepVerify">--</span>
               </div>
-              <div class="step-node completed" id="stepGeo">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepGeo">
+                <div class="step-circle">6</div>
                 <span class="step-name">Geotagging</span>
-                <span class="step-time" id="timeStepGeo">0.01s</span>
+                <span class="step-time" id="timeStepGeo">--</span>
               </div>
-              <div class="step-node completed" id="stepReport">
-                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+              <div class="step-node" id="stepReport">
+                <div class="step-circle">7</div>
                 <span class="step-name">Report Ready</span>
-                <span class="step-time" id="timeStepReport">0.02s</span>
+                <span class="step-time" id="timeStepReport">--</span>
               </div>
             </div>
           </div>
 
-          <!-- 5. Real-Time Detection Summary KPI Strip -->
-          <div class="clean-card detection-summary-bar" style="margin-bottom: 20px;">
+          <!-- 5. Real-Time Detection Summary KPI Strip (Operator / User Only) -->
+          <div class="clean-card detection-summary-bar role-user-only" style="margin-bottom: 20px;">
             <div class="card-header-row" style="margin-bottom: 14px;">
               <div>
                 <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-simple" style="color: var(--emerald-600);"></i> Autonomous Detection Summary &amp; Survey KPIs</span>
@@ -485,8 +768,8 @@
             </div>
           </div>
 
-          <!-- 6. Current Input GIS Map Card (Level 1: Strictly Current Input) -->
-          <div class="clean-card gis-map-card" id="cardMap">
+          <!-- 6. Current Input GIS Map Card (Level 1: Strictly Current Input, Operator only) -->
+          <div class="clean-card gis-map-card role-user-only" id="cardMap">
             <div class="gis-map-header">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="card-title"><i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> Current Input GIS</span>
@@ -573,8 +856,8 @@
             </div>
           </div>
 
-          <!-- 7. Recent Survey Reports Table -->
-          <div class="clean-card" style="padding: 18px 20px;">
+          <!-- 7. Recent Survey Reports Table (Operator / User Only) -->
+          <div class="clean-card role-user-only" style="padding: 18px 20px;">
             <div class="card-header-row">
               <div>
                 <span class="card-title" style="font-size: 0.95rem;"><i class="fa-solid fa-table-list" style="color: var(--emerald-600);"></i> Recent Survey Reports &amp; Logged Targets</span>
@@ -595,22 +878,12 @@
                     <th style="padding: 8px 12px; font-weight: 700; text-align: right;">Action</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-800);">#TGT-001</td>
-                    <td style="padding: 10px 12px; font-weight: 600;">Engine Debris</td>
-                    <td style="padding: 10px 12px;"><span class="badge-pill confirmed">● Confirmed</span></td>
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-600);">98.0%</td>
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-secondary);">25.7724° N, -76.9597° W</td>
-                    <td style="padding: 10px 12px; text-align: right;"><button class="gis-btn" style="padding: 2px 8px; font-size: 0.7rem;" onclick="if(window.app) window.app.onTargetSelected('TGT_001', {fly:true});">Inspect</button></td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--border-subtle);">
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-800);">#TGT-002</td>
-                    <td style="padding: 10px 12px; font-weight: 600;">Fishing Net / Ghost Gear</td>
-                    <td style="padding: 10px 12px;"><span class="badge-pill suspicious">● Suspicious</span></td>
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--amber-warn);">72.3%</td>
-                    <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-secondary);">25.7731° N, -76.9582° W</td>
-                    <td style="padding: 10px 12px; text-align: right;"><button class="gis-btn" style="padding: 2px 8px; font-size: 0.7rem;" onclick="if(window.app) window.app.onTargetSelected('TGT_002', {fly:true});">Inspect</button></td>
+                <tbody id="recentSurveyReportsTbody">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                      <i class="fa-solid fa-water" style="margin-right: 6px; color: var(--emerald-500);"></i>
+                      No survey targets logged yet. Upload or scan a sonar image to view records.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -620,9 +893,9 @@
         </div>
 
         <!-- =========================================================
-             Right Inspector Column
+             Right Inspector Column (Operator / User Only)
              ========================================================= -->
-        <aside class="inspector-column">
+        <aside class="inspector-column role-user-only">
 
           <!-- 1. Target Inspector Sub-Panel -->
           <div class="clean-card">
@@ -1780,15 +2053,59 @@
     </div>
   </div>
 
+  <!-- Role Authentication & Login Modal -->
+  <div class="modal-overlay" id="roleAuthModal" style="display: none; align-items: center; justify-content: center; z-index: 100000; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px);">
+    <div class="modal-content" style="max-width: 440px; width: 90%; background: #ffffff; border-radius: 16px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0; position: relative;">
+      <button class="modal-close-btn" onclick="document.getElementById('roleAuthModal').style.display='none';" style="position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b;">&times;</button>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 56px; height: 56px; margin: 0 auto 12px; background: linear-gradient(135deg, #0284c7, #059669); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem;">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: #0f172a; margin: 0 0 4px;">Sea Sentinel Access Control</h2>
+        <p style="font-size: 0.8rem; color: #64748b; margin: 0;">Sign in to unlock Administrator or Operator capabilities</p>
+      </div>
+
+      <form id="roleLoginForm" onsubmit="event.preventDefault(); window.app && window.app.handleLoginSubmit ? window.app.handleLoginSubmit(event) : null;">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #334155; margin-bottom: 6px;">Email Address</label>
+          <input type="email" id="authLoginEmail" required placeholder="admin@seasentinel.ocean" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" />
+        </div>
+
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #334155; margin-bottom: 6px;">Password</label>
+          <input type="password" id="authLoginPassword" required placeholder="••••••••" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; transition: border-color 0.2s;" />
+        </div>
+
+        <div id="authLoginError" style="display: none; padding: 10px 14px; margin-bottom: 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.78rem;"></div>
+
+        <button type="submit" class="btn-emerald" id="btnSubmitLogin" style="width: 100%; padding: 12px; justify-content: center; font-size: 0.9rem; font-weight: 600;">
+          <span>Sign In</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; gap: 8px;">
+          <button type="button" onclick="document.getElementById('authLoginEmail').value='operator@seasentinel.ocean'; document.getElementById('authLoginPassword').value='user123';" style="flex: 1; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 6px; background: #f8fafc; font-size: 0.72rem; color: #475569; cursor: pointer; text-align: left;">
+            <b>👤 User / Operator</b><br><span style="color: #94a3b8;">user123</span>
+          </button>
+          <button type="button" onclick="document.getElementById('authLoginEmail').value='admin@seasentinel.ocean'; document.getElementById('authLoginPassword').value='admin123';" style="flex: 1; padding: 8px; border: 1px dashed #f87171; border-radius: 6px; background: #fff5f5; font-size: 0.72rem; color: #991b1b; cursor: pointer; text-align: left;">
+            <b>🛡️ ML Admin</b><br><span style="color: #f87171;">admin123</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Leaflet GIS JS (Local Offline Asset) -->
   <script src="assets/vendor/leaflet/leaflet.js"></script>
 
-  <!-- Application Scripts -->
-  <script src="js/api.js?v=7.1"></script>
-  <script src="js/waterfall.js?v=7.1"></script>
-  <script src="js/map.js?v=7.1"></script>
-  <script src="js/app.js?v=7.1"></script>
-  <script src="js/gis_ui.js?v=7.1"></script>
+  <!-- Application Scripts (Auth first, then API, Waterfall, Map, App, UI) -->
+  <script src="js/auth.js?v=8.0"></script>
+  <script src="js/api.js?v=8.0"></script>
+  <script src="js/waterfall.js?v=8.0"></script>
+  <script src="js/map.js?v=8.0"></script>
+  <script src="js/app.js?v=8.0"></script>
+  <script src="js/gis_ui.js?v=8.0"></script>
 
 </body>
 </html>

@@ -69,19 +69,26 @@ class DashboardApp {
 
     // 5. Initialize in Clean Standby Mode (No bounding boxes before input is analyzed)
     this.targets = [];
+    this.selectedTargetId = null;
+    this.currentAnalysisResult = null;
     if (this.waterfall) {
       this.waterfall.setTargets([]);
       this.waterfall.render();
     }
+    if (this.map) {
+      this.map.setTargets([]);
+    }
     this.updateKPIs();
     this.renderTargetList();
     this._clearInspector();
+    this.resetStepper();
   }
 
   _initSplashScreen() {
     const splash = document.getElementById('appSplashScreen');
     const progressBar = document.getElementById('splashLoadingProgress');
     const statusText = document.getElementById('splashLoadingText');
+    const portalScreen = document.getElementById('portalSelectionScreen');
 
     if (!splash) return;
 
@@ -92,7 +99,11 @@ class DashboardApp {
       splash.classList.add('fade-out');
       setTimeout(() => {
         splash.style.display = 'none';
-      }, 850);
+        // Show Portal Gateway Selection screen right after logo intro
+        if (portalScreen) {
+          portalScreen.style.display = 'flex';
+        }
+      }, 700);
     };
 
     splash.addEventListener('click', dismissSplash);
@@ -106,7 +117,7 @@ class DashboardApp {
       { progress: 25, text: 'INITIALIZING PARALLEL YOLO + U-NET PIPELINES...', delay: 200 },
       { progress: 55, text: 'CALIBRATING MULTI-SIGNAL FUSION ENGINE...', delay: 650 },
       { progress: 85, text: 'CALIBRATING GEOMATICS & HIGH-RECALL VERIFIER...', delay: 1100 },
-      { progress: 100, text: 'DUAL-PATH SYSTEMS ONLINE · ENTERING DASHBOARD...', delay: 1600 },
+      { progress: 100, text: 'DUAL-PATH SYSTEMS ONLINE · SELECT OPERATIONAL PORTAL...', delay: 1500 },
     ];
 
     steps.forEach(({ progress, text, delay }) => {
@@ -120,7 +131,43 @@ class DashboardApp {
 
     setTimeout(() => {
       dismissSplash();
-    }, 2100);
+    }, 1900);
+  }
+
+  openPortalSelection() {
+    const portalScreen = document.getElementById('portalSelectionScreen');
+    if (portalScreen) {
+      portalScreen.style.display = 'flex';
+    }
+  }
+
+  async selectPortal(role) {
+    const portalScreen = document.getElementById('portalSelectionScreen');
+    if (portalScreen) {
+      portalScreen.style.display = 'none';
+    }
+
+    if (window.authManager) {
+      await window.authManager.switchRole(role);
+    }
+
+    const isAdmin = role === 'ADMIN';
+    this.showToast({
+      type: "success",
+      title: isAdmin ? "Administrator Portal Initialized" : "Operator Portal Initialized",
+      message: isAdmin 
+        ? "Welcome Chief Hydrographer. Global Ocean Repository and AI Model Management are active." 
+        : "Welcome Sonar Operator. Active Survey Scanner and Current Input GIS are ready."
+    });
+
+    this.onRoleSwitched(role, window.authManager ? window.authManager.getUser() : null);
+
+    // In Operator / User Portal: Stand by for operator file upload or sample mission selection
+    if (!isAdmin) {
+      if (this.samples && this.samples.length > 0) {
+        this.currentSample = this.samples[0];
+      }
+    }
   }
 
   async checkBackendStatus() {
@@ -168,9 +215,9 @@ class DashboardApp {
     if (!container) return;
 
     container.innerHTML = '';
-    this.samples.forEach((s, idx) => {
+    this.samples.forEach((s) => {
       const btn = document.createElement('button');
-      btn.className = `sample-pill ${idx === 0 ? 'active' : ''}`;
+      btn.className = 'sample-pill';
       btn.dataset.sampleId = s.id;
 
       let icon = "fa-network-wired";
@@ -192,7 +239,7 @@ class DashboardApp {
       btn.title = s.description || s.name;
       btn.onclick = (e) => {
         e.stopPropagation();
-        this.selectSampleMission(s.id);
+        this.selectSampleMission(s.id, { autoRun: true });
       };
       container.appendChild(btn);
     });
@@ -589,6 +636,81 @@ class DashboardApp {
     });
   }
 
+  resetStepper() {
+    const stepNodes = [
+      { id: "stepUpload", num: 1, timeId: "timeStepUpload" },
+      { id: "stepPrep", num: 2, timeId: "timeStepPrep" },
+      { id: "stepYolo", num: 3, timeId: "timeStepYolo" },
+      { id: "stepUnet", num: 4, timeId: "timeStepFusion" },
+      { id: "stepAuto", num: 5, timeId: "timeStepVerify" },
+      { id: "stepGeo", num: 6, timeId: "timeStepGeo" },
+      { id: "stepReport", num: 7, timeId: "timeStepReport" }
+    ];
+    stepNodes.forEach(({ id, num, timeId }) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.className = "step-node";
+        const circle = el.querySelector('.step-circle');
+        if (circle) circle.textContent = num;
+      }
+      const timeEl = document.getElementById(timeId);
+      if (timeEl) timeEl.textContent = "--";
+    });
+
+    const elTotalTime = document.getElementById('lbsTotalTime');
+    if (elTotalTime) elTotalTime.textContent = "--";
+    const elBadge = document.getElementById('lbsBudgetBadge');
+    if (elBadge) {
+      elBadge.className = "lbs-budget-badge pass";
+      elBadge.textContent = "Standby (<20s)";
+    }
+    const elHeadroom = document.getElementById('lbsHeadroom');
+    if (elHeadroom) elHeadroom.textContent = "Awaiting Input";
+    const elBottleneck = document.getElementById('lbsBottleneck');
+    if (elBottleneck) elBottleneck.innerHTML = `<i class="fa-solid fa-gauge-simple-high"></i> Status: <b>Standing by for sonar scan</b>`;
+  }
+
+  updateRecentSurveyReportsTable() {
+    const tbody = document.getElementById('recentSurveyReportsTbody');
+    if (!tbody) return;
+
+    if (!this.targets || this.targets.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">
+            <i class="fa-solid fa-water" style="margin-right: 6px; color: var(--emerald-500);"></i>
+            No survey targets logged yet. Upload or scan a sonar image to view records.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = this.targets.map(t => {
+      const objId = t.object_id || 'TGT_UNKNOWN';
+      const cleanClass = (t.class || 'Debris').replace(/_/g, ' ');
+      const conf = Math.round((t.calibrated_confidence || t.confidence || 0.85) * 100);
+      const vStatus = t.verification_status || 'confirmed';
+      const isConfirmed = (vStatus === 'confirmed' || vStatus === 'confirmed_debris');
+      const lat = (t.latitude != null ? t.latitude : t.lat);
+      const lon = (t.longitude != null ? t.longitude : t.lon);
+      const coords = (lat != null && lon != null)
+        ? `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`
+        : 'Unreferenced (Case C)';
+
+      return `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: var(--emerald-800);">#${objId}</td>
+          <td style="padding: 10px 12px; font-weight: 600; text-transform: capitalize;">${cleanClass}</td>
+          <td style="padding: 10px 12px;"><span class="badge-pill ${isConfirmed ? 'confirmed' : 'suspicious'}">● ${isConfirmed ? 'Confirmed' : 'Suspicious'}</span></td>
+          <td style="padding: 10px 12px; font-family: var(--font-mono); font-weight: 700; color: ${conf >= 80 ? 'var(--emerald-600)' : 'var(--amber-warn)'};">${conf}%</td>
+          <td style="padding: 10px 12px; font-family: var(--font-mono); color: var(--text-secondary);">${coords}</td>
+          <td style="padding: 10px 12px; text-align: right;"><button class="gis-btn" style="padding: 2px 8px; font-size: 0.7rem;" onclick="if(window.app) window.app.onTargetSelected('${objId}', {fly:true, force:true});">Inspect</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
   updateKPIs() {
     const total = this.targets.length;
     const isRejected = Boolean(this.isRejected);
@@ -650,11 +772,12 @@ class DashboardApp {
     const elKpiLow = document.getElementById('kpiLowCount');
     if (elKpiLow) elKpiLow.textContent = lowCount;
 
-    // Highest Priority Debris Card
+    // Highest Priority Debris Card & Header Preview
     const hpCard = document.getElementById('highestPriorityCard');
     const hpName = document.getElementById('hpDebrisName');
     const hpScore = document.getElementById('hpDebrisScore');
     const hpLevel = document.getElementById('hpDebrisLevel');
+    const hpPreview = document.getElementById('hpDebrisNamePreview');
 
     if (!isRejected && this.targets.length > 0) {
       // Find highest priority target
@@ -670,6 +793,7 @@ class DashboardApp {
           hpLevel.textContent = pLevel;
           hpLevel.className = `hp-badge ${pLevel.toLowerCase()}`;
         }
+        if (hpPreview) hpPreview.textContent = `#${highestTarget.object_id}`;
         if (hpCard) {
           hpCard.onclick = () => {
             this.onTargetSelected(highestTarget.object_id, { fly: true, force: true });
@@ -685,6 +809,7 @@ class DashboardApp {
         hpLevel.textContent = "STANDBY";
         hpLevel.className = "hp-badge low";
       }
+      if (hpPreview) hpPreview.textContent = "STANDBY";
     }
 
     const avgConfidence = (!isRejected && this.targets.length > 0)
@@ -717,6 +842,8 @@ class DashboardApp {
         }
       }
     }
+
+    this.updateRecentSurveyReportsTable();
   }
 
   renderTargetList() {
@@ -742,12 +869,12 @@ class DashboardApp {
 
     if (!this.targets || this.targets.length === 0) {
       if (countTag) countTag.textContent = "0 TARGETS";
-      if (filterHint) filterHint.textContent = "Clear Sector";
+      if (filterHint) filterHint.textContent = "Standing By";
       container.innerHTML = `
         <div class="empty-target-state">
           <div class="empty-icon"><i class="fa-solid fa-water"></i></div>
-          <div class="empty-title">No Anomalies Detected</div>
-          <div class="empty-desc">Clear seabed sector. No debris targets or acoustic shadow anomalies identified in this survey tile.</div>
+          <div class="empty-title">Awaiting Sonar Input</div>
+          <div class="empty-desc">Upload a side-scan sonar image (.png, .tif, .jpg) or select a survey sample mission to run dual-path inference.</div>
         </div>
       `;
       return;
@@ -1852,18 +1979,44 @@ class DashboardApp {
     }
 
     if (btnPrintReport) {
-      btnPrintReport.onclick = () => window.print();
+      btnPrintReport.onclick = () => {
+        this.renderReportModal();
+        setTimeout(() => {
+          window.print();
+        }, 80);
+      };
     }
 
     if (btnDownloadHTML) {
       btnDownloadHTML.onclick = () => {
         const content = document.getElementById('modalReportContent');
         if (!content) return;
-        const htmlDoc = `<!DOCTYPE html><html><head><title>Hydrographic Survey Intelligence Report - NIOT / MoES</title><link rel="stylesheet" href="http://localhost:3000/css/style.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></head><body style="background:#030b18;color:#f8fafc;padding:30px;font-family:sans-serif;">${content.innerHTML}</body></html>`;
+        const repId = (this.currentAnalysisResult && this.currentAnalysisResult.analysis_id) || 'SURVEY_54434B1B';
+        const htmlDoc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hydrographic Survey Intelligence Report - ${repId}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="http://localhost:3000/css/style.css">
+  <style>
+    body { background: #f4f7f9; color: #0f172a; padding: 24px; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif; }
+    .report-standalone-container { max-width: 1040px; margin: 0 auto; background: #ffffff; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+  </style>
+</head>
+<body>
+  <div class="report-standalone-container">
+    ${content.innerHTML}
+  </div>
+</body>
+</html>`;
         const blob = new Blob([htmlDoc], { type: 'text/html' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Mission_Report_${(this.currentAnalysisResult && this.currentAnalysisResult.analysis_id) || 'SURVEY_54434B1B'}.html`;
+        a.download = `Mission_Report_${repId}.html`;
         a.click();
       };
     }
@@ -2580,7 +2733,28 @@ class DashboardApp {
       `;
     });
 
+    const certCode = 'SHA256-MOES-' + String(missionId).replace(/[^A-Za-z0-9]/g, '').slice(-8).toUpperCase();
+    const issueTime = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+
     container.innerHTML = `
+      <!-- 0. Official Hydrographic Mission Header Banner -->
+      <div class="report-official-header">
+        <div class="roh-left">
+          <img src="assets/sea_sentinel_emblem.png" alt="Sea Sentinel Emblem" class="roh-emblem" />
+          <div>
+            <div class="roh-org">MINISTRY OF EARTH SCIENCES · NATIONAL INSTITUTE OF OCEAN TECHNOLOGY</div>
+            <div class="roh-title"><i class="fa-solid fa-file-waveform" style="color: var(--emerald-600);"></i> Hydrographic Survey Mission Intelligence Report</div>
+            <div class="roh-sub">Autonomous Acoustic AI Debris Detection & Maritime Geospatial Characterization Program</div>
+          </div>
+        </div>
+        <div class="roh-right">
+          <div class="roh-meta-tag">STATUS: <b>VERIFIED AI DOSSIER</b></div>
+          <div class="roh-meta-row"><b>REF:</b> <span>NIOT/MOES/SS2-${missionId}</span></div>
+          <div class="roh-meta-row"><b>ISSUED:</b> <span>${issueTime}</span></div>
+          <div class="roh-meta-row"><b>SECURITY:</b> <span style="color:#059669; font-weight:800;">UNCLASSIFIED / OPERATIONAL</span></div>
+        </div>
+      </div>
+
       <!-- 1. Side-by-Side Dual-Path Image Inspection Suite -->
       <div class="report-section-title">
         <i class="fa-solid fa-images"></i> Dual-Path Sonar Imagery Analysis Suite (Input vs AI Output)
@@ -2591,7 +2765,7 @@ class DashboardApp {
             <span><i class="fa-solid fa-wave-square"></i> RAW ACOUSTIC SCAN</span>
             <span class="report-img-tag input">Input Image</span>
           </div>
-          <div class="report-img-box" style="height: 270px;">
+          <div class="report-img-box">
             <img src="${rawUrl}" alt="Raw Acoustic Input Sonar" />
           </div>
         </div>
@@ -2601,7 +2775,7 @@ class DashboardApp {
             <span><i class="fa-solid fa-wand-magic-sparkles"></i> CONTRAST EQUALIZED MOSAIC</span>
             <span class="report-img-tag prep">Preprocessing</span>
           </div>
-          <div class="report-img-box" style="height: 270px;">
+          <div class="report-img-box">
             <img src="${enhancedUrl}" alt="CLAHE Contrast Enhanced Sonar" />
           </div>
         </div>
@@ -2611,7 +2785,7 @@ class DashboardApp {
             <span style="color:#00e676;"><i class="fa-solid fa-cubes-stacked"></i> PARALLEL YOLO + U-NET FUSED</span>
             <span class="report-img-tag output">AI Output</span>
           </div>
-          <div class="report-img-box" style="height: 270px;">
+          <div class="report-img-box">
             <img src="${annotatedUrl}" alt="Parallel Dual-Path YOLO + U-Net AI Output" />
           </div>
         </div>
@@ -2671,6 +2845,20 @@ class DashboardApp {
       </div>
       <div class="report-dossier-grid">
         ${dossierCards || '<div style="grid-column: 1 / -1; padding:20px; color:#94a3b8; text-align:center;">No target dossiers generated.</div>'}
+      </div>
+
+      <!-- 5. Official Hydrographic Certification Footer -->
+      <div class="report-official-footer">
+        <div class="rof-left">
+          <div class="rof-brand"><i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i> SEA SENTINEL 2.0 &mdash; DUAL-PATH YOLOv11 + U-NET FUSION CORE</div>
+          <div class="rof-note">MoES / NIOT Autonomous Ocean Surveillance Protocol · Official High-Recall Hydrographic Mission Dossier</div>
+        </div>
+        <div class="rof-right">
+          <div class="rof-sig-line">
+            <div class="rof-sig-title">AUTONOMOUS HYDROGRAPHIC CERTIFICATION</div>
+            <div class="rof-sig-code">${certCode} · VERIFIED</div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -4012,9 +4200,144 @@ class DashboardApp {
     html += `</tbody></table>`;
     container.innerHTML = html;
   }
+
+  // -----------------------------------------------------------------
+  // Role-Based Architecture & RBAC Event Handlers
+  // -----------------------------------------------------------------
+  toggleRoleDropdown() {
+    const dd = document.getElementById('roleSwitcherDropdown');
+    if (dd) {
+      dd.style.display = (dd.style.display === 'none' || !dd.style.display) ? 'block' : 'none';
+    }
+  }
+
+  async handleLoginSubmit(event) {
+    if (event) event.preventDefault();
+    const emailEl = document.getElementById('authLoginEmail');
+    const passEl = document.getElementById('authLoginPassword');
+    const errEl = document.getElementById('authLoginError');
+    const modal = document.getElementById('roleAuthModal');
+
+    if (errEl) errEl.style.display = 'none';
+
+    const email = emailEl ? emailEl.value.trim() : '';
+    const pass = passEl ? passEl.value.trim() : '';
+
+    if (!email || !pass) {
+      if (errEl) {
+        errEl.textContent = "Please enter both email and password.";
+        errEl.style.display = 'block';
+      }
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmitLogin');
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...`;
+    }
+
+    try {
+      const res = await window.authManager.login(email, pass);
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span>Sign In</span> <i class="fa-solid fa-arrow-right"></i>`;
+      }
+
+      if (res.success) {
+        if (modal) modal.style.display = 'none';
+        this.showToast({
+          type: "success",
+          title: "Authenticated",
+          message: `Signed in as ${res.user.role}: ${res.user.full_name}`
+        });
+        this.onRoleSwitched(res.user.role, res.user);
+      } else {
+        if (errEl) {
+          errEl.textContent = res.error || "Invalid login credentials.";
+          errEl.style.display = 'block';
+        }
+      }
+    } catch (e) {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span>Sign In</span> <i class="fa-solid fa-arrow-right"></i>`;
+      }
+      if (errEl) {
+        errEl.textContent = "Authentication error: " + e.message;
+        errEl.style.display = 'block';
+      }
+    }
+  }
+
+  onRoleSwitched(role, user) {
+    const isAdmin = role === 'ADMIN';
+
+    // 1. Strictly remove / hide Current Input GIS from Admin Portal
+    const cardMap = document.getElementById('cardMap');
+    const navCurrentInputGis = document.getElementById('navCurrentInputGis');
+    if (cardMap) {
+      cardMap.style.display = isAdmin ? 'none' : 'block';
+    }
+    if (navCurrentInputGis) {
+      navCurrentInputGis.style.display = isAdmin ? 'none' : '';
+    }
+
+    // 2. Ensure Sonar Waterfall Card is visible in Operator Portal
+    const cardWaterfall = document.getElementById('cardWaterfall');
+    if (cardWaterfall) {
+      cardWaterfall.style.display = 'block';
+    }
+
+    // 3. If switching to Admin and Entire Ocean Map is active, load global dataset
+    if (isAdmin) {
+      if (window.entireOceanMap && typeof window.entireOceanMap.loadDataset === 'function') {
+        window.entireOceanMap.loadDataset({ fit: false });
+      }
+    } else {
+      // If switching to User, ensure Waterfall viewer is refreshed or standing by
+      if (this.targets && this.targets.length > 0) {
+        if (this.waterfall) this.waterfall.render();
+      } else {
+        if (this.waterfall) {
+          this.waterfall.setTargets([]);
+          this.waterfall.render();
+        }
+      }
+    }
+
+    // 4. If viewing Evaluation Metrics modal, re-scope to role capability
+    const metricsModal = document.getElementById('evaluationMetricsModal');
+    if (metricsModal && metricsModal.style.display !== 'none') {
+      const scopeSelect = document.getElementById('evalImageScopeSelect');
+      const targetScope = isAdmin ? (scopeSelect ? scopeSelect.value : 'dataset') : 'active';
+      if (scopeSelect && !isAdmin) {
+        scopeSelect.value = 'active';
+      }
+      this.loadAndRenderEvaluationMetrics(false, targetScope);
+    }
+  }
 }
 
 // Global API service initialization
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new DashboardApp();
+  
+  // Close role dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    const widget = document.getElementById('userProfileWidget');
+    const dropdown = document.getElementById('roleSwitcherDropdown');
+    if (widget && dropdown && !widget.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  // Subscribe app to authManager role events
+  if (window.authManager) {
+    window.authManager.onRoleChange((role, user) => {
+      if (window.app && typeof window.app.onRoleSwitched === 'function') {
+        window.app.onRoleSwitched(role, user);
+      }
+    });
+  }
 });

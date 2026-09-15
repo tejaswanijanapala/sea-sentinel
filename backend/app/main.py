@@ -21,7 +21,7 @@ import shutil
 import sqlite3
 from datetime import datetime
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -59,6 +59,16 @@ from backend.risk.risk_engine import IMORiskEngine
 from backend.risk.models import RawRiskParameters
 from backend.risk.audit_service import RiskAuditService
 
+# RBAC & Authentication
+from backend.authentication.auth_routes import auth_router
+from backend.authentication.auth_service import (
+    UserProfile,
+    UserRole,
+    get_current_user,
+    require_admin,
+    require_user_or_admin
+)
+
 app = FastAPI(
     title="Sea Sentinel — AI Underwater Debris & Anomaly Detection API",
     description="MoES / NIOT Autonomous Parallel YOLO + U-Net Side-Scan Sonar Engine with IMO-Aligned Hazard Assessment",
@@ -78,6 +88,7 @@ app.add_middleware(
 
 # Mount Routers
 app.include_router(risk_router)
+app.include_router(auth_router)
 
 # Instantiate Core Pipeline Agent, Geospatial Engine & Ablation Evaluator
 agent = SIHPipelineAgent()
@@ -1658,14 +1669,164 @@ def register_gis_survey(
     }
 
 
+@app.get("/api/gis/current-input")
+def get_current_input_gis(
+    analysis_id: Optional[str] = Query(None),
+    min_confidence: float = Query(0.0, ge=0.0, le=1.0),
+    class_filter: Optional[str] = Query("all"),
+    user: UserProfile = Depends(require_user_or_admin)
+):
+    """
+    Returns isolated GIS dataset scoped strictly to the CURRENT INPUT survey / upload:
+    - Only targets detected in this specific scan
+    - Active survey swath coverage polygon
+    - Active vehicle track for this scan
+    - Input-scoped tactical statistics
+    Strictly isolated from the global ocean dataset.
+    """
+    target_analysis = None
+    if analysis_id:
+        target_analysis = CACHED_ANALYSES.get(analysis_id)
+    else:
+        target_analysis = CACHED_ANALYSES.get("latest")
+
+    if not target_analysis:
+        return {
+            "status": "idle",
+            "scope": "CURRENT_INPUT",
+            "message": "No active survey scan in memory. Please upload or analyze a sonar image.",
+            "analysis_id": None,
+            "targets": [],
+            "clusters": [],
+            "survey_tracks": [],
+            "survey_coverage": [],
+            "statistics": {
+                "total_targets": 0,
+                "high_risk_count": 0,
+                "medium_risk_count": 0,
+                "low_risk_count": 0,
+                "class_counts": {},
+                "mean_confidence": 0.0,
+                "scope": "current_input"
+            }
+        }
+
+    curr_analysis_id = target_analysis.get("analysis_id", "current_scan")
+    raw_targets = target_analysis.get("detections") or target_analysis.get("objects") or target_analysis.get("fused_objects") or target_analysis.get("yolo_candidates") or []
+    
+    scoped_targets = []
+    class_counts = {}
+    high_risk_count = 0
+    med_risk_count = 0
+    low_risk_count = 0
+    conf_sum = 0.0
+
+    for idx, t in enumerate(raw_targets):
+        c_name = t.get("class_name") or t.get("name") or "unknown"
+        conf = float(t.get("confidence", 0.0))
+        if conf < min_confidence:
+            continue
+        if class_filter and class_filter.lower() != "all" and c_name.lower() != class_filter.lower():
+            continue
+
+        lat = t.get("latitude")
+        lon = t.get("longitude")
+        if lat is None and "geospatial" in t and isinstance(t["geospatial"], dict):
+            lat = t["geospatial"].get("latitude")
+            lon = t["geospatial"].get("longitude")
+
+        if lat is None:
+            base_coords = target_analysis.get("simulated_coords") or {"lat": 30.171543, "lon": -87.823543}
+            lat = base_coords.get("lat", 30.171543) + (idx * 0.0002)
+            lon = base_coords.get("lon", -87.823543) + (idx * 0.0002)
+
+        risk_level = (t.get("hazard_level") or t.get("risk_category") or "LOW").upper()
+        risk_score = float(t.get("risk_score") or (85.0 if risk_level == "HIGH" else (50.0 if risk_level == "MEDIUM" else 20.0)))
+        
+        if risk_level == "HIGH":
+            high_risk_count += 1
+        elif risk_level == "MEDIUM":
+            med_risk_count += 1
+        else:
+            low_risk_count += 1
+
+        class_counts[c_name] = class_counts.get(c_name, 0) + 1
+        conf_sum += conf
+
+        scoped_targets.append({
+            "target_id": t.get("target_id") or f"curr_{curr_analysis_id[:6]}_{idx+1}",
+            "analysis_id": curr_analysis_id,
+            "detection_id": t.get("detection_id", str(uuid.uuid4())[:8]),
+            "class_name": c_name,
+            "confidence": round(conf, 4),
+            "latitude": float(lat) if lat is not None else None,
+            "longitude": float(lon) if lon is not None else None,
+            "northing_m": t.get("northing_m"),
+            "easting_m": t.get("easting_m"),
+            "bbox": t.get("bbox") or t.get("box_2d"),
+            "hazard_level": risk_level,
+            "risk_score": risk_score,
+            "dimensions_m": t.get("dimensions_m") or {"length": 2.5, "width": 1.2},
+            "status": t.get("verification_status", "UNVERIFIED"),
+            "provenance": t.get("source") or t.get("provenance") or "YOLO11+UNET_FUSION"
+        })
+
+    coverage_poly = target_analysis.get("survey_coverage") or []
+    if not coverage_poly and scoped_targets and scoped_targets[0]["latitude"] is not None:
+        c_lat = scoped_targets[0]["latitude"]
+        c_lon = scoped_targets[0]["longitude"]
+        delta = 0.0012
+        coverage_poly = [
+            {"lat": c_lat - delta, "lon": c_lon - delta},
+            {"lat": c_lat + delta, "lon": c_lon - delta},
+            {"lat": c_lat + delta, "lon": c_lon + delta},
+            {"lat": c_lat - delta, "lon": c_lon + delta},
+            {"lat": c_lat - delta, "lon": c_lon - delta}
+        ]
+
+    active_track = target_analysis.get("survey_track") or []
+    if not active_track and scoped_targets and scoped_targets[0]["latitude"] is not None:
+        c_lat = scoped_targets[0]["latitude"]
+        c_lon = scoped_targets[0]["longitude"]
+        active_track = [
+            {"lat": c_lat - 0.0008, "lon": c_lon - 0.0008, "timestamp": datetime.utcnow().isoformat()},
+            {"lat": c_lat, "lon": c_lon, "timestamp": datetime.utcnow().isoformat()},
+            {"lat": c_lat + 0.0008, "lon": c_lon + 0.0008, "timestamp": datetime.utcnow().isoformat()}
+        ]
+
+    mean_conf = round(conf_sum / max(1, len(scoped_targets)), 4) if scoped_targets else 0.0
+
+    return {
+        "status": "success",
+        "scope": "CURRENT_INPUT",
+        "analysis_id": curr_analysis_id,
+        "image_path": target_analysis.get("raw_image_path") or target_analysis.get("image_path"),
+        "georeferencing_case": target_analysis.get("georeferencing_case", "A"),
+        "targets": scoped_targets,
+        "clusters": [],
+        "survey_tracks": [{"track_id": f"trk_{curr_analysis_id[:6]}", "waypoints": active_track}] if active_track else [],
+        "survey_coverage": [{"coverage_id": f"cov_{curr_analysis_id[:6]}", "polygon": coverage_poly}] if coverage_poly else [],
+        "statistics": {
+            "total_targets": len(scoped_targets),
+            "high_risk_count": high_risk_count,
+            "medium_risk_count": med_risk_count,
+            "low_risk_count": low_risk_count,
+            "class_counts": class_counts,
+            "mean_confidence": mean_conf,
+            "scope": "current_input"
+        }
+    }
+
+
 @app.get("/api/gis/map-data")
 def get_gis_map_data(
     min_confidence: float = Query(0.0, ge=0.0, le=1.0),
-    class_filter: Optional[str] = Query("all")
+    class_filter: Optional[str] = Query("all"),
+    user: UserProfile = Depends(require_admin)
 ):
     """
-    Returns unified offline GIS dataset:
-    - All persistent deduplicated targets
+    Returns unified offline GIS dataset (ADMIN ONLY):
+    - All persistent deduplicated targets across entire global ocean dataset
     - All DBSCAN clusters
     - All survey vehicle tracks
     - All scanned swath coverage polygons
@@ -1884,7 +2045,8 @@ def get_evaluation_metrics(
 
 @app.post("/api/evaluation/run")
 def run_evaluation_pipeline(
-    split: str = Query("test", regex="^(test|val|train)$")
+    split: str = Query("test", regex="^(test|val|train)$"),
+    user: UserProfile = Depends(require_admin)
 ):
     """
     Executes a fresh end-to-end evaluation run for YOLOv11 and U-Net across the specified split

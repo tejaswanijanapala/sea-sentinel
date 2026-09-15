@@ -101,9 +101,20 @@ class SeaSentinelAPI {
     this.baseUrl = API_BASE_URL;
   }
 
+  getAuthHeaders() {
+    if (window.authManager && typeof window.authManager.getAuthHeader === "function") {
+      return window.authManager.getAuthHeader();
+    }
+    const token = localStorage.getItem("sea_sentinel_auth_token");
+    return token ? { "Authorization": `Bearer ${token}` } : {};
+  }
+
   async checkHealth() {
     try {
-      const res = await fetch(`${this.baseUrl}/api/health`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${this.baseUrl}/api/health`, {
+        headers: this.getAuthHeaders(),
+        signal: AbortSignal.timeout(2000)
+      });
       if (res.ok) return await res.json();
     } catch (e) {
       // Backend offline
@@ -332,15 +343,59 @@ class SeaSentinelAPI {
     } catch (e) {
       console.warn("Geospatial targets endpoint unreachable:", e);
     }
-    return BENCHMARK_TARGETS;
+    return [];
   }
 
   // -------------------------------------------------------------
-  // Edge-First, Offline-Native API Methods
+  // Role-Based GIS & Spatial Intelligence API Methods
   // -------------------------------------------------------------
+  async fetchCurrentInputGIS(analysisId = null, minConfidence = 0.0, classFilter = "all") {
+    try {
+      let url = `${this.baseUrl}/api/gis/current-input?min_confidence=${minConfidence}&class_filter=${encodeURIComponent(classFilter)}`;
+      if (analysisId) url += `&analysis_id=${encodeURIComponent(analysisId)}`;
+      const res = await fetch(url, {
+        headers: this.getAuthHeaders(),
+        signal: AbortSignal.timeout(4000)
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("Current input GIS endpoint unreachable:", e);
+    }
+    return {
+      status: "idle",
+      scope: "CURRENT_INPUT",
+      targets: [],
+      clusters: [],
+      survey_tracks: [],
+      survey_coverage: [],
+      statistics: { total_targets: 0, high_risk_count: 0, scope: "current_input" }
+    };
+  }
+
+  async fetchGlobalOceanGIS(minConfidence = 0.0, classFilter = "all") {
+    try {
+      const url = `${this.baseUrl}/api/gis/map-data?min_confidence=${minConfidence}&class_filter=${encodeURIComponent(classFilter)}`;
+      const res = await fetch(url, {
+        headers: this.getAuthHeaders(),
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res.ok) return await res.json();
+      if (res.status === 403) {
+        console.warn("Global Ocean Map access restricted to Administrators.");
+        return { status: "forbidden", error: "Access Denied: Admin privileges required for Global Ocean Map." };
+      }
+    } catch (e) {
+      console.warn("Global Ocean GIS endpoint unreachable:", e);
+    }
+    return null;
+  }
+
   async getGISLayers() {
     try {
-      const res = await fetch(`${this.baseUrl}/api/gis/layers`, { signal: AbortSignal.timeout(3000) });
+      const res = await fetch(`${this.baseUrl}/api/gis/layers`, {
+        headers: this.getAuthHeaders(),
+        signal: AbortSignal.timeout(3000)
+      });
       if (res.ok) return await res.json();
     } catch (e) {
       console.warn("Local GIS layer endpoint unavailable:", e);

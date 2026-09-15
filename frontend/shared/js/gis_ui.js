@@ -211,8 +211,17 @@ class GISUIController {
     }
   }
 
-  // Open Entire Ocean Map Modal (Starts MINIMIZED by default)
+  // Open Entire Ocean Map Modal (Starts MINIMIZED by default; ADMIN ONLY)
   openEntireOceanMap(options = {}) {
+    if (window.authManager && !window.authManager.isAdmin()) {
+      if (window.app && window.app.showToast) {
+        window.app.showToast("Admin Access Required: Entire Ocean Map is restricted to Administrators.", "warning");
+      }
+      const authModal = document.getElementById('roleAuthModal');
+      if (authModal) authModal.style.display = 'flex';
+      return;
+    }
+
     const modal = document.getElementById('entireOceanMapModal');
     if (!modal) return;
 

@@ -930,8 +930,15 @@ class GlobalOceanGISMap {
   // -----------------------------------------------------------------
   async loadDataset(options = {}) {
     try {
+      const authHeaders = (window.authManager && typeof window.authManager.getAuthHeader === 'function')
+        ? window.authManager.getAuthHeader()
+        : {};
       const url = `http://localhost:8000/api/gis/map-data?min_confidence=0.0&class_filter=all`;
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: authHeaders });
+      if (res.status === 403) {
+        console.warn("[GlobalOceanGISMap] 403 Forbidden: Admin privileges required to load entire ocean dataset.");
+        return;
+      }
       if (!res.ok) return;
       const data = await res.json();
 
