@@ -1,0 +1,23 @@
+# Version Control
+.git
+.gitignore
+
+# Environments
+.env
+.venv
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Exclude all persistent data (Handled by Object Storage or external mounted LocalStorage)
+outputs/
+datasets/
+logs/
+scratch/
+persistent_data/
+runs/
+
+# Exclude development requirements
+requirements-dev.txt
+requirements-training.txt

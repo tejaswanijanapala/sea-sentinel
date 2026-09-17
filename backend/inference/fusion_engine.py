@@ -18,9 +18,9 @@ class FusionEngine:
     """
     def __init__(
         self,
-        iou_threshold: float = 0.25,
+        iou_threshold: float = 0.40,
         centroid_dist_ratio: float = 0.08,
-        mask_in_box_threshold: float = 0.20,
+        mask_in_box_threshold: float = 0.15,
         weight_yolo: float = 0.55,
         weight_unet: float = 0.45
     ):

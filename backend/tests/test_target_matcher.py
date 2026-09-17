@@ -15,7 +15,7 @@ if BACKEND_ROOT not in sys.path:
     sys.path.insert(0, BACKEND_ROOT)
 
 from backend.database.local_db import LocalDatabase
-from backend.duplicate_detection.spatial_matcher import TargetMatchingService
+from backend.duplicate_detection import TargetMatchingService
 
 
 class TestTargetMatcher(unittest.TestCase):

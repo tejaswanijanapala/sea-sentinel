@@ -30,7 +30,7 @@ class UNetSegmenter:
         features: Optional[List[int]] = None,
         device: Optional[str] = None,
         img_size: int = 256,
-        confidence_threshold: float = 0.45,
+        confidence_threshold: float = 0.35,
         min_component_area_px: int = 15,
         max_component_area_ratio: float = 0.40
     ):

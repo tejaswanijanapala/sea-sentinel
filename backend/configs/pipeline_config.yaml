@@ -1,107 +1,94 @@
-# Sea Sentinel: Production Parallel YOLO + U-Net Pipeline Configuration
-# Dual-Path High-Recall Sonar Target Detection, Segmentation, Verification & Geospatial Platform
-
-system:
-  project_name: "Sea Sentinel Dual-Path AI Engine"
-  version: "2.0.0"
-  device: "auto" # "cuda", "cpu", or "auto"
-  log_level: "INFO"
-
-performance:
-  target_latency_seconds: 20
-  enable_gpu: true
-  enable_fp16: true
-  enable_onnx: true
-  batch_size_yolo: 16
-  batch_size_unet: 16
-  async_audit_logging: true
-  adaptive_tiling_threshold: 1100
-  enable_coarse_screening: true
-
-yolo:
-  model_path: "models/yolo/best.pt"
-  conf_threshold: 0.25 # High-recall threshold (avoids premature dropping of valid targets)
-  iou_threshold: 0.45
-  max_detections: 50
-  img_size: 640
-
-unet:
-  checkpoint_path: "models/unet/attention_unet_best.pt"
-  model_type: "attention_unet" # "attention_unet" or "standard_unet"
-  patch_size: 256
-  stride: 192 # 75% step / 25% overlap
-  confidence_threshold: 0.45 # Probability threshold for pixel mask
-  min_component_area_px: 15 # Adaptive minimum area to retain tiny acoustic targets
-  max_component_area_ratio: 0.40 # Suppress massive whole-image contrast step artifacts
-  morphology:
-    kernel_size: 3
-    apply_opening: true
-    apply_closing: true
-
-tiling:
-  enabled: true
-  tile_size: 640
-  overlap_ratio: 0.25 # 25% overlap between adjacent tiles
-  min_image_dim_for_tiling: 900 # Only tile when image dimension exceeds this
-  nms_iou_threshold: 0.40
-
 fusion:
-  iou_threshold: 0.25 # Bounding box IoU threshold for YOLO + U-Net association
-  centroid_dist_ratio: 0.08 # Max normalized distance between centroids
-  mask_in_box_threshold: 0.20 # Min fraction of mask within YOLO box (or vice versa)
-  weights:
-    yolo: 0.55
-    unet: 0.45
   categories:
-    both: "BOTH"
-    yolo_only: "YOLO_ONLY"
-    unet_only: "UNET_ONLY"
-
-verification:
-  enabled: true
-  min_verification_score: 0.35
+    both: BOTH
+    unet_only: UNET_ONLY
+    yolo_only: YOLO_ONLY
+  centroid_dist_ratio: 0.08
+  iou_threshold: 0.25
+  mask_in_box_threshold: 0.2
   weights:
-    contrast: 0.25
-    shadow_relief: 0.25
-    morphology_compactness: 0.20
-    model_confidence: 0.30
-  autoencoder_checkpoint: "models/autoencoder/baseline_autoencoder.pt"
-  rock_cluster_eps: 70.0
-  rock_cluster_min_samples: 4
-
-multiframe:
-  enabled: true
-  max_frame_gap: 5
-  spatial_distance_threshold_px: 80.0
-  trajectory_weight: 0.60
-  iou_weight: 0.40
-
+    unet: 0.45
+    yolo: 0.55
 geospatial:
-  target_crs: "EPSG:4326"
   default_altitude_m: 12.0
   default_slant_range_m: 75.0
-  strict_unreferenced_suppression: true # Strictly withhold synthetic GPS for Case C
-
+  strict_unreferenced_suppression: true
+  target_crs: EPSG:4326
+multiframe:
+  enabled: true
+  iou_weight: 0.4
+  max_frame_gap: 5
+  spatial_distance_threshold_px: 80.0
+  trajectory_weight: 0.6
+performance:
+  adaptive_tiling_threshold: 1100
+  async_audit_logging: true
+  batch_size_unet: 16
+  batch_size_yolo: 16
+  enable_coarse_screening: true
+  enable_fp16: true
+  enable_gpu: true
+  enable_onnx: true
+  target_latency_seconds: 20
 risk_priority:
-  hazard_weights:
-    fishing_net: 90        # Very High - wildlife entanglement, ghost fishing, coral smothering
-    shipwreck_fragment: 85 # High - navigation hazard, shallow draft obstruction
-    engine_debris: 80      # High - chemical leaching, heavy metallic snag hazard
-    pipeline_or_cable: 70  # Medium/High - subsea infrastructure, trawling snag
-    plastic_debris: 60     # Medium - microplastic degradation, marine ingestion
-    riprap_debris: 45      # Medium/Low - localized seabed obstruction, ROV hazard
-    default: 50
   area_thresholds:
-    small_max_sq_m: 5.0
     medium_max_sq_m: 25.0
+    small_max_sq_m: 5.0
+  hazard_weights:
+    default: 50
+    engine_debris: 80
+    fishing_net: 90
+    pipeline_or_cable: 70
+    plastic_debris: 60
+    riprap_debris: 45
+    shipwreck_fragment: 85
   priority_formula_weights:
-    hazard_risk: 0.45
     detection_evidence: 0.25
-    object_extent: 0.15
+    hazard_risk: 0.45
     location_sensitivity: 0.15
+    object_extent: 0.15
   reliability_modulation:
-    optimal: 1.00
     good: 0.95
     moderate: 0.85
     noisy: 0.75
-
+    optimal: 1.0
+system:
+  device: auto
+  log_level: INFO
+  project_name: Sea Sentinel Dual-Path AI Engine
+  version: 2.0.0
+tiling:
+  enabled: true
+  min_image_dim_for_tiling: 900
+  nms_iou_threshold: 0.4
+  overlap_ratio: 0.25
+  tile_size: 640
+unet:
+  checkpoint_path: models/unet/attention_unet_best.pt
+  confidence_threshold: 0.45
+  max_component_area_ratio: 0.4
+  min_component_area_px: 150
+  model_type: attention_unet
+  morphology:
+    apply_closing: true
+    apply_opening: true
+    kernel_size: 3
+  patch_size: 256
+  stride: 192
+verification:
+  autoencoder_checkpoint: models/autoencoder/baseline_autoencoder.pt
+  enabled: true
+  min_verification_score: 0.35
+  rock_cluster_eps: 70.0
+  rock_cluster_min_samples: 4
+  weights:
+    contrast: 0.25
+    model_confidence: 0.3
+    morphology_compactness: 0.2
+    shadow_relief: 0.25
+yolo:
+  conf_threshold: 0.25
+  img_size: 640
+  iou_threshold: 0.45
+  max_detections: 50
+  model_path: models/yolo/best.pt

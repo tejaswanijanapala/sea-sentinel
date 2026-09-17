@@ -1,1 +1,0 @@
-"""Debris Detection Feature Module."""

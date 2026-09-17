@@ -20,7 +20,7 @@ from backend.tests.test_georeferencing import (
     test_unreferenced_georeferencing_strictly_no_fake_gps
 )
 from backend.database.local_db import LocalDatabase
-from backend.duplicate_detection.spatial_matcher import TargetMatchingService
+from backend.duplicate_detection import TargetMatchingService
 from backend.ai.geospatial.clustering_service import ClusteringService
 import tempfile
 

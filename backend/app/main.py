@@ -48,7 +48,7 @@ from edge.telemetry_modem import AcousticTelemetryEncoder
 from database.local_db import LocalDatabase
 from ai.geospatial.metadata_service import MetadataService, SonarMetadata
 from ai.geospatial.georeferencing_engine import GeoreferencingEngine, SonarConfiguration
-from duplicate_detection.spatial_matcher import TargetMatchingService
+from duplicate_detection import TargetMatchingService
 from ai.geospatial.clustering_service import ClusteringService
 from ai.geospatial.survey_track_service import SurveyTrackService
 from ai.geospatial.export_service import GISExportService
@@ -1336,9 +1336,15 @@ def generate_html_mission_report(analysis_id: str):
     wid_m = spatial.get("max_width_m", 0.0)
     area_m = spatial.get("total_area_sq_m", 0.0)
 
-    raw_img = report_data.get("raw_image_url", "#")
-    enhanced_img = report_data.get("enhanced_image_url", raw_img)
-    annot_img = report_data.get("annotated_image_url", raw_img)
+    import urllib.parse
+    def safe_img_url(path):
+        if not path or path == "#": return "#"
+        if str(path).startswith("http") or str(path).startswith("/api/image"): return path
+        return f"/api/image?path={urllib.parse.quote(str(path))}"
+
+    raw_img = safe_img_url(report_data.get("raw_image_url") or report_data.get("raw_image_path", "#"))
+    enhanced_img = safe_img_url(report_data.get("enhanced_image_url") or report_data.get("enhanced_image_path") or raw_img)
+    annot_img = safe_img_url(report_data.get("annotated_image_url") or report_data.get("annotated_image_path") or raw_img)
 
     map_lat = spatial.get("latitude") or 0.0
     map_lon = spatial.get("longitude") or 0.0

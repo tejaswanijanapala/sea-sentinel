@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.abspath("backend"))
 from backend.agent.orchestrator import SIHPipelineAgent
 from backend.ai.geospatial.metadata_service import MetadataService
 from backend.ai.geospatial.georeferencing_engine import GeoreferencingEngine
-from backend.duplicate_detection.spatial_matcher import TargetMatchingService
+from backend.duplicate_detection import TargetMatchingService
 from backend.database.local_db import LocalDatabase
 
 agent = SIHPipelineAgent()

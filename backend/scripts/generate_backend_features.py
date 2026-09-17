@@ -380,7 +380,7 @@ write_py("backend/debris-detection/routes/detection_routes.py", '''"""FastAPI Ro
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-from backend.debris_detection.services.yolo_service import YoloDetectorService
+from backend.debris_detection import YoloDetectorService
 
 router = APIRouter(prefix="/debris-detection", tags=["Debris Detection"])
 detector = YoloDetectorService()
@@ -445,7 +445,7 @@ write_py("backend/sonar-image-processing/routes/processing_routes.py", '''"""Son
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import cv2
-from backend.sonar_image_processing.services.sonar_filter_service import SonarFilterService
+from backend.sonar_image_processing import SonarFilterService
 
 router = APIRouter(prefix="/sonar-processing", tags=["Sonar Image Processing"])
 
@@ -575,7 +575,7 @@ class DebrisRiskScoringService:
 write_py("backend/debris-risk-scoring/routes/risk_routes.py", '''"""Debris Risk Scoring API Routes."""
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.debris_risk_scoring.services.risk_engine_service import DebrisRiskScoringService
+from backend.debris_risk_scoring import DebrisRiskScoringService
 
 router = APIRouter(prefix="/debris-risk", tags=["Debris Risk Scoring"])
 risk_service = DebrisRiskScoringService()
@@ -621,7 +621,7 @@ class AnomalyClassificationService:
 write_py("backend/natural-manmade-classification/routes/classification_routes.py", '''"""Natural vs Man-made API Routes."""
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.natural_manmade_classification.services.anomaly_service import AnomalyClassificationService
+from backend.natural_manmade_classification import AnomalyClassificationService
 
 router = APIRouter(prefix="/classification", tags=["Natural vs Man-Made"])
 anomaly_service = AnomalyClassificationService()
@@ -688,7 +688,7 @@ write_py("backend/duplicate-detection/routes/duplicate_routes.py", '''"""Duplica
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from backend.duplicate_detection.services.multiframe_tracker import MultiFrameTrackerService
+from backend.duplicate_detection import MultiFrameTrackerService
 
 router = APIRouter(prefix="/duplicate-detection", tags=["Duplicate Detection"])
 tracker = MultiFrameTrackerService()
@@ -737,7 +737,7 @@ write_py("backend/debris-density/routes/density_routes.py", '''"""Debris Density
 from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from backend.debris_density.services.density_service import DebrisDensityService
+from backend.debris_density import DebrisDensityService
 
 router = APIRouter(prefix="/debris-density", tags=["Debris Density"])
 
@@ -790,7 +790,7 @@ class SonarQualityService:
 write_py("backend/sonar-quality/routes/quality_routes.py", '''"""Sonar Quality Routes."""
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.sonar_quality.services.quality_service import SonarQualityService
+from backend.sonar_quality import SonarQualityService
 import numpy as np
 
 router = APIRouter(prefix="/sonar-quality", tags=["Sonar Quality"])
@@ -858,14 +858,14 @@ write_py("backend/api/__init__.py", '"""Central API Package."""\n')
 
 write_py("backend/api/routes.py", """from fastapi import APIRouter
 
-from backend.debris_detection.routes.detection_routes import router as detection_router
-from backend.sonar_image_processing.routes.processing_routes import router as processing_router
+from backend.debris_detection import router as detection_router
+from backend.sonar_image_processing import router as processing_router
 from backend.geolocation.routes.geo_routes import router as geo_router
-from backend.debris_risk_scoring.routes.risk_routes import router as risk_router
-from backend.natural_manmade_classification.routes.classification_routes import router as classification_router
-from backend.duplicate_detection.routes.duplicate_routes import router as duplicate_router
-from backend.debris_density.routes.density_routes import router as density_router
-from backend.sonar_quality.routes.quality_routes import router as quality_router
+from backend.debris_risk_scoring import router as risk_router
+from backend.natural_manmade_classification import router as classification_router
+from backend.duplicate_detection import router as duplicate_router
+from backend.debris_density import router as density_router
+from backend.sonar_quality import router as quality_router
 from backend.visualization.routes.viz_routes import router as viz_router
 
 api_router = APIRouter(prefix="/api/v2")

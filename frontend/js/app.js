@@ -2728,7 +2728,7 @@ class DashboardApp {
 
     let detections = (this.targets && this.targets.length > 0)
       ? this.targets
-      : ((res.detections && res.detections.length > 0) ? res.detections : DEFAULT_REPORT_TARGETS);
+      : (res.detections || []);
 
     try {
       if (this.waterfall && this.waterfall.rawImage && this.waterfall.rawImage.complete && this.waterfall.rawImage.naturalWidth > 0) {
@@ -2797,6 +2797,11 @@ class DashboardApp {
             y1 = bbox.y1 * natH;
             x2 = bbox.x2 * natW;
             y2 = bbox.y2 * natH;
+          } else if (t.bbox) {
+            x1 = t.bbox.x1;
+            y1 = t.bbox.y1;
+            x2 = t.bbox.x2;
+            y2 = t.bbox.y2;
           } else if (t.pixel_bbox) {
             const sx = natW / (t.image_width || natW);
             const sy = natH / (t.image_height || natH);
@@ -2887,6 +2892,11 @@ class DashboardApp {
     const rawBaseImg = (this.waterfall && this.waterfall.rawImage && this.waterfall.rawImage.complete && this.waterfall.rawImage.naturalWidth > 0) ? this.waterfall.rawImage : null;
     const enhBaseImg = (this.waterfall && this.waterfall.enhancedImage && this.waterfall.enhancedImage.complete && this.waterfall.enhancedImage.naturalWidth > 0) ? this.waterfall.enhancedImage : rawBaseImg;
 
+    const rawUrl = rawCanvasDataUrl || resolveReportImgUrl(res.raw_image_url, 'assets/samples/SURVEY_54434B1B_raw.png');
+    const enhancedUrl = enhancedCanvasDataUrl || resolveReportImgUrl(res.enhanced_image_url, 'assets/samples/SURVEY_54434B1B_enhanced.png');
+    const annotatedUrl = waterfallCanvasDataUrl || resolveReportImgUrl(res.annotated_image_url, 'assets/samples/SURVEY_54434B1B_annotated.png');
+
+
     detections.forEach((d, idx) => {
       const imo = this.getOrComputeImoRisk(d, idx);
 
@@ -2938,7 +2948,19 @@ class DashboardApp {
       const objId = d.object_id || d.target_id || `TGT_${String(idx + 1).padStart(3, '0')}`;
 
       // Bounding box strings
-      const nb = d.norm_bbox || { x1: 0.15 + (idx * 0.12), y1: 0.20 + (idx * 0.08), x2: 0.30 + (idx * 0.12), y2: 0.36 + (idx * 0.08) };
+      let nb;
+      if (d.norm_bbox) {
+          nb = d.norm_bbox;
+      } else if (d.bbox) {
+          nb = {
+              x1: d.bbox.x1 / (natImgW || 640),
+              y1: d.bbox.y1 / (natImgH || 640),
+              x2: d.bbox.x2 / (natImgW || 640),
+              y2: d.bbox.y2 / (natImgH || 640)
+          };
+      } else {
+          nb = { x1: 0.15 + (idx * 0.12), y1: 0.20 + (idx * 0.08), x2: 0.30 + (idx * 0.12), y2: 0.36 + (idx * 0.08) };
+      }
       const pb = d.pixel_bbox || {
         x1: Math.round(nb.x1 * natImgW),
         y1: Math.round(nb.y1 * natImgH),
@@ -3126,11 +3148,8 @@ class DashboardApp {
               <b>${hazardScore}/100</b> (${hazardLevel})
             </span>
           </td>
-          <td><span class="mono" style="font-size:0.72rem; color:#334155;">${bboxStr}</span></td>
-          <td><span class="mono" style="font-size:0.72rem; color:#334155;">${segStr}</span></td>
-          <td><span class="mono" style="color:#1e293b; font-weight:600; font-size:0.72rem;">${geoText}</span></td>
-          <td><span style="color:#0284c7; font-weight:600; font-size:0.72rem;">${swathSide} (${slantRange})</span></td>
           <td><span style="color:${vStatus === 'CONFIRMED' ? '#059669' : '#d97706'}; font-weight:800; font-size:0.72rem;">${vStatus}</span></td>
+          <td><span class="mono" style="color:#1e293b; font-weight:600; font-size:0.72rem;">${geoText}</span></td>
         </tr>
       `;
 

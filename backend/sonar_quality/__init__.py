@@ -1,1 +1,0 @@
-"""sonar_quality package."""

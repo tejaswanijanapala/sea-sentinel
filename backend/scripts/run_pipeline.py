@@ -90,8 +90,8 @@ def run(args):
         print(f"      Session ID:     {session_id}")
         print(f"      Georeferencing: Case {georef}")
         print(f"      Latency:        {duration:.1f} ms")
-        print(f"      Candidates:     {stats['total_candidates']} (Confirmed: {stats['confirmed_debris']}, Suspicious: {stats['suspicious_anomaly']}, Rejected: {stats['noise_rejected']})")
-        print(f"      High Risk:      {stats['high_risk_count']}")
+        print(f"      Candidates:     {stats.get('total_candidates', 0)} (Confirmed: {stats.get('confirmed_debris', 0)}, Suspicious: {stats.get('suspicious_anomaly', 0)}, Rejected: {stats.get('noise_rejected', 0)})")
+        print(f"      High Risk:      {stats.get('high_risk_count', 0)}")
 
         # Display target table
         if result["detections"]:

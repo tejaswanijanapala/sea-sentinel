@@ -3,7 +3,7 @@ Sea Sentinel: Adaptive Learning & Error Prevention Package
 Redirects to backend.review_intelligence module.
 """
 
-from backend.review_intelligence import (
+from review_intelligence import (
     ReviewIntelligenceEngine,
     StructuredErrorRecord,
     ErrorMemoryEngine,
