@@ -2728,7 +2728,7 @@ class DashboardApp {
 
     let detections = (this.targets && this.targets.length > 0)
       ? this.targets
-      : ((res.detections && res.detections.length > 0) ? res.detections : DEFAULT_REPORT_TARGETS);
+      : (res.detections || []);
 
     try {
       if (this.waterfall && this.waterfall.rawImage && this.waterfall.rawImage.complete && this.waterfall.rawImage.naturalWidth > 0) {

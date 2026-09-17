@@ -647,27 +647,7 @@ class SeaSentinelAPI {
             }
           });
 
-          // Fallback realistic seeds if image has very low natural acoustic variance
-          if (clusters.length === 0) {
-            const hash = filename.split("").reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) % 100000, 42);
-            const count = 3 + (hash % 3);
-            for (let i = 0; i < count; i++) {
-              const isPort = (i % 2 === 0);
-              const seedX = isPort ? (0.12 + ((hash * (i + 1) * 7) % 30) / 100) : (0.58 + ((hash * (i + 1) * 7) % 30) / 100);
-              const seedY = 0.15 + ((hash * (i + 1) * 17) % 65) / 100;
-              const bw = 0.07 + ((hash * (i + 2)) % 8) / 100;
-              const bh = 0.06 + ((hash * (i + 3)) % 7) / 100;
-              clusters.push({
-                minX: Math.max(0.03, seedX),
-                minY: Math.max(0.05, seedY),
-                maxX: Math.min(0.97, seedX + bw),
-                maxY: Math.min(0.95, seedY + bh),
-                normX: seedX + bw / 2,
-                normY: seedY + bh / 2,
-                maxContrast: 0.45 + (i * 0.1)
-              });
-            }
-          }
+          // Removed fallback seeds to prevent generating fake targets when no clusters are found.
 
           // Build dynamic detections matching this exact input image
           const targetTaxonomies = [
@@ -720,21 +700,17 @@ class SeaSentinelAPI {
               y2: Math.round(norm_bbox.y2 * targetH)
             };
 
-            // Dynamic 8-vertex polygon contour STRICTLY BOUNDED inside the bounding box
+            // Dynamic 4-vertex polygon contour matching the bounding box
             const bx1 = norm_bbox.x1;
             const by1 = norm_bbox.y1;
             const bWidth = norm_bbox.x2 - norm_bbox.x1;
             const bHeight = norm_bbox.y2 - norm_bbox.y1;
 
             const norm_polygon = [
-              [Math.round((bx1 + bWidth * 0.18) * 1000) / 1000, Math.round((by1 + bHeight * 0.06) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.72) * 1000) / 1000, Math.round((by1 + bHeight * 0.08) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.96) * 1000) / 1000, Math.round((by1 + bHeight * 0.38) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.90) * 1000) / 1000, Math.round((by1 + bHeight * 0.82) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.58) * 1000) / 1000, Math.round((by1 + bHeight * 0.96) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.20) * 1000) / 1000, Math.round((by1 + bHeight * 0.92) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.04) * 1000) / 1000, Math.round((by1 + bHeight * 0.62) * 1000) / 1000],
-              [Math.round((bx1 + bWidth * 0.06) * 1000) / 1000, Math.round((by1 + bHeight * 0.25) * 1000) / 1000]
+              [bx1, by1],
+              [bx1 + bWidth, by1],
+              [bx1 + bWidth, by1 + bHeight],
+              [bx1, by1 + bHeight]
             ];
 
             const polygon = norm_polygon.map(pt => [
