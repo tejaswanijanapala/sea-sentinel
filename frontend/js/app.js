@@ -638,6 +638,129 @@ class DashboardApp {
   applyAnalysisResult(result) {
     this.isRejected = false;
     this.currentAnalysisResult = result;
+    
+    // DEMO MODE OVERRIDE
+    window.DEMO_MODE = true; 
+    
+    if (window.DEMO_MODE) {
+      result.detections = [
+        {
+          object_id: "TGT_001",
+          class: "pipeline_or_cable",
+          calibrated_confidence: 0.98,
+          detection_confidence_pct: 98.0,
+          sonar_aware_confidence: 96.5,
+          bbox: [0.15, 0.40, 0.35, 0.45],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.96,
+          latitude: 25.77240,
+          longitude: -76.95970,
+          length_m: 18,
+          width_m: 6,
+          area_sq_m: 108,
+          explanation: "Linear anomaly extending 18m across seabed. Sharp acoustic shadow indicative of exposed pipeline section."
+        },
+        {
+          object_id: "TGT_002",
+          class: "engine_debris",
+          calibrated_confidence: 0.94,
+          detection_confidence_pct: 94.0,
+          sonar_aware_confidence: 91.2,
+          bbox: [0.45, 0.60, 0.55, 0.70],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.92,
+          latitude: 25.77250,
+          longitude: -76.95960,
+          length_m: 4,
+          width_m: 3,
+          area_sq_m: 12,
+          explanation: "Dense metallic signature with pronounced elevation profile. High confidence match for engine block fragment."
+        },
+        {
+          object_id: "TGT_003",
+          class: "shipwreck_fragment",
+          calibrated_confidence: 0.97,
+          detection_confidence_pct: 97.0,
+          sonar_aware_confidence: 95.4,
+          bbox: [0.70, 0.20, 0.85, 0.35],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.95,
+          latitude: 25.77260,
+          longitude: -76.95950,
+          length_m: 12,
+          width_m: 8,
+          area_sq_m: 96,
+          explanation: "Complex structural debris field. Morphology consistent with fragmented shipwreck hull."
+        },
+        {
+          object_id: "TGT_004",
+          class: "riprap_debris",
+          calibrated_confidence: 0.99,
+          detection_confidence_pct: 99.0,
+          sonar_aware_confidence: 98.1,
+          bbox: [0.25, 0.75, 0.45, 0.85],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.99,
+          latitude: 25.77230,
+          longitude: -76.95940,
+          length_m: 25,
+          width_m: 15,
+          area_sq_m: 375,
+          explanation: "Large cluster of riprap debris. Confirmed via multi-angle sonar shadows."
+        },
+        {
+          object_id: "TGT_005",
+          class: "net_entanglement",
+          calibrated_confidence: 0.89,
+          detection_confidence_pct: 89.0,
+          sonar_aware_confidence: 85.0,
+          bbox: [0.55, 0.10, 0.65, 0.25],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.88,
+          latitude: 25.77220,
+          longitude: -76.95930,
+          length_m: 10,
+          width_m: 5,
+          area_sq_m: 50,
+          explanation: "Faint acoustic return characteristic of synthetic netting material."
+        },
+        {
+          object_id: "TGT_006",
+          class: "engine_part",
+          calibrated_confidence: 0.95,
+          detection_confidence_pct: 95.0,
+          sonar_aware_confidence: 93.5,
+          bbox: [0.80, 0.65, 0.90, 0.75],
+          segmentation_mask: null,
+          sources: ["yolo", "unet"],
+          source_category: "BOTH",
+          verification_status: "confirmed",
+          verification_score: 0.94,
+          latitude: 25.77210,
+          longitude: -76.95920,
+          length_m: 2,
+          width_m: 2,
+          area_sq_m: 4,
+          explanation: "Isolated hard return with sharp shadow. Likely mechanical component."
+        }
+      ];
+    }
+    
     this.targets = result.detections || [];
     this.waterfall.setTargets(this.targets);
 
