@@ -3165,39 +3165,6 @@ class DashboardApp {
             </div>
           </div>
 
-          <!-- 3-Image Target-Specific ROI Inspection Suite -->
-          <div class="report-dossier-img-strip">
-            <div class="report-dossier-img-card">
-              <div class="report-dossier-img-header">
-                <span><i class="fa-solid fa-crosshairs"></i> TARGET RAW SCAN</span>
-                <span class="badge-pill" style="background:#e2e8f0; color:#475569; font-size:0.65rem;">Input ROI</span>
-              </div>
-              <div class="report-dossier-img-box">
-                <img src="${rawCropSrc}" alt="Target Raw Acoustic Input" />
-              </div>
-            </div>
-
-            <div class="report-dossier-img-card">
-              <div class="report-dossier-img-header">
-                <span style="color:#059669;"><i class="fa-solid fa-vector-square"></i> YOLOv11 DETECTION</span>
-                <span class="badge-pill" style="background:rgba(16,185,129,0.15); color:#059669; font-size:0.65rem;">BBox Output</span>
-              </div>
-              <div class="report-dossier-img-box">
-                <img src="${yoloCropSrc}" alt="Target YOLO Bounding Box" />
-              </div>
-            </div>
-
-            <div class="report-dossier-img-card">
-              <div class="report-dossier-img-header">
-                <span style="color:#0284c7;"><i class="fa-solid fa-draw-polygon"></i> U-NET SEGMENTATION</span>
-                <span class="badge-pill" style="background:rgba(2,132,199,0.15); color:#0284c7; font-size:0.65rem;">Mask Output</span>
-              </div>
-              <div class="report-dossier-img-box">
-                <img src="${unetCropSrc}" alt="Target U-Net Segmentation Mask" />
-              </div>
-            </div>
-          </div>
-
           <div style="font-size: 0.82rem; color: #334155; line-height: 1.5; margin-top: 6px;">
             ${explainText}
           </div>
@@ -3219,18 +3186,7 @@ class DashboardApp {
               <span class="report-metric-lbl">IMO HAZARD SEVERITY</span>
               <span class="report-metric-val" style="color:#e11d48; font-weight:800;">${hazardScore}/100 (${hazardLevel})</span>
             </div>
-            <div class="report-metric-pill">
-              <span class="report-metric-lbl">BOUNDING BOX (NORM)</span>
-              <span class="report-metric-val" style="color:#1e293b; font-size:0.70rem;">[${nb.x1.toFixed(3)}, ${nb.y1.toFixed(3)}, ${nb.x2.toFixed(3)}, ${nb.y2.toFixed(3)}]</span>
-            </div>
-            <div class="report-metric-pill">
-              <span class="report-metric-lbl">BOUNDING BOX (PIXEL)</span>
-              <span class="report-metric-val" style="color:#1e293b; font-size:0.70rem;">${pb.x1}×${pb.y1} to ${pb.x2}×${pb.y2} (${bwPx}×${bhPx}px)</span>
-            </div>
-            <div class="report-metric-pill">
-              <span class="report-metric-lbl">SEGMENTATION EXTENT</span>
-              <span class="report-metric-val" style="color:#1e293b; font-size:0.70rem;">${polyCount} Vertices · ${lenM}m × ${widM}m (${areaM.toLocaleString()} m²)</span>
-            </div>
+
             <div class="report-metric-pill">
               <span class="report-metric-lbl">WGS84 GEOLOCATION</span>
               <span class="report-metric-val" style="color:#0284c7; font-size:0.70rem; font-weight:600;">${geoText}</span>
@@ -3343,11 +3299,8 @@ class DashboardApp {
               <th>AI Confidence</th>
               <th>Sonar-Aware Conf</th>
               <th>Hazard Risk</th>
-              <th>Bounding Box (Norm / Px)</th>
-              <th>Segmentation</th>
-              <th>WGS84 Coordinates</th>
-              <th>Location & Swath</th>
               <th>Acoustic Status</th>
+              <th>WGS84 Coordinates</th>
             </tr>
           </thead>
           <tbody>
