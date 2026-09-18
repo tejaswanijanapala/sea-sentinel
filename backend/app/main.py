@@ -1634,15 +1634,24 @@ def register_gis_survey(
             prio_lvl = "CRITICAL" if prio_score >= 80.0 else ("HIGH" if prio_score >= 75.0 else ("MODERATE" if prio_score >= 40.0 else "LOW"))
             hazard_lvl = "CRITICAL" if hazard_score >= 80.0 else ("HIGH" if hazard_score >= 75.0 else ("MODERATE" if hazard_score >= 40.0 else "LOW"))
 
-            d["hazard_score"] = hazard_score
-            d["hazard_risk"] = hazard_score
-            d["hazard_level"] = hazard_lvl
-            d["hazard_risk_level"] = hazard_lvl
-            d["priority_score"] = prio_score
-            d["risk_priority_score"] = prio_score
-            d["priority_level"] = prio_lvl
-            d["risk_score"] = prio_score
-            d["risk_level"] = risk_res.risk_level.lower()
+            if "hazard_score" not in d:
+                d["hazard_score"] = hazard_score
+            if "hazard_risk" not in d:
+                d["hazard_risk"] = hazard_score
+            if "hazard_level" not in d:
+                d["hazard_level"] = hazard_lvl
+            if "hazard_risk_level" not in d:
+                d["hazard_risk_level"] = hazard_lvl
+            if "priority_score" not in d:
+                d["priority_score"] = prio_score
+            if "risk_priority_score" not in d:
+                d["risk_priority_score"] = prio_score
+            if "priority_level" not in d:
+                d["priority_level"] = prio_lvl
+            if "risk_score" not in d:
+                d["risk_score"] = prio_score
+            if "risk_level" not in d:
+                d["risk_level"] = risk_res.risk_level.lower()
             d["navigation_risk"] = risk_res.navigation_risk
             d["ecological_risk"] = risk_res.ecological_risk
             d["operational_economic_risk"] = risk_res.operational_economic_risk
