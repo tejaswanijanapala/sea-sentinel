@@ -9,6 +9,10 @@ import os
 import time
 import torch
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 class HardwareDetector:
@@ -135,14 +139,14 @@ def warmup_ai_models(agent_instance: Any) -> Dict[str, Any]:
             agent_instance.detector.detect(dummy_img)
             warmup_status["yolo"] = True
     except Exception as e:
-        print(f"[Warmup] YOLO warmup note: {e}")
+        logger.info(f"[Warmup] YOLO warmup note: {e}")
 
     try:
         if hasattr(agent_instance, "segmenter") and agent_instance.segmenter.is_model_loaded:
             agent_instance.segmenter.segment_roi(dummy_img[200:300, 200:300])
             warmup_status["unet"] = True
     except Exception as e:
-        print(f"[Warmup] U-Net warmup note: {e}")
+        logger.info(f"[Warmup] U-Net warmup note: {e}")
 
     warmup_status["duration_ms"] = round((time.perf_counter() - t0) * 1000, 2)
     return warmup_status

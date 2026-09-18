@@ -23,6 +23,10 @@ from backend.database.local_db import LocalDatabase
 from backend.duplicate_detection import TargetMatchingService
 from backend.ai.geospatial.clustering_service import ClusteringService
 import tempfile
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def run_target_matcher_tests():
@@ -68,7 +72,7 @@ def run_target_matcher_tests():
 
     targets = db.get_all_targets()
     assert len(targets) == 2, f"Expected 2 targets, got {len(targets)}"
-    print("  [PASS] test_duplicate_target_merging")
+    logger.info("  [PASS] test_duplicate_target_merging")
 
 
 def run_clustering_tests():
@@ -88,7 +92,7 @@ def run_clustering_tests():
     assert clusters[0]["target_count"] == 3
     t4 = db.get_target_by_id("SS-0004")
     assert t4["cluster_id"] is None
-    print("  [PASS] test_dbscan_clustering")
+    logger.info("  [PASS] test_dbscan_clustering")
 
 
 def run_api_tests():
@@ -102,7 +106,7 @@ def run_api_tests():
     d = res.json()
     assert d["status"] == "success"
     assert d["offline_ready"] is True
-    print("  [PASS] test_gis_map_data_endpoint")
+    logger.info("  [PASS] test_gis_map_data_endpoint")
 
     # 2. Target review endpoint
     t_id = local_gis_db.insert_or_update_target({
@@ -120,37 +124,37 @@ def run_api_tests():
     })
     assert r_res.status_code == 200
     assert r_res.json()["target"]["verification_status"] == "VERIFIED"
-    print("  [PASS] test_gis_target_review_and_persistence")
+    logger.info("  [PASS] test_gis_target_review_and_persistence")
 
     # 3. Export endpoint
     exp_res = client.get("/api/gis/export?format=geojson&layer=all")
     assert exp_res.status_code == 200
     assert exp_res.json()["type"] == "FeatureCollection"
-    print("  [PASS] test_gis_export_endpoint")
+    logger.info("  [PASS] test_gis_export_endpoint")
 
 
 if __name__ == "__main__":
-    print("================================================================")
-    print(" SEA SENTINEL OFFLINE GIS & GEOSPATIAL INTELLIGENCE TEST SUITE ")
-    print("================================================================")
+    logger.info("================================================================")
+    logger.info(" SEA SENTINEL OFFLINE GIS & GEOSPATIAL INTELLIGENCE TEST SUITE ")
+    logger.info("================================================================")
 
-    print("\n[1/4] Running Georeferencing Tests...")
+    logger.info("\n[1/4] Running Georeferencing Tests...")
     test_coordinate_utilities_geodesic_distance_and_bearing()
-    print("  [PASS] test_coordinate_utilities_geodesic_distance_and_bearing")
+    logger.info("  [PASS] test_coordinate_utilities_geodesic_distance_and_bearing")
     test_slant_to_ground_range_georeferencing()
-    print("  [PASS] test_slant_to_ground_range_georeferencing")
+    logger.info("  [PASS] test_slant_to_ground_range_georeferencing")
     test_unreferenced_georeferencing_strictly_no_fake_gps()
-    print("  [PASS] test_unreferenced_georeferencing_strictly_no_fake_gps")
+    logger.info("  [PASS] test_unreferenced_georeferencing_strictly_no_fake_gps")
 
-    print("\n[2/4] Running Duplicate Matching & Deduplication Tests...")
+    logger.info("\n[2/4] Running Duplicate Matching & Deduplication Tests...")
     run_target_matcher_tests()
 
-    print("\n[3/4] Running DBSCAN Spatial Clustering Tests...")
+    logger.info("\n[3/4] Running DBSCAN Spatial Clustering Tests...")
     run_clustering_tests()
 
-    print("\n[4/4] Running FastAPI Endpoints & Persistence Tests...")
+    logger.info("\n[4/4] Running FastAPI Endpoints & Persistence Tests...")
     run_api_tests()
 
-    print("\n================================================================")
-    print(" ALL 8 TEST SUITES PASSED (100% SUCCESSFUL) ")
-    print("================================================================")
+    logger.info("\n================================================================")
+    logger.info(" ALL 8 TEST SUITES PASSED (100% SUCCESSFUL) ")
+    logger.info("================================================================")

@@ -26,6 +26,10 @@ if PROJECT_ROOT not in sys.path:
 from ai.segmentation.unet_segmenter import UNetSegmenter
 from ai.segmentation.dataset import SonarSegmentationDataset
 from ai.segmentation.losses import compute_pixel_metrics
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -43,9 +47,9 @@ def parse_args():
 
 def evaluate(args):
     os.makedirs(args.output_dir, exist_ok=True)
-    print("=" * 70)
-    print("STAGE 4: U-NET SEGMENTATION EVALUATION")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 4: U-NET SEGMENTATION EVALUATION")
+    logger.info("=" * 70)
 
     # 1. Initialize Segmenter
     segmenter = UNetSegmenter(
@@ -55,8 +59,8 @@ def evaluate(args):
     )
 
     if not segmenter.is_model_loaded:
-        print("[NOTICE] No trained checkpoint loaded or model unavailable.")
-        print("To evaluate, provide a valid checkpoint with --checkpoint <path>.")
+        logger.info("[NOTICE] No trained checkpoint loaded or model unavailable.")
+        logger.info("To evaluate, provide a valid checkpoint with --checkpoint <path>.")
         status_report = {
             "status": "model_unavailable",
             "message": "Evaluation requires trained U-Net checkpoint. Real segmentation masks required for training in Stage 4.",
@@ -65,7 +69,7 @@ def evaluate(args):
         report_path = os.path.join(args.output_dir, "evaluation_summary.json")
         with open(report_path, "w") as f:
             json.dump(status_report, f, indent=2)
-        print(f"Status written to {report_path}")
+        logger.info(f"Status written to {report_path}")
         return status_report
 
     # 2. Gather Test Samples
@@ -76,7 +80,7 @@ def evaluate(args):
         if os.path.exists(demo_dir):
             test_dir = demo_dir
         else:
-            print(f"[ERROR] Test directory {test_dir} not found.")
+            logger.error(f"[ERROR] Test directory {test_dir} not found.")
             return
 
     img_dir = os.path.join(test_dir, "demo_images") if os.path.exists(os.path.join(test_dir, "demo_images")) else test_dir
@@ -86,10 +90,10 @@ def evaluate(args):
     mask_files = sorted([os.path.join(mask_dir, f) for f in os.listdir(mask_dir) if f.lower().endswith((".png", ".jpg", ".tif"))])
 
     if not image_files:
-        print("[ERROR] No test images found.")
+        logger.error("[ERROR] No test images found.")
         return
 
-    print(f"Evaluating {len(image_files)} test images on model: '{args.model}'...")
+    logger.info(f"Evaluating {len(image_files)} test images on model: '{args.model}'...")
 
     metrics_list = []
     visualizations = []
@@ -146,14 +150,14 @@ def evaluate(args):
             "mean_accuracy": round(mean_acc, 4)
         }
 
-        print("\n" + "-" * 40)
-        print("EVALUATION RESULTS:")
-        print(f"  Mean IoU:       {mean_iou:.4f}")
-        print(f"  Mean Dice (F1): {mean_dice:.4f}")
-        print(f"  Mean Precision: {mean_prec:.4f}")
-        print(f"  Mean Recall:    {mean_rec:.4f}")
-        print(f"  Pixel Accuracy: {mean_acc:.4f}")
-        print("-" * 40)
+        logger.info("\n" + "-" * 40)
+        logger.info("EVALUATION RESULTS:")
+        logger.info(f"  Mean IoU:       {mean_iou:.4f}")
+        logger.info(f"  Mean Dice (F1): {mean_dice:.4f}")
+        logger.info(f"  Mean Precision: {mean_prec:.4f}")
+        logger.info(f"  Mean Recall:    {mean_rec:.4f}")
+        logger.info(f"  Pixel Accuracy: {mean_acc:.4f}")
+        logger.info("-" * 40)
 
         # Plot visualizations
         if visualizations:
@@ -180,15 +184,15 @@ def evaluate(args):
             plt.savefig(plot_path, dpi=200, bbox_inches="tight")
             plt.close()
             summary["visualization_plot"] = plot_path
-            print(f"Visualization saved to: {plot_path}")
+            logger.info(f"Visualization saved to: {plot_path}")
 
         out_json = os.path.join(args.output_dir, "evaluation_metrics.json")
         with open(out_json, "w") as f:
             json.dump(summary, f, indent=2)
-        print(f"Metrics saved to: {out_json}")
+        logger.info(f"Metrics saved to: {out_json}")
         return summary
     else:
-        print("[WARNING] No ground truth pairs were found to compute comparative metrics.")
+        logger.warning("[WARNING] No ground truth pairs were found to compute comparative metrics.")
         return None
 
 

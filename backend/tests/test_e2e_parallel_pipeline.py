@@ -16,6 +16,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from agent.orchestrator import SIHPipelineAgent
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_e2e_pipeline_on_sample():
@@ -23,7 +27,7 @@ def test_e2e_pipeline_on_sample():
     sample_path = os.path.join(PROJECT_ROOT, "datasets", "samples", "china_offshore_quanzhou_net.jpg")
     
     if not os.path.exists(sample_path):
-        print(f"Sample image {sample_path} not found; skipping test.")
+        logger.info(f"Sample image {sample_path} not found; skipping test.")
         return
 
     result = agent.analyze_image(sample_path)
@@ -50,7 +54,7 @@ def test_e2e_pipeline_geotiff():
     geotiff_path = os.path.join(PROJECT_ROOT, "datasets", "samples", "noaa_h11584_gulf_sample.tif")
     
     if not os.path.exists(geotiff_path):
-        print(f"GeoTIFF sample {geotiff_path} not found; skipping test.")
+        logger.info(f"GeoTIFF sample {geotiff_path} not found; skipping test.")
         return
 
     result = agent.analyze_image(geotiff_path)
@@ -63,4 +67,4 @@ def test_e2e_pipeline_geotiff():
 if __name__ == "__main__":
     test_e2e_pipeline_on_sample()
     test_e2e_pipeline_geotiff()
-    print("All End-to-End Parallel Pipeline tests passed successfully!")
+    logger.info("All End-to-End Parallel Pipeline tests passed successfully!")

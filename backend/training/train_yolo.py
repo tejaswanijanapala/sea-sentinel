@@ -7,6 +7,10 @@ import os
 import argparse
 import yaml
 from pathlib import Path
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
@@ -93,40 +97,40 @@ def main():
     parser.add_argument("--output-dir", type=str, default="models/checkpoints", help="Directory to save weights")
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("SIH26057 — YOLOv11 TRANSFER-LEARNING TRAINING PIPELINE")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("SIH26057 — YOLOv11 TRANSFER-LEARNING TRAINING PIPELINE")
+    logger.info("=" * 70)
 
     data_path = os.path.abspath(os.path.join(PROJECT_ROOT, args.data))
-    print(f"\n[1/3] Verifying Dataset Configuration: {data_path}")
+    logger.info(f"\n[1/3] Verifying Dataset Configuration: {data_path}")
     val_report = validate_dataset_compatibility(data_path)
 
-    print(f"  Validation Status: {'PASSED' if val_report['valid'] else 'FAILED'}")
-    print(f"  Classes registered: {val_report['classes']}")
-    print(f"  Training images: {val_report['train_images']}")
-    print(f"  Validation images: {val_report['val_images']}")
+    logger.error(f"  Validation Status: {'PASSED' if val_report['valid'] else 'FAILED'}")
+    logger.info(f"  Classes registered: {val_report['classes']}")
+    logger.info(f"  Training images: {val_report['train_images']}")
+    logger.info(f"  Validation images: {val_report['val_images']}")
 
     if val_report["errors"]:
-        print("\nERRORS DETECTED:")
+        logger.error("\nERRORS DETECTED:")
         for err in val_report["errors"]:
-            print(f"  - {err}")
+            logger.info(f"  - {err}")
         sys.exit(1)
 
     if val_report["warnings"]:
-        print("\nWARNINGS:")
+        logger.warning("\nWARNINGS:")
         for w in val_report["warnings"][:5]:
-            print(f"  - {w}")
+            logger.info(f"  - {w}")
 
     if args.dry_run:
-        print("\n[DRY RUN COMPLETED]: Dataset and annotations are 100% compatible for YOLO training.")
+        logger.info("\n[DRY RUN COMPLETED]: Dataset and annotations are 100% compatible for YOLO training.")
         return
 
     # If training explicitly requested
-    print(f"\n[2/3] Initializing Ultralytics YOLO with base: {args.model}")
+    logger.info(f"\n[2/3] Initializing Ultralytics YOLO with base: {args.model}")
     from ultralytics import YOLO
     model = YOLO(args.model)
 
-    print(f"\n[3/3] Starting Training (epochs={args.epochs}, batch={args.batch}, device={args.device})...")
+    logger.info(f"\n[3/3] Starting Training (epochs={args.epochs}, batch={args.batch}, device={args.device})...")
     results = model.train(
         data=data_path,
         epochs=args.epochs,
@@ -138,8 +142,8 @@ def main():
         exist_ok=True,
         verbose=True
     )
-    print("\nTraining completed successfully!")
-    print(f"Checkpoints saved to {args.output_dir}/sih57_yolo_run/weights/")
+    logger.info("\nTraining completed successfully!")
+    logger.info(f"Checkpoints saved to {args.output_dir}/sih57_yolo_run/weights/")
 
 if __name__ == "__main__":
     from typing import Dict, Any

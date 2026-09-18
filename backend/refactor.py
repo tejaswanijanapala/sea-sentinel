@@ -1,6 +1,10 @@
 import os
 import re
 import shutil
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 MODULES = [
     "debris_density",
@@ -17,7 +21,7 @@ def consolidate_modules(base_dir):
     for mod in MODULES:
         mod_dir = os.path.join(base_dir, mod)
         if not os.path.isdir(mod_dir):
-            print(f"Skipping {mod}, directory not found.")
+            logger.info(f"Skipping {mod}, directory not found.")
             continue
             
         consolidated_content = f"\"\"\"{mod} module (consolidated)\"\"\"\n\n"
@@ -45,7 +49,7 @@ def consolidate_modules(base_dir):
         out_file = os.path.join(base_dir, f"{mod}.py")
         with open(out_file, 'w', encoding='utf-8') as f:
             f.write(consolidated_content)
-        print(f"Consolidated {mod} into {mod}.py")
+        logger.info(f"Consolidated {mod} into {mod}.py")
 
 def update_global_imports(base_dir):
     for root, _, files in os.walk(base_dir):
@@ -72,21 +76,21 @@ def update_global_imports(base_dir):
                 if content != original_content:
                     with open(filepath, 'w', encoding='utf-8') as file:
                         file.write(content)
-                    print(f"Updated imports in {os.path.relpath(filepath, base_dir)}")
+                    logger.info(f"Updated imports in {os.path.relpath(filepath, base_dir)}")
 
 def delete_old_dirs(base_dir):
     for mod in MODULES:
         mod_dir = os.path.join(base_dir, mod)
         if os.path.isdir(mod_dir):
             shutil.rmtree(mod_dir)
-            print(f"Deleted old directory {mod}")
+            logger.info(f"Deleted old directory {mod}")
 
 if __name__ == "__main__":
     base_dir = os.path.abspath(os.path.dirname(__file__))
-    print("Starting consolidation...")
+    logger.info("Starting consolidation...")
     consolidate_modules(base_dir)
-    print("\nUpdating imports...")
+    logger.info("\nUpdating imports...")
     update_global_imports(base_dir)
-    print("\nDeleting old directories...")
+    logger.info("\nDeleting old directories...")
     delete_old_dirs(base_dir)
-    print("\nDone.")
+    logger.info("\nDone.")

@@ -26,6 +26,10 @@ from ai.anomaly_detection.autoencoder import AnomalyDetector
 from ai.anomaly_detection.shadow_verifier import AcousticShadowVerifier
 from ai.anomaly_detection.rock_cluster_filter import DBSCANRockFilter
 from ai.anomaly_detection.calibrator import ConfidenceCalibrator
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_autoencoder_architecture():
@@ -176,17 +180,17 @@ def test_anomaly_detector_contract():
 
 
 if __name__ == "__main__":
-    print("Running Stage 5 Unit Tests...")
+    logger.info("Running Stage 5 Unit Tests...")
     test_autoencoder_architecture()
-    print("  [PASSED] test_autoencoder_architecture")
+    logger.info("  [PASSED] test_autoencoder_architecture")
     test_algorithms_1_to_9_pipeline()
-    print("  [PASSED] test_algorithms_1_to_9_pipeline")
+    logger.info("  [PASSED] test_algorithms_1_to_9_pipeline")
     test_acoustic_shadow_verifier()
-    print("  [PASSED] test_acoustic_shadow_verifier")
+    logger.info("  [PASSED] test_acoustic_shadow_verifier")
     test_dbscan_rock_filter()
-    print("  [PASSED] test_dbscan_rock_filter")
+    logger.info("  [PASSED] test_dbscan_rock_filter")
     test_confidence_calibrator()
-    print("  [PASSED] test_confidence_calibrator")
+    logger.info("  [PASSED] test_confidence_calibrator")
     test_anomaly_detector_contract()
-    print("  [PASSED] test_anomaly_detector_contract")
-    print("All Stage 5 unit tests executed successfully!")
+    logger.info("  [PASSED] test_anomaly_detector_contract")
+    logger.info("All Stage 5 unit tests executed successfully!")

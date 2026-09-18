@@ -17,6 +17,10 @@ if PROJECT_ROOT not in sys.path:
 
 from inference.tiled_inference import TiledInferenceEngine
 from inference.multiframe import MultiFrameTracker
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_tiled_inference_and_mapping():
@@ -69,4 +73,4 @@ def test_multiframe_association():
 if __name__ == "__main__":
     test_tiled_inference_and_mapping()
     test_multiframe_association()
-    print("All Tiled and Multi-Frame unit tests passed successfully!")
+    logger.info("All Tiled and Multi-Frame unit tests passed successfully!")

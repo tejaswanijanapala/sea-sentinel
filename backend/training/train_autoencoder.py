@@ -22,6 +22,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from ai.anomaly_detection.models import AcousticAutoencoder
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 class NormalSeabedDataset(Dataset):
@@ -82,19 +86,19 @@ def parse_args():
 
 
 def run_dry_run(args, device):
-    print("=" * 70)
-    print("STAGE 5: AUTOENCODER ANOMALY DETECTION DRY RUN")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 5: AUTOENCODER ANOMALY DETECTION DRY RUN")
+    logger.info("=" * 70)
 
     # 1. Architecture creation
-    print("\n[1/3] Instantiating AcousticAutoencoder Architecture...")
+    logger.info("\n[1/3] Instantiating AcousticAutoencoder Architecture...")
     model = AcousticAutoencoder(in_channels=1, latent_dim=args.latent_dim, base_channels=32)
     model.to(device)
     param_count = model.count_parameters()
-    print(f"      Trainable Parameters: {param_count:,}")
+    logger.info(f"      Trainable Parameters: {param_count:,}")
 
     # 2. Forward & Backward verification
-    print("\n[2/3] Verifying Tensor Gradient Flow (Algorithms 1-5)...")
+    logger.info("\n[2/3] Verifying Tensor Gradient Flow (Algorithms 1-5)...")
     dummy_x = torch.randn(2, 1, args.patch_size, args.patch_size, device=device)
     dummy_z = model.encode(dummy_x)
     assert dummy_z.shape == (2, args.latent_dim), f"Expected (2, {args.latent_dim}), got {dummy_z.shape}"
@@ -104,18 +108,18 @@ def run_dry_run(args, device):
     criterion = nn.MSELoss()
     loss = criterion(x_recon, dummy_x)
     loss.backward()
-    print(f"      Encoder bottleneck: {tuple(dummy_z.shape)} (Verified)")
-    print(f"      Reconstruction:     {tuple(x_recon.shape)} (Verified)")
-    print(f"      Backward gradient propagation: Complete without error.")
+    logger.info(f"      Encoder bottleneck: {tuple(dummy_z.shape)} (Verified)")
+    logger.info(f"      Reconstruction:     {tuple(x_recon.shape)} (Verified)")
+    logger.error(f"      Backward gradient propagation: Complete without error.")
 
     # 3. Baseline dataset audit
-    print("\n[3/3] Auditing Normal Seabed Baseline Dataset...")
+    logger.info("\n[3/3] Auditing Normal Seabed Baseline Dataset...")
     train_dir = os.path.join(args.data_dir, "train")
     val_dir = os.path.join(args.data_dir, "val")
     train_count = len(os.listdir(train_dir)) if os.path.exists(train_dir) else 0
     val_count = len(os.listdir(val_dir)) if os.path.exists(val_dir) else 0
-    print(f"      Baseline Train Chips: {train_count}")
-    print(f"      Baseline Val Chips:   {val_count}")
+    logger.info(f"      Baseline Train Chips: {train_count}")
+    logger.info(f"      Baseline Val Chips:   {val_count}")
 
     os.makedirs(args.output_dir, exist_ok=True)
     report_path = os.path.join(args.output_dir, "stage5_dry_run_report.json")
@@ -132,8 +136,8 @@ def run_dry_run(args, device):
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }, f, indent=2)
 
-    print(f"\n[DRY RUN COMPLETED]: Report saved to {report_path}")
-    print("=" * 70)
+    logger.info(f"\n[DRY RUN COMPLETED]: Report saved to {report_path}")
+    logger.info("=" * 70)
 
 
 def train(args):
@@ -142,7 +146,7 @@ def train(args):
     else:
         device = torch.device(args.device)
 
-    print(f"Using device: {device}")
+    logger.info(f"Using device: {device}")
 
     if args.dry_run:
         run_dry_run(args, device)
@@ -157,13 +161,13 @@ def train(args):
     val_ds = NormalSeabedDataset(val_dir, patch_size=args.patch_size, augment=False)
 
     if len(train_ds) == 0:
-        print(f"[ERROR] No training images found in {train_dir}")
+        logger.error(f"[ERROR] No training images found in {train_dir}")
         return
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=False)
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
-    print(f"Training on {len(train_ds)} normal seabed chips, validating on {len(val_ds)} chips...")
+    logger.info(f"Training on {len(train_ds)} normal seabed chips, validating on {len(val_ds)} chips...")
 
     model = AcousticAutoencoder(in_channels=1, latent_dim=args.latent_dim, base_channels=32)
     model.to(device)
@@ -208,7 +212,7 @@ def train(args):
                 val_errors.extend(per_sample_mse.tolist())
 
         val_loss = val_loss / max(1, len(val_ds))
-        print(f"Epoch [{epoch:02d}/{args.epochs:02d}] Train MSE: {train_loss:.6f} | Val MSE: {val_loss:.6f}")
+        logger.info(f"Epoch [{epoch:02d}/{args.epochs:02d}] Train MSE: {train_loss:.6f} | Val MSE: {val_loss:.6f}")
 
         history.append({
             "epoch": epoch,
@@ -225,12 +229,12 @@ def train(args):
     sigma = float(np.std(val_errors)) if val_errors else 0.005
     threshold_3sigma = float(mu + 3.0 * sigma)
 
-    print("\n" + "=" * 50)
-    print("BASELINE ANOMALY THRESHOLD CALIBRATION:")
-    print(f"  Normal Seabed Mean MSE (mu):    {mu:.6f}")
-    print(f"  Normal Seabed Std MSE (sigma):  {sigma:.6f}")
-    print(f"  Calibrated Threshold (mu + 3s): {threshold_3sigma:.6f}")
-    print("=" * 50)
+    logger.info("\n" + "=" * 50)
+    logger.info("BASELINE ANOMALY THRESHOLD CALIBRATION:")
+    logger.info(f"  Normal Seabed Mean MSE (mu):    {mu:.6f}")
+    logger.info(f"  Normal Seabed Std MSE (sigma):  {sigma:.6f}")
+    logger.info(f"  Calibrated Threshold (mu + 3s): {threshold_3sigma:.6f}")
+    logger.info("=" * 50)
 
     # Save Checkpoint
     checkpoint_path = os.path.join(args.output_dir, "baseline_autoencoder.pt")
@@ -259,8 +263,8 @@ def train(args):
             "history": history
         }, f, indent=2)
 
-    print(f"[TRAINING COMPLETE]: Saved model to {checkpoint_path}")
-    print(f"[THRESHOLD SAVED]: Saved baseline calibration to {meta_path}")
+    logger.info(f"[TRAINING COMPLETE]: Saved model to {checkpoint_path}")
+    logger.info(f"[THRESHOLD SAVED]: Saved baseline calibration to {meta_path}")
 
 
 if __name__ == "__main__":

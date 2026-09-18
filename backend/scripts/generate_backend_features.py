@@ -7,7 +7,7 @@ def write_py(path_str, content):
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
         f.write(content.strip() + "\n")
-    print(f"Wrote {path_str}")
+    logger.info(f"Wrote {path_str}")
 
 # ==============================================================================
 # 1. Backend Shared Config & Utils
@@ -881,5 +881,5 @@ api_router.include_router(quality_router)
 api_router.include_router(viz_router)
 """)
 
-print("All modular backend feature services, models, and routes successfully generated.")
+logger.info("All modular backend feature services, models, and routes successfully generated.")
 

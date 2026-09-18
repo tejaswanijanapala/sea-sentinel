@@ -8,6 +8,10 @@ import os
 import argparse
 import json
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
@@ -59,9 +63,9 @@ def main():
     parser.add_argument("--output-dir", type=str, default="outputs/evaluation", help="Output directory")
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("SIH26057 — YOLO DEBRIS DETECTION EVALUATION PIPELINE")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("SIH26057 — YOLO DEBRIS DETECTION EVALUATION PIPELINE")
+    logger.info("=" * 70)
 
     out_dir = os.path.abspath(os.path.join(PROJECT_ROOT, args.output_dir))
     os.makedirs(out_dir, exist_ok=True)
@@ -69,22 +73,22 @@ def main():
     classes = ["fishing_net", "pipeline_or_cable", "shipwreck_fragment", "engineering_platform", "riprap_debris"]
 
     if args.weights and os.path.exists(args.weights):
-        print(f"\n[1/2] Loading checkpoint: {args.weights}")
+        logger.info(f"\n[1/2] Loading checkpoint: {args.weights}")
         from ultralytics import YOLO
         model = YOLO(args.weights)
         data_path = os.path.abspath(os.path.join(PROJECT_ROOT, args.data))
-        print(f"[2/2] Running validation on {args.split} split...")
+        logger.info(f"[2/2] Running validation on {args.split} split...")
         metrics = model.val(data=data_path, split=args.split, project=out_dir, name="yolo_val", exist_ok=True)
-        print(f"\nEvaluation Results:")
-        print(f"  mAP@50: {metrics.box.map50:.4f}")
-        print(f"  mAP@50-95: {metrics.box.map:.4f}")
-        print(f"  Precision: {metrics.box.mp:.4f}")
-        print(f"  Recall: {metrics.box.mr:.4f}")
+        logger.info(f"\nEvaluation Results:")
+        logger.info(f"  mAP@50: {metrics.box.map50:.4f}")
+        logger.info(f"  mAP@50-95: {metrics.box.map:.4f}")
+        logger.info(f"  Precision: {metrics.box.mp:.4f}")
+        logger.info(f"  Recall: {metrics.box.mr:.4f}")
     else:
-        print("\n[INFO] No trained checkpoint specified or found. Generating benchmark evaluation template...")
+        logger.info("\n[INFO] No trained checkpoint specified or found. Generating benchmark evaluation template...")
         cm_path = os.path.join(out_dir, "confusion_matrix.png")
         compute_synthetic_confusion_matrix(classes, cm_path)
-        print(f"  Confusion matrix template generated: {cm_path}")
+        logger.info(f"  Confusion matrix template generated: {cm_path}")
 
         summary = {
             "model_status": "untrained_weights_pending",
@@ -100,11 +104,11 @@ def main():
         }
         with open(os.path.join(out_dir, "evaluation_summary.json"), "w") as f:
             json.dump(summary, f, indent=2)
-        print(f"  Evaluation summary saved: {os.path.join(out_dir, 'evaluation_summary.json')}")
+        logger.info(f"  Evaluation summary saved: {os.path.join(out_dir, 'evaluation_summary.json')}")
 
-    print("\n" + "=" * 70)
-    print("EVALUATION STAGE COMPLETED")
-    print("=" * 70)
+    logger.info("\n" + "=" * 70)
+    logger.info("EVALUATION STAGE COMPLETED")
+    logger.info("=" * 70)
 
 if __name__ == "__main__":
     main()

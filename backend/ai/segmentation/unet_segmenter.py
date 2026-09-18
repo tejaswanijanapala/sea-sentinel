@@ -15,6 +15,10 @@ import torch
 
 from ai.segmentation.models import build_unet, AttentionUNet, UNet
 from ai.segmentation.dataset import PatchTiler
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 class UNetSegmenter:
@@ -129,7 +133,7 @@ class UNetSegmenter:
             self.is_model_loaded = True
             return True
         except Exception as e:
-            print(f"[UNetSegmenter] Warning: Failed to load checkpoint from {self.checkpoint_path}: {e}")
+            logger.error(f"[UNetSegmenter] Warning: Failed to load checkpoint from {self.checkpoint_path}: {e}")
             self.is_model_loaded = False
             return False
 

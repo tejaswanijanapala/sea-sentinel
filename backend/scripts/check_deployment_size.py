@@ -1,5 +1,9 @@
 import os
 import sys
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def get_dir_size(path):
     total = 0
@@ -53,24 +57,24 @@ def main():
 
     deployable_size = source_size + models_size + deps_size
 
-    print("============================================================")
-    print("DEPLOYMENT FOOTPRINT AUDIT")
-    print("============================================================")
-    print(f"Source code:       {format_mb(source_size):.2f} MB")
-    print(f"Dependencies:      {format_mb(deps_size):.2f} MB")
-    print(f"Models:            {format_mb(models_size):.2f} MB")
-    print("------------------------------------------------------------")
-    print(f"DEPLOYABLE TOTAL:  {format_mb(deployable_size):.2f} MB")
-    print("============================================================")
-    print(f"Persistent Data:   {format_mb(persistent_size):.2f} MB (EXCLUDED FROM DEPLOYMENT)")
-    print("============================================================")
+    logger.info("============================================================")
+    logger.info("DEPLOYMENT FOOTPRINT AUDIT")
+    logger.info("============================================================")
+    logger.info(f"Source code:       {format_mb(source_size):.2f} MB")
+    logger.info(f"Dependencies:      {format_mb(deps_size):.2f} MB")
+    logger.info(f"Models:            {format_mb(models_size):.2f} MB")
+    logger.info("------------------------------------------------------------")
+    logger.info(f"DEPLOYABLE TOTAL:  {format_mb(deployable_size):.2f} MB")
+    logger.info("============================================================")
+    logger.info(f"Persistent Data:   {format_mb(persistent_size):.2f} MB (EXCLUDED FROM DEPLOYMENT)")
+    logger.info("============================================================")
     
     if deployable_size < 512:
-        print("STATUS: PASS (<512 MB)")
+        logger.info("STATUS: PASS (<512 MB)")
         if deployable_size < 450:
-            print("TARGET REACHED: <450 MB Preferred Target achieved!")
+            logger.info("TARGET REACHED: <450 MB Preferred Target achieved!")
     else:
-        print("STATUS: FAIL (>=512 MB)")
+        logger.error("STATUS: FAIL (>=512 MB)")
 
 if __name__ == "__main__":
     main()

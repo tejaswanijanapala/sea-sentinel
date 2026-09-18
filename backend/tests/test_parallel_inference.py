@@ -18,6 +18,10 @@ if PROJECT_ROOT not in sys.path:
 from ai.detection.yolo_detector import YOLODetector
 from ai.segmentation.unet_segmenter import UNetSegmenter
 from inference.parallel_pipeline import ParallelInferenceEngine
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_independent_yolo():
@@ -71,4 +75,4 @@ if __name__ == "__main__":
     test_independent_yolo()
     test_independent_unet_extraction()
     test_parallel_execution_and_isolation()
-    print("All Parallel Inference unit tests passed successfully!")
+    logger.info("All Parallel Inference unit tests passed successfully!")

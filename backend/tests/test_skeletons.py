@@ -17,31 +17,35 @@ from ai.anomaly_detection.autoencoder import AnomalyDetector
 from ai.measurement.estimator import DimensionEstimator
 from ai.geospatial.geotagger import GeospatialEngine
 from agent.orchestrator import SIHPipelineAgent
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def test_skeletons_runnable():
-    print("Testing Preprocessor...")
+    logger.info("Testing Preprocessor...")
     prep = SonarPreprocessor()
     val = prep.validate_image("dummy_nonexistent.tif")
     assert val["valid"] is False
 
-    print("Testing YOLODetector...")
+    logger.info("Testing YOLODetector...")
     yolo = YOLODetector()
     det = yolo.detect(None)
     assert det["status"] == "model_unavailable"
 
-    print("Testing UNetSegmenter...")
+    logger.info("Testing UNetSegmenter...")
     unet = UNetSegmenter()
     seg = unet.segment_roi(None)
     assert seg["status"] == "model_unavailable"
 
-    print("Testing DimensionEstimator...")
+    logger.info("Testing DimensionEstimator...")
     measurer = DimensionEstimator()
     dims = measurer.estimate_dimensions({"x1": 100, "y1": 200, "x2": 150, "y2": 260}, raster_res=(1.0, 1.0))
     assert dims["width_m"] == 50.0
     assert dims["length_m"] == 60.0
     assert dims["area_sq_m"] == 3000.0
 
-    print("Testing GeospatialEngine Case A...")
+    logger.info("Testing GeospatialEngine Case A...")
     geo = GeospatialEngine()
     meta = {
         "crs": "EPSG:26918",
@@ -57,12 +61,12 @@ def test_skeletons_runnable():
     assert x_map == 587384.0 + 150.0 * 1.0
     assert y_map == 4734001.0 - 250.0 * 1.0
 
-    print("Testing Agent Orchestrator...")
+    logger.info("Testing Agent Orchestrator...")
     agent = SIHPipelineAgent()
     # Test with non-existent image
     res = agent.analyze_image("test_image.tif")
     assert res["status"] == "rejected"
-    print("All module skeletons verified successfully!")
+    logger.info("All module skeletons verified successfully!")
 
 if __name__ == "__main__":
     test_skeletons_runnable()

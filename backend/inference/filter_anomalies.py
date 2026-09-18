@@ -21,6 +21,10 @@ if PROJECT_ROOT not in sys.path:
 
 from ai.anomaly_detection.autoencoder import AnomalyDetector
 from ai.anomaly_detection.rock_cluster_filter import DBSCANRockFilter
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -40,9 +44,9 @@ def parse_args():
 
 def run_filtering(args):
     os.makedirs(args.output_dir, exist_ok=True)
-    print("=" * 70)
-    print("STAGE 5: ANOMALY FILTERING & CONFIDENCE CALIBRATION")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 5: ANOMALY FILTERING & CONFIDENCE CALIBRATION")
+    logger.info("=" * 70)
 
     detector = AnomalyDetector(checkpoint_path=args.checkpoint if os.path.exists(args.checkpoint) else None)
     rock_filter = DBSCANRockFilter(eps=75.0, min_samples=4)
@@ -58,7 +62,7 @@ def run_filtering(args):
                 detections = data.get("detections", data.get("results", []))
     else:
         # Generate sample representative detections for validation
-        print("[INFO] No input detections specified; running on benchmark test candidates.")
+        logger.info("[INFO] No input detections specified; running on benchmark test candidates.")
         detections = [
             {"object_id": "OBJ_001", "class": "fishing_net", "confidence": 0.88,
              "bbox": {"x1": 150, "y1": 200, "x2": 260, "y2": 320}},
@@ -83,10 +87,10 @@ def run_filtering(args):
     if args.image and os.path.exists(args.image):
         img_context = cv2.imread(args.image, cv2.IMREAD_GRAYSCALE)
 
-    print(f"Applying DBSCAN Rock Cluster Filter across {len(detections)} detections...")
+    logger.info(f"Applying DBSCAN Rock Cluster Filter across {len(detections)} detections...")
     clustered_detections = rock_filter.filter_detections(detections)
 
-    print("Evaluating Autoencoder Reconstruction & Acoustic Shadow-Highlight Pairing...")
+    logger.info("Evaluating Autoencoder Reconstruction & Acoustic Shadow-Highlight Pairing...")
     calibrated_results = []
     stats = {"confirmed_debris": 0, "suspicious_anomaly": 0, "noise_rejected": 0}
 
@@ -111,15 +115,15 @@ def run_filtering(args):
         }
         calibrated_results.append(record)
 
-        print(f"  {record['object_id']:<15} | Raw: {record['raw_confidence']:.2f} -> Cal: {record['calibrated_confidence']:.2f} | "
+        logger.info(f"  {record['object_id']:<15} | Raw: {record['raw_confidence']:.2f} -> Cal: {record['calibrated_confidence']:.2f} | "
               f"Rock Cluster: {str(record['is_rock_cluster']):<5} | Status: {status.upper()}")
 
-    print("\n" + "=" * 50)
-    print("CALIBRATION SUMMARY:")
-    print(f"  Confirmed Debris (>= 75%):    {stats['confirmed_debris']}")
-    print(f"  Suspicious Anomaly (40%-74%): {stats['suspicious_anomaly']}")
-    print(f"  Noise Rejected (< 40%):       {stats['noise_rejected']}")
-    print("=" * 50)
+    logger.info("\n" + "=" * 50)
+    logger.info("CALIBRATION SUMMARY:")
+    logger.info(f"  Confirmed Debris (>= 75%):    {stats['confirmed_debris']}")
+    logger.info(f"  Suspicious Anomaly (40%-74%): {stats['suspicious_anomaly']}")
+    logger.info(f"  Noise Rejected (< 40%):       {stats['noise_rejected']}")
+    logger.info("=" * 50)
 
     out_file = os.path.join(args.output_dir, "filtered_detections.json")
     with open(out_file, "w") as f:
@@ -130,7 +134,7 @@ def run_filtering(args):
             "detections": calibrated_results
         }, f, indent=2)
 
-    print(f"Results saved to: {out_file}")
+    logger.info(f"Results saved to: {out_file}")
 
 
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ def create_nb(file_path, cells_data, title):
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
         json.dump(nb_dict, f, indent=2)
-    print(f"Created notebook: {file_path}")
+    logger.info(f"Created notebook: {file_path}")
 
 # ==============================================================================
 # 1. Project EDA Notebook
@@ -73,7 +73,7 @@ import cv2
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
 PROJECT_ROOT = Path("..").resolve() if Path(".").resolve().name == "eda" else Path(".").resolve()
 DATA_DIR = PROJECT_ROOT / "data" / "yolo"
-print(f"Loading data from: {DATA_DIR}")
+logger.info(f"Loading data from: {DATA_DIR}")
 """
     },
     {
@@ -151,7 +151,7 @@ import yaml
 
 PROJECT_ROOT = Path("../..").resolve()
 YAML_PATH = PROJECT_ROOT / "configs" / "yolo_config.yaml"
-print(f"YOLO Configuration loaded from: {YAML_PATH}")
+logger.info(f"YOLO Configuration loaded from: {YAML_PATH}")
 """
     }
 ]
@@ -171,8 +171,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path("../..").resolve()
 MODEL_PATH = PROJECT_ROOT / "models" / "yolo" / "best.pt"
-print(f"CUDA Available: {torch.cuda.is_available()}")
-print(f"Best YOLO Checkpoint Target: {MODEL_PATH}")
+logger.info(f"CUDA Available: {torch.cuda.is_available()}")
+logger.info(f"Best YOLO Checkpoint Target: {MODEL_PATH}")
 """
     }
 ]
@@ -218,9 +218,13 @@ Synchronizes binary ground truth masks with input sonar rasters."""
         "content": """from pathlib import Path
 import cv2
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 PROJECT_ROOT = Path("../..").resolve()
-print("U-Net mask preprocessing ready.")
+logger.info("U-Net mask preprocessing ready.")
 """
     }
 ]
@@ -239,7 +243,7 @@ import torch.nn as nn
 from backend.models.unet_models import AttentionUNet
 
 model = AttentionUNet(in_channels=1, out_channels=1)
-print(f"Instantiated Attention U-Net. Total parameters: {sum(p.numel() for p in model.parameters()):,}")
+logger.info(f"Instantiated Attention U-Net. Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 """
     }
 ]
@@ -290,4 +294,4 @@ display(ablation_df)
 ]
 create_nb("notebooks/project-analysis/01_ablation_and_benchmarks.ipynb", ablation_cells, "Sea Sentinel: Scientific Ablation & Component Benchmark Study")
 
-print("All specialized workflow notebooks generated successfully.")
+logger.info("All specialized workflow notebooks generated successfully.")

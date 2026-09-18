@@ -20,28 +20,32 @@ if BACKEND_ROOT not in sys.path:
 
 from backend.agent.orchestrator import SIHPipelineAgent
 from backend.shared.hardware import HardwareDetector
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def run_edge_benchmark(num_iterations: int = 100, mode: str = "balanced"):
-    print("=" * 75)
-    print("SEA SENTINEL: EDGE-FIRST ARCHITECTURE & P95 PERFORMANCE BENCHMARK")
-    print("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology (NIOT)")
-    print("=" * 75)
+    logger.info("=" * 75)
+    logger.info("SEA SENTINEL: EDGE-FIRST ARCHITECTURE & P95 PERFORMANCE BENCHMARK")
+    logger.info("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology (NIOT)")
+    logger.info("=" * 75)
 
     profile = HardwareDetector.get_hardware_profile()
-    print(f"\n[Hardware Profile]")
-    print(f"  Execution Device:  {profile.get('device', 'cpu').upper()}")
-    print(f"  CUDA Available:    {profile.get('cuda_available')}")
-    print(f"  GPU Name:          {profile.get('gpu_name') or 'N/A (CPU-Only Edge)'}")
-    print(f"  FP16 Supported:    {profile.get('fp16_supported')}")
-    print(f"  CPU Cores/Threads: {profile.get('cpu_cores')} / {profile.get('torch_threads')}")
+    logger.info(f"\n[Hardware Profile]")
+    logger.info(f"  Execution Device:  {profile.get('device', 'cpu').upper()}")
+    logger.info(f"  CUDA Available:    {profile.get('cuda_available')}")
+    logger.info(f"  GPU Name:          {profile.get('gpu_name') or 'N/A (CPU-Only Edge)'}")
+    logger.info(f"  FP16 Supported:    {profile.get('fp16_supported')}")
+    logger.info(f"  CPU Cores/Threads: {profile.get('cpu_cores')} / {profile.get('torch_threads')}")
 
-    print("\n[Initializing Edge Pipeline Agent & AI Models...]")
+    logger.info("\n[Initializing Edge Pipeline Agent & AI Models...]")
     agent = SIHPipelineAgent()
-    print(f"  YOLO Model Loaded:        {agent.detector.is_model_loaded}")
-    print(f"  U-Net Model Loaded:       {agent.segmenter.is_model_loaded}")
-    print(f"  Local GIS Layers:         {len(agent.local_gis.layers)} active layers")
-    print(f"  Local SQLite Database:    {agent.local_db.db_path}")
+    logger.info(f"  YOLO Model Loaded:        {agent.detector.is_model_loaded}")
+    logger.info(f"  U-Net Model Loaded:       {agent.segmenter.is_model_loaded}")
+    logger.info(f"  Local GIS Layers:         {len(agent.local_gis.layers)} active layers")
+    logger.info(f"  Local SQLite Database:    {agent.local_db.db_path}")
 
     # Discover sample images
     samples_dir = os.path.join(PROJECT_ROOT, "backend", "datasets", "samples")
@@ -58,13 +62,13 @@ def run_edge_benchmark(num_iterations: int = 100, mode: str = "balanced"):
             if f.lower().endswith((".png", ".jpg", ".jpeg", ".tif", ".tiff"))
         ]
 
-    print(f"  Available Benchmark Datasets: {len(sample_files)} acoustic frames found.")
+    logger.info(f"  Available Benchmark Datasets: {len(sample_files)} acoustic frames found.")
     target_sample = sample_files[0] if sample_files else None
     if not target_sample:
-        print("ERROR: No acoustic test images found for benchmarking.")
+        logger.error("ERROR: No acoustic test images found for benchmarking.")
         return
 
-    print(f"\n[Starting {num_iterations}-Iteration Benchmark in '{mode.upper()}' Mode...]")
+    logger.info(f"\n[Starting {num_iterations}-Iteration Benchmark in '{mode.upper()}' Mode...]")
     latencies = []
     stage_durations = {
         "input_validation": [],
@@ -103,7 +107,7 @@ def run_edge_benchmark(num_iterations: int = 100, mode: str = "balanced"):
 
         if (i + 1) % 10 == 0 or (i + 1) == num_iterations:
             avg_so_far = sum(latencies) / len(latencies)
-            print(f"  Processed {i + 1}/{num_iterations} frames | Current: {total_time_ms:.1f}ms | Rolling Avg: {avg_so_far:.1f}ms")
+            logger.info(f"  Processed {i + 1}/{num_iterations} frames | Current: {total_time_ms:.1f}ms | Rolling Avg: {avg_so_far:.1f}ms")
 
     # Compute Statistical Metrics
     latencies_sorted = sorted(latencies)
@@ -124,36 +128,36 @@ def run_edge_benchmark(num_iterations: int = 100, mode: str = "balanced"):
     passed = (p95_latency < budget_target_ms)
     headroom_s = (budget_target_ms - p95_latency) / 1000.0
 
-    print("\n" + "=" * 75)
-    print("BENCHMARK RESULTS & STATISTICAL PROFILE")
-    print("=" * 75)
-    print(f"  Iterations:          {num_iterations}")
-    print(f"  Processing Mode:     {mode.upper()}")
-    print(f"  Average Latency:     {avg_latency / 1000.0:.3f} s  ({avg_latency:.1f} ms)")
-    print(f"  Median Latency (P50):{median_latency / 1000.0:.3f} s  ({median_latency:.1f} ms)")
-    print(f"  P90 Latency:         {p90_latency / 1000.0:.3f} s  ({p90_latency:.1f} ms)")
-    print(f"  P95 Latency:         {p95_latency / 1000.0:.3f} s  ({p95_latency:.1f} ms)")
-    print(f"  P99 Latency:         {p99_latency / 1000.0:.3f} s  ({p99_latency:.1f} ms)")
-    print(f"  Min / Max Latency:   {min_latency / 1000.0:.3f} s / {max_latency / 1000.0:.3f} s")
-    print(f"  Average Detections:  {statistics.mean(detections_counts):.1f} targets/frame")
-    print("-" * 75)
-    print(f"  20-Second Target:    {'✓ PASS (COMPLIANT)' if passed else '✗ FAIL'}")
-    print(f"  P95 Headroom:        {headroom_s:.2f} s buffer remaining")
-    print("=" * 75)
+    logger.info("\n" + "=" * 75)
+    logger.info("BENCHMARK RESULTS & STATISTICAL PROFILE")
+    logger.info("=" * 75)
+    logger.info(f"  Iterations:          {num_iterations}")
+    logger.info(f"  Processing Mode:     {mode.upper()}")
+    logger.info(f"  Average Latency:     {avg_latency / 1000.0:.3f} s  ({avg_latency:.1f} ms)")
+    logger.info(f"  Median Latency (P50):{median_latency / 1000.0:.3f} s  ({median_latency:.1f} ms)")
+    logger.info(f"  P90 Latency:         {p90_latency / 1000.0:.3f} s  ({p90_latency:.1f} ms)")
+    logger.info(f"  P95 Latency:         {p95_latency / 1000.0:.3f} s  ({p95_latency:.1f} ms)")
+    logger.info(f"  P99 Latency:         {p99_latency / 1000.0:.3f} s  ({p99_latency:.1f} ms)")
+    logger.info(f"  Min / Max Latency:   {min_latency / 1000.0:.3f} s / {max_latency / 1000.0:.3f} s")
+    logger.info(f"  Average Detections:  {statistics.mean(detections_counts):.1f} targets/frame")
+    logger.info("-" * 75)
+    logger.error(f"  20-Second Target:    {'✓ PASS (COMPLIANT)' if passed else '✗ FAIL'}")
+    logger.info(f"  P95 Headroom:        {headroom_s:.2f} s buffer remaining")
+    logger.info("=" * 75)
 
-    print("\n[Average Stage-by-Stage Latency Breakdown]")
+    logger.info("\n[Average Stage-by-Stage Latency Breakdown]")
     for st_name, vals in stage_durations.items():
         if vals:
             st_avg = statistics.mean(vals)
-            print(f"  - {st_name:<25}: {st_avg:7.2f} ms ({st_avg / 1000.0:.3f} s)")
+            logger.info(f"  - {st_name:<25}: {st_avg:7.2f} ms ({st_avg / 1000.0:.3f} s)")
 
     # Verify Database & Sync status
     db_surveys = agent.local_db.get_recent_surveys(limit=10)
     sync_status = agent.sync_manager.get_sync_status()
-    print("\n[Offline Database & Store-and-Forward Verification]")
-    print(f"  SQLite Surveys Recorded:  {len(db_surveys)}")
-    print(f"  Pending Sync Queue Count: {sync_status.get('pending_count')}")
-    print(f"  Connectivity Mode:        {sync_status.get('connection_mode')}")
+    logger.info("\n[Offline Database & Store-and-Forward Verification]")
+    logger.info(f"  SQLite Surveys Recorded:  {len(db_surveys)}")
+    logger.info(f"  Pending Sync Queue Count: {sync_status.get('pending_count')}")
+    logger.info(f"  Connectivity Mode:        {sync_status.get('connection_mode')}")
 
     # Save benchmark history to SQLite
     with agent.local_db.get_connection() as conn:
@@ -175,7 +179,7 @@ def run_edge_benchmark(num_iterations: int = 100, mode: str = "balanced"):
         ))
         conn.commit()
 
-    print("\nBenchmark telemetry persisted to local SQLite database.")
+    logger.info("\nBenchmark telemetry persisted to local SQLite database.")
     return {
         "passed": passed,
         "avg_ms": avg_latency,

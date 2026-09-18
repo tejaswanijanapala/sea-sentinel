@@ -1,4 +1,8 @@
 import re
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 path = 'frontend/index.html'
 with open(path, 'r', encoding='utf-8') as f:
@@ -11,6 +15,6 @@ if 'js/gis_ui.js' not in text:
     )
     with open(path, 'w', encoding='utf-8') as f:
         f.write(text)
-    print("Added gis_ui.js to index.html")
+    logger.info("Added gis_ui.js to index.html")
 else:
-    print("gis_ui.js already in index.html")
+    logger.info("gis_ui.js already in index.html")

@@ -27,6 +27,10 @@ from ai.segmentation.models import UNet, AttentionUNet, AttentionGate, build_une
 from ai.segmentation.losses import DiceLoss, BCEDiceLoss, FocalLoss, compute_iou, compute_dice, compute_pixel_metrics
 from ai.segmentation.dataset import SonarSegmentationDataset, PatchTiler, verify_segmentation_dataset
 from ai.segmentation.unet_segmenter import UNetSegmenter
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_standard_unet():
@@ -216,23 +220,23 @@ def test_dataset_verifier():
 
 
 if __name__ == "__main__":
-    print("Running Stage 4 Unit Tests...")
+    logger.info("Running Stage 4 Unit Tests...")
     test_standard_unet()
-    print("  [PASSED] test_standard_unet")
+    logger.info("  [PASSED] test_standard_unet")
     test_attention_unet()
-    print("  [PASSED] test_attention_unet")
+    logger.info("  [PASSED] test_attention_unet")
     test_attention_gate()
-    print("  [PASSED] test_attention_gate")
+    logger.info("  [PASSED] test_attention_gate")
     test_losses_and_gradients()
-    print("  [PASSED] test_losses_and_gradients")
+    logger.info("  [PASSED] test_losses_and_gradients")
     test_metrics()
-    print("  [PASSED] test_metrics")
+    logger.info("  [PASSED] test_metrics")
     test_patch_tiler_and_blending()
-    print("  [PASSED] test_patch_tiler_and_blending")
+    logger.info("  [PASSED] test_patch_tiler_and_blending")
     test_sonar_dataset()
-    print("  [PASSED] test_sonar_dataset")
+    logger.info("  [PASSED] test_sonar_dataset")
     test_unet_segmenter_contract()
-    print("  [PASSED] test_unet_segmenter_contract")
+    logger.info("  [PASSED] test_unet_segmenter_contract")
     test_dataset_verifier()
-    print("  [PASSED] test_dataset_verifier")
-    print("All Stage 4 unit tests executed successfully!")
+    logger.info("  [PASSED] test_dataset_verifier")
+    logger.info("All Stage 4 unit tests executed successfully!")

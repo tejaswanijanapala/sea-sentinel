@@ -23,6 +23,10 @@ if PROJECT_ROOT not in sys.path:
 
 from ai.geospatial.geotagger import GeospatialEngine
 from ai.measurement.estimator import DimensionEstimator
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_geotagger_case_classification():
@@ -295,27 +299,27 @@ def test_sidecar_nav_log_ingestion():
 
 
 if __name__ == "__main__":
-    print("Running Stage 7 Unit Tests...")
+    logger.info("Running Stage 7 Unit Tests...")
     test_geotagger_case_classification()
-    print("  [PASSED] test_geotagger_case_classification")
+    logger.info("  [PASSED] test_geotagger_case_classification")
     test_case_a_affine_and_pyproj_transformation()
-    print("  [PASSED] test_case_a_affine_and_pyproj_transformation")
+    logger.info("  [PASSED] test_case_a_affine_and_pyproj_transformation")
     test_case_b_navigation_geometry()
-    print("  [PASSED] test_case_b_navigation_geometry")
+    logger.info("  [PASSED] test_case_b_navigation_geometry")
     test_case_c_unreferenced_no_fabrication()
-    print("  [PASSED] test_case_c_unreferenced_no_fabrication")
+    logger.info("  [PASSED] test_case_c_unreferenced_no_fabrication")
     test_dimension_estimator_axis_aligned()
-    print("  [PASSED] test_dimension_estimator_axis_aligned")
+    logger.info("  [PASSED] test_dimension_estimator_axis_aligned")
     test_dimension_estimator_rotated_mask()
-    print("  [PASSED] test_dimension_estimator_rotated_mask")
+    logger.info("  [PASSED] test_dimension_estimator_rotated_mask")
     test_geojson_and_csv_export()
-    print("  [PASSED] test_geojson_and_csv_export")
+    logger.info("  [PASSED] test_geojson_and_csv_export")
     test_noaa_h11584_georeferencing()
-    print("  [PASSED] test_noaa_h11584_georeferencing")
+    logger.info("  [PASSED] test_noaa_h11584_georeferencing")
     test_usgs_14bim05_georeferencing_parameters()
-    print("  [PASSED] test_usgs_14bim05_georeferencing_parameters")
+    logger.info("  [PASSED] test_usgs_14bim05_georeferencing_parameters")
     test_zenodo_unreferenced_data_integrity()
-    print("  [PASSED] test_zenodo_unreferenced_data_integrity")
+    logger.info("  [PASSED] test_zenodo_unreferenced_data_integrity")
     test_sidecar_nav_log_ingestion()
-    print("  [PASSED] test_sidecar_nav_log_ingestion")
-    print("All Stage 7 unit tests executed successfully!")
+    logger.info("  [PASSED] test_sidecar_nav_log_ingestion")
+    logger.info("All Stage 7 unit tests executed successfully!")

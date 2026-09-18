@@ -24,6 +24,10 @@ from ai.anomaly_detection.models import AcousticAutoencoder
 from ai.anomaly_detection.shadow_verifier import AcousticShadowVerifier
 from ai.anomaly_detection.rock_cluster_filter import DBSCANRockFilter
 from ai.anomaly_detection.calibrator import ConfidenceCalibrator
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 class AnomalyDetector:
@@ -100,7 +104,7 @@ class AnomalyDetector:
                 self.is_model_loaded = True
                 return True
             except Exception as e:
-                print(f"[AnomalyDetector] Warning: Could not load checkpoint from {self.checkpoint_path}: {e}")
+                logger.warning(f"[AnomalyDetector] Warning: Could not load checkpoint from {self.checkpoint_path}: {e}")
                 self.is_model_loaded = False
                 return False
         else:

@@ -21,6 +21,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from ai.anomaly_detection.autoencoder import AnomalyDetector
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -42,18 +46,18 @@ def parse_args():
 
 def evaluate(args):
     os.makedirs(args.output_dir, exist_ok=True)
-    print("=" * 70)
-    print("STAGE 5: ANOMALY DETECTION EVALUATION & SEPARATION ANALYSIS")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 5: ANOMALY DETECTION EVALUATION & SEPARATION ANALYSIS")
+    logger.info("=" * 70)
 
     detector = AnomalyDetector(checkpoint_path=args.checkpoint if os.path.exists(args.checkpoint) else None)
-    print(f"Model loaded: {detector.is_model_loaded} (Threshold: {detector.threshold:.6f})")
+    logger.info(f"Model loaded: {detector.is_model_loaded} (Threshold: {detector.threshold:.6f})")
 
     # 1. Evaluate Normal Seabed Chips
     normal_files = [os.path.join(args.normal_dir, f) for f in os.listdir(args.normal_dir) if f.lower().endswith((".png", ".jpg"))] if os.path.exists(args.normal_dir) else []
     debris_files = [os.path.join(args.debris_dir, f) for f in os.listdir(args.debris_dir) if f.lower().endswith((".png", ".jpg"))] if os.path.exists(args.debris_dir) else []
 
-    print(f"Evaluating {len(normal_files)} normal seabed chips and {len(debris_files)} debris chips...")
+    logger.info(f"Evaluating {len(normal_files)} normal seabed chips and {len(debris_files)} debris chips...")
 
     normal_mses = []
     normal_samples = []
@@ -95,15 +99,15 @@ def evaluate(args):
     tpr = tp / max(len(debris_mses), 1)  # Sensitivity
     fpr = fp / max(len(normal_mses), 1)  # False alarm rate
 
-    print("\n" + "-" * 50)
-    print("SEPARATION & ERROR METRICS:")
-    print(f"  Mean Normal Seabed MSE:   {mean_normal_mse:.6f}")
-    print(f"  Mean Debris Target MSE:   {mean_debris_mse:.6f}")
-    print(f"  Error Separation Ratio:   {separation_ratio:.2f}x higher on debris")
-    print(f"  Threshold T:              {t:.6f}")
-    print(f"  True Positive Rate (TPR): {tpr * 100:.1f}%")
-    print(f"  False Alarm Rate (FPR):   {fpr * 100:.1f}%")
-    print("-" * 50)
+    logger.info("\n" + "-" * 50)
+    logger.error("SEPARATION & ERROR METRICS:")
+    logger.info(f"  Mean Normal Seabed MSE:   {mean_normal_mse:.6f}")
+    logger.info(f"  Mean Debris Target MSE:   {mean_debris_mse:.6f}")
+    logger.error(f"  Error Separation Ratio:   {separation_ratio:.2f}x higher on debris")
+    logger.info(f"  Threshold T:              {t:.6f}")
+    logger.info(f"  True Positive Rate (TPR): {tpr * 100:.1f}%")
+    logger.info(f"  False Alarm Rate (FPR):   {fpr * 100:.1f}%")
+    logger.info("-" * 50)
 
     # Visual Plotting: Normal vs Debris Reconstruction Difference Maps
     all_visual_samples = normal_samples + debris_samples
@@ -139,7 +143,7 @@ def evaluate(args):
         plot_path = os.path.join(args.output_dir, "anomaly_reconstruction_comparison.png")
         plt.savefig(plot_path, dpi=200, bbox_inches="tight")
         plt.close()
-        print(f"Comparison plot saved to: {plot_path}")
+        logger.info(f"Comparison plot saved to: {plot_path}")
 
     # Export Summary JSON
     summary_path = os.path.join(args.output_dir, "anomaly_evaluation.json")
@@ -158,7 +162,7 @@ def evaluate(args):
             "plot_saved": plot_path if all_visual_samples else None
         }, f, indent=2)
 
-    print(f"Summary JSON saved to: {summary_path}")
+    logger.info(f"Summary JSON saved to: {summary_path}")
 
 
 if __name__ == "__main__":

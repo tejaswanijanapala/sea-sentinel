@@ -19,6 +19,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from agent.orchestrator import SIHPipelineAgent
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -36,10 +40,10 @@ def parse_args():
 
 def run(args):
     os.makedirs(args.output_dir, exist_ok=True)
-    print("=" * 75)
-    print("SIH26057: AI-POWERED UNDERWATER DEBRIS PIPELINE AGENT")
-    print("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
-    print("=" * 75)
+    logger.info("=" * 75)
+    logger.info("SIH26057: AI-POWERED UNDERWATER DEBRIS PIPELINE AGENT")
+    logger.info("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
+    logger.info("=" * 75)
 
     config = {}
     if args.yolo_checkpoint:
@@ -61,25 +65,25 @@ def run(args):
     elif os.path.isfile(args.input):
         image_paths = [args.input]
     else:
-        print(f"[ERROR] Input path does not exist: {args.input}")
+        logger.error(f"[ERROR] Input path does not exist: {args.input}")
         return
 
     if not image_paths:
-        print(f"[ERROR] No valid sonar images found in {args.input}")
+        logger.error(f"[ERROR] No valid sonar images found in {args.input}")
         return
 
-    print(f"Loaded {len(image_paths)} image(s) for end-to-end analysis.\n")
+    logger.info(f"Loaded {len(image_paths)} image(s) for end-to-end analysis.\n")
 
     all_survey_summaries = []
 
     for idx, img_p in enumerate(image_paths, 1):
         filename = os.path.basename(img_p)
-        print(f"[{idx}/{len(image_paths)}] Processing: {filename}...")
+        logger.info(f"[{idx}/{len(image_paths)}] Processing: {filename}...")
 
         result = agent.analyze_image(img_p)
 
         if result.get("status") != "success":
-            print(f"      Status: {result.get('status').upper()} - {result.get('error', 'Unknown error')}")
+            logger.error(f"      Status: {result.get('status').upper()} - {result.get('error', 'Unknown error')}")
             continue
 
         session_id = result["analysis_id"]
@@ -87,23 +91,23 @@ def run(args):
         duration = result["total_duration_ms"]
         georef = result["georeferencing_case"]
 
-        print(f"      Session ID:     {session_id}")
-        print(f"      Georeferencing: Case {georef}")
-        print(f"      Latency:        {duration:.1f} ms")
-        print(f"      Candidates:     {stats.get('total_candidates', 0)} (Confirmed: {stats.get('confirmed_debris', 0)}, Suspicious: {stats.get('suspicious_anomaly', 0)}, Rejected: {stats.get('noise_rejected', 0)})")
-        print(f"      High Risk:      {stats.get('high_risk_count', 0)}")
+        logger.info(f"      Session ID:     {session_id}")
+        logger.info(f"      Georeferencing: Case {georef}")
+        logger.info(f"      Latency:        {duration:.1f} ms")
+        logger.info(f"      Candidates:     {stats.get('total_candidates', 0)} (Confirmed: {stats.get('confirmed_debris', 0)}, Suspicious: {stats.get('suspicious_anomaly', 0)}, Rejected: {stats.get('noise_rejected', 0)})")
+        logger.info(f"      High Risk:      {stats.get('high_risk_count', 0)}")
 
         # Display target table
         if result["detections"]:
-            print("\n      " + "-" * 85)
-            print(f"      {'Target ID':<12} {'Class':<18} {'Conf':<6} {'Status':<18} {'Risk':<7} {'Coords (Lat, Lon)':<22}")
-            print("      " + "-" * 85)
+            logger.info("\n      " + "-" * 85)
+            logger.info(f"      {'Target ID':<12} {'Class':<18} {'Conf':<6} {'Status':<18} {'Risk':<7} {'Coords (Lat, Lon)':<22}")
+            logger.info("      " + "-" * 85)
             for d in result["detections"]:
                 lat_str = f"{d.get('lat', 0):.5f}" if d.get("lat") is not None else "N/A"
                 lon_str = f"{d.get('lon', 0):.5f}" if d.get("lon") is not None else "N/A"
                 coord_str = f"({lat_str}, {lon_str})"
-                print(f"      {d.get('object_id', ''):<12} {d.get('class', ''):<18} {d.get('calibrated_confidence', 0):<6.2f} {d.get('anomaly_status', ''):<18} {d.get('risk_score', ''):<7} {coord_str:<22}")
-            print("      " + "-" * 85 + "\n")
+                logger.info(f"      {d.get('object_id', ''):<12} {d.get('class', ''):<18} {d.get('calibrated_confidence', 0):<6.2f} {d.get('anomaly_status', ''):<18} {d.get('risk_score', ''):<7} {coord_str:<22}")
+            logger.info("      " + "-" * 85 + "\n")
 
         all_survey_summaries.append(result)
 
@@ -144,12 +148,12 @@ def run(args):
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(all_targets)
-            print(f"[CSV EXPORTED]: Aggregated detections saved to: {csv_path}")
+            logger.info(f"[CSV EXPORTED]: Aggregated detections saved to: {csv_path}")
 
-    print("\n" + "=" * 75)
-    print(f"[PIPELINE COMPLETED]: Successfully processed {len(all_survey_summaries)} survey image(s).")
-    print(f"Reports directory: {args.output_dir}")
-    print("=" * 75)
+    logger.info("\n" + "=" * 75)
+    logger.info(f"[PIPELINE COMPLETED]: Successfully processed {len(all_survey_summaries)} survey image(s).")
+    logger.info(f"Reports directory: {args.output_dir}")
+    logger.info("=" * 75)
 
 
 if __name__ == "__main__":

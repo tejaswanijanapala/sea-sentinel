@@ -24,6 +24,10 @@ from app.main import app
 from agent.orchestrator import SIHPipelineAgent
 from ai.geospatial.geotagger import GeospatialEngine
 from ai.measurement.estimator import DimensionEstimator
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 client = TestClient(app)
 
@@ -179,23 +183,23 @@ def test_raw_dataset_integrity():
 
 
 if __name__ == "__main__":
-    print("Running Stage 9 System Verification & Stress Tests...")
+    logger.info("Running Stage 9 System Verification & Stress Tests...")
     test_api_root()
-    print("  [PASSED] test_api_root")
+    logger.info("  [PASSED] test_api_root")
     test_api_health()
-    print("  [PASSED] test_api_health")
+    logger.info("  [PASSED] test_api_health")
     test_api_samples_and_images()
-    print("  [PASSED] test_api_samples_and_images")
+    logger.info("  [PASSED] test_api_samples_and_images")
     test_api_upload_and_analyze()
-    print("  [PASSED] test_api_upload_and_analyze")
+    logger.info("  [PASSED] test_api_upload_and_analyze")
     test_api_geospatial_feature_collection()
-    print("  [PASSED] test_api_geospatial_feature_collection")
+    logger.info("  [PASSED] test_api_geospatial_feature_collection")
     test_edge_case_zero_byte_file()
-    print("  [PASSED] test_edge_case_zero_byte_file")
+    logger.info("  [PASSED] test_edge_case_zero_byte_file")
     test_edge_case_pure_noise_image()
-    print("  [PASSED] test_edge_case_pure_noise_image")
+    logger.info("  [PASSED] test_edge_case_pure_noise_image")
     test_edge_case_extreme_resolutions()
-    print("  [PASSED] test_edge_case_extreme_resolutions")
+    logger.info("  [PASSED] test_edge_case_extreme_resolutions")
     test_raw_dataset_integrity()
-    print("  [PASSED] test_raw_dataset_integrity")
-    print("All Stage 9 system verification tests passed successfully!")
+    logger.info("  [PASSED] test_raw_dataset_integrity")
+    logger.info("All Stage 9 system verification tests passed successfully!")

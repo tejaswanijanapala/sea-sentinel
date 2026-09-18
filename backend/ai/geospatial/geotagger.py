@@ -20,6 +20,10 @@ import math
 import numpy as np
 import pyproj
 from pyproj import Transformer, Geod
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 try:
     import tifffile
@@ -190,7 +194,7 @@ class GeospatialEngine:
                         return meta_res
 
             except Exception as e:
-                print(f"[GeospatialEngine] Warning: Exception reading GeoTIFF {raster_path}: {e}")
+                logger.error(f"[GeospatialEngine] Warning: Exception reading GeoTIFF {raster_path}: {e}")
 
         # 2. Check for ESRI World File (.tfw, .jgw, .pgw, .wld)
         base, ext = os.path.splitext(raster_path)
@@ -231,7 +235,7 @@ class GeospatialEngine:
                                 "dataset_profile": self._detect_dataset_profile(raster_path, crs_str, transform)
                             }
             except Exception as e:
-                print(f"[GeospatialEngine] Warning reading world file {world_path}: {e}")
+                logger.warning(f"[GeospatialEngine] Warning reading world file {world_path}: {e}")
 
         # 3. Check for standalone Navigation Log (Case B)
         if nav_log and ("latitude" in nav_log and "longitude" in nav_log and "heading" in nav_log):
@@ -530,7 +534,7 @@ class GeospatialEngine:
                     always_xy=True
                 )
             except Exception as e:
-                print(f"[GeospatialEngine] Warning: Could not create transformer for {source_crs}: {e}")
+                logger.warning(f"[GeospatialEngine] Warning: Could not create transformer for {source_crs}: {e}")
                 return None, None
 
         transformer = self._transformers[source_crs]

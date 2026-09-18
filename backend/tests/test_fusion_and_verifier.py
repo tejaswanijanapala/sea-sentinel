@@ -17,6 +17,10 @@ if PROJECT_ROOT not in sys.path:
 
 from inference.fusion_engine import FusionEngine
 from inference.verifier import CandidateVerifier
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_fusion_categorization():
@@ -82,4 +86,4 @@ def test_candidate_verifier():
 if __name__ == "__main__":
     test_fusion_categorization()
     test_candidate_verifier()
-    print("All Fusion and Verifier unit tests passed successfully!")
+    logger.info("All Fusion and Verifier unit tests passed successfully!")

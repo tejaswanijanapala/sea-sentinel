@@ -4,6 +4,10 @@ Unit Test for Stage 1 Dataset Preparation Pipeline
 import os
 import sys
 import json
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
@@ -31,7 +35,7 @@ def test_stage1_outputs():
         assert "fishing_net" in content
         assert "pipeline_or_cable" in content
 
-    print("test_stage1_outputs passed successfully!")
+    logger.info("test_stage1_outputs passed successfully!")
 
 if __name__ == "__main__":
     test_stage1_outputs()

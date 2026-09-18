@@ -407,6 +407,10 @@ def get_sample_missions():
 
 import cv2
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 @app.get("/api/image")
@@ -563,7 +567,7 @@ def analyze_survey(req: AnalyzeRequest):
             nav_log=req.nav_log
         )
     except Exception as e:
-        print(f"GIS Registration Warning: {e}")
+        logger.warning(f"GIS Registration Warning: {e}")
 
     # Attach per-image dynamic evaluation metrics
     try:
@@ -575,7 +579,7 @@ def analyze_survey(req: AnalyzeRequest):
             segmentation_mask=res.get("segmentation_mask")
         )
     except Exception as e:
-        print(f"Image Evaluation Metrics Attachment Warning: {e}")
+        logger.warning(f"Image Evaluation Metrics Attachment Warning: {e}")
 
     res["status"] = "success"
     CACHED_ANALYSES[analysis_id] = res
@@ -880,7 +884,7 @@ def submit_feedback(req: FeedbackRequest):
                 class_id=nlu_result["corrected_class_id"]
             )
         except Exception as e:
-            print(f"[Feedback API] Dataset accumulation error: {e}")
+            logger.error(f"[Feedback API] Dataset accumulation error: {e}")
 
     # Hot-update target in-place
     target["original_model_class"] = orig_class
@@ -1414,7 +1418,7 @@ def generate_html_mission_report(analysis_id: str):
         </div>
       </div>
       <div class="no-print">
-        <button class="btn-print" onclick="window.print()">🖨️ Print / Save PDF</button>
+        <button class="btn-print" onclick="window.logger.info()">🖨️ Print / Save PDF</button>
       </div>
     </div>
 
@@ -1652,7 +1656,7 @@ def register_gis_survey(
             d["position_verification_required"] = risk_res.position_verification_required
             d["uncertainty_flags"] = risk_res.uncertainty_flags
         except Exception as e:
-            print(f"[IMORiskEngine] Warning evaluating risk for {t_id}: {e}")
+            logger.warning(f"[IMORiskEngine] Warning evaluating risk for {t_id}: {e}")
 
     if all_lats and all_lons:
         analysis_result["center_wgs84"] = [sum(all_lats) / len(all_lats), sum(all_lons) / len(all_lons)]

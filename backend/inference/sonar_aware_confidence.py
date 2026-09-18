@@ -21,6 +21,10 @@ import os
 import math
 import numpy as np
 import cv2
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 try:
     import joblib
@@ -723,7 +727,7 @@ class CalibrationModelLoader:
                     self.is_loaded = True
                     return True
         except Exception as e:
-            print(f"[CalibrationModelLoader] Warning: Failed to load calibration model: {e}")
+            logger.error(f"[CalibrationModelLoader] Warning: Failed to load calibration model: {e}")
             self.is_loaded = False
 
         return False
@@ -936,7 +940,7 @@ def calculate_sonar_aware_confidence(
                 sonar_aware_conf = round(float(0.50 * calib_pct + 0.50 * phys_score), 1)
             confidence_status = "calibrated"
         except Exception as e:
-            print(f"[calculate_sonar_aware_confidence] Calibration inference error: {e}")
+            logger.error(f"[calculate_sonar_aware_confidence] Calibration inference error: {e}")
             sonar_aware_conf = round(phys_score, 1)
             confidence_status = "physics_calibrated"
     else:

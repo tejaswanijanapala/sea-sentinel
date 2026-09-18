@@ -29,6 +29,10 @@ if PROJECT_ROOT not in sys.path:
 from ai.segmentation.models import build_unet, AttentionUNet, UNet
 from ai.segmentation.losses import BCEDiceLoss, DiceLoss, FocalLoss, compute_iou, compute_dice
 from ai.segmentation.dataset import SonarSegmentationDataset, verify_segmentation_dataset
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -151,20 +155,20 @@ def generate_synthetic_demo_data(
 
 
 def run_dry_run(args, device: torch.device):
-    print("=" * 70)
-    print("STAGE 4: U-NET SEGMENTATION DRY RUN & DATASET VERIFICATION")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 4: U-NET SEGMENTATION DRY RUN & DATASET VERIFICATION")
+    logger.info("=" * 70)
 
     # 1. Instantiate Model Architecture
-    print(f"\n[1/3] Building Model Architecture: '{args.model}'...")
+    logger.info(f"\n[1/3] Building Model Architecture: '{args.model}'...")
     model = build_unet(model_type=args.model, in_channels=1, num_classes=1)
     model.to(device)
     param_count = model.count_parameters()
-    print(f"      Architecture successfully created!")
-    print(f"      Total Trainable Parameters: {param_count:,}")
+    logger.info(f"      Architecture successfully created!")
+    logger.info(f"      Total Trainable Parameters: {param_count:,}")
 
     # 2. Verify Tensor Forward & Backward Passes
-    print(f"\n[2/3] Verifying Tensor Forward & Backward Passes (Gradient Flow)...")
+    logger.info(f"\n[2/3] Verifying Tensor Forward & Backward Passes (Gradient Flow)...")
     dummy_input = torch.randn(2, 1, args.img_size, args.img_size, device=device)
     dummy_target = torch.randint(0, 2, (2, 1, args.img_size, args.img_size), device=device).float()
 
@@ -175,18 +179,18 @@ def run_dry_run(args, device: torch.device):
 
     loss = criterion(logits, dummy_target)
     loss.backward()
-    print(f"      Forward output shape: {tuple(logits.shape)} (Verified)")
-    print(f"      Loss calculation ({args.loss}): {loss.item():.4f} (Verified)")
-    print(f"      Backward gradient propagation: Complete without errors.")
+    logger.info(f"      Forward output shape: {tuple(logits.shape)} (Verified)")
+    logger.info(f"      Loss calculation ({args.loss}): {loss.item():.4f} (Verified)")
+    logger.error(f"      Backward gradient propagation: Complete without errors.")
 
     # 3. Audit Dataset for Real Segmentation Masks
-    print(f"\n[3/3] Auditing Workspace for Ground Truth Segmentation Masks...")
+    logger.info(f"\n[3/3] Auditing Workspace for Ground Truth Segmentation Masks...")
     audit_res = verify_segmentation_dataset(args.data_dir)
-    print(f"      Images found: {audit_res['total_images_found']}")
-    print(f"      Masks found:  {audit_res['total_masks_found']}")
-    print(f"      Paired sets:  {audit_res['paired_samples_count']}")
-    print(f"      Status:       {audit_res['status'].upper()}")
-    print(f"      Notice:       {audit_res['message']}")
+    logger.info(f"      Images found: {audit_res['total_images_found']}")
+    logger.info(f"      Masks found:  {audit_res['total_masks_found']}")
+    logger.info(f"      Paired sets:  {audit_res['paired_samples_count']}")
+    logger.info(f"      Status:       {audit_res['status'].upper()}")
+    logger.info(f"      Notice:       {audit_res['message']}")
 
     # Export Dry Run Report
     os.makedirs(args.output_dir, exist_ok=True)
@@ -203,8 +207,8 @@ def run_dry_run(args, device: torch.device):
             "dry_run_timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }, f, indent=2)
 
-    print(f"\n[DRY RUN COMPLETED]: Report saved to {report_path}")
-    print("=" * 70)
+    logger.info(f"\n[DRY RUN COMPLETED]: Report saved to {report_path}")
+    logger.info("=" * 70)
 
 
 def train(args):
@@ -214,7 +218,7 @@ def train(args):
     else:
         device = torch.device(args.device)
 
-    print(f"Using compute device: {device}")
+    logger.info(f"Using compute device: {device}")
 
     if args.dry_run:
         run_dry_run(args, device)
@@ -225,19 +229,19 @@ def train(args):
     # Check for real masks
     audit = verify_segmentation_dataset(args.data_dir)
     if not audit["has_real_masks"] and not args.synthetic_demo:
-        print("\n" + "!" * 70)
-        print("[WARNING] REAL GROUND TRUTH MASKS NOT FOUND IN DATASET")
-        print("As per instructions, synthetic masks will NOT be fabricated as real data.")
-        print("To verify full end-to-end training and convergence, re-run with:")
-        print("    python training/train_unet.py --synthetic-demo --epochs 5")
-        print("Or run dry run to verify architecture compatibility:")
-        print("    python training/train_unet.py --dry-run")
-        print("!" * 70 + "\n")
+        logger.info("\n" + "!" * 70)
+        logger.warning("[WARNING] REAL GROUND TRUTH MASKS NOT FOUND IN DATASET")
+        logger.info("As per instructions, synthetic masks will NOT be fabricated as real data.")
+        logger.info("To verify full end-to-end training and convergence, re-run with:")
+        logger.info("    python training/train_unet.py --synthetic-demo --epochs 5")
+        logger.info("Or run dry run to verify architecture compatibility:")
+        logger.info("    python training/train_unet.py --dry-run")
+        logger.info("!" * 70 + "\n")
         return
 
     # Dataset preparation
     if args.synthetic_demo:
-        print("\n[INFO] Running in Synthetic Demo Mode for full pipeline validation...")
+        logger.info("\n[INFO] Running in Synthetic Demo Mode for full pipeline validation...")
         demo_dir = os.path.join(PROJECT_ROOT, "outputs", "segmentation", "demo_dataset")
         img_paths, mask_paths = generate_synthetic_demo_data(demo_dir, num_samples=32, img_size=args.img_size)
     else:
@@ -260,7 +264,7 @@ def train(args):
                 mask_paths.append(mask_cands[0])
 
     if len(img_paths) == 0:
-        print("[ERROR] No paired image-mask samples found for training.")
+        logger.error("[ERROR] No paired image-mask samples found for training.")
         return
 
     # Train / Val Split
@@ -291,7 +295,7 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, drop_last=False)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
 
-    print(f"Dataset: {len(train_dataset)} train samples, {len(val_dataset)} val samples")
+    logger.info(f"Dataset: {len(train_dataset)} train samples, {len(val_dataset)} val samples")
 
     # Build Model
     model = build_unet(model_type=args.model, in_channels=1, num_classes=1)
@@ -304,7 +308,7 @@ def train(args):
     best_val_iou = -1.0
     history = []
 
-    print("\nStarting Training Loop...")
+    logger.info("\nStarting Training Loop...")
     for epoch in range(1, args.epochs + 1):
         model.train()
         train_loss = 0.0
@@ -353,7 +357,7 @@ def train(args):
         avg_val_iou = float(np.mean(val_ious))
         avg_val_dice = float(np.mean(val_dices))
 
-        print(f"Epoch [{epoch:02d}/{args.epochs:02d}] "
+        logger.info(f"Epoch [{epoch:02d}/{args.epochs:02d}] "
               f"Train Loss: {train_loss:.4f} | Train IoU: {avg_train_iou:.3f} | "
               f"Val Loss: {val_loss:.4f} | Val IoU: {avg_val_iou:.3f} | Val Dice: {avg_val_dice:.3f}")
 
@@ -390,8 +394,8 @@ def train(args):
     with open(hist_path, "w") as f:
         json.dump(history, f, indent=2)
 
-    print(f"\n[TRAINING COMPLETE] Best Val IoU: {best_val_iou:.4f}")
-    print(f"Saved best weights to {os.path.join(args.output_dir, f'{args.model}_best.pt')}")
+    logger.info(f"\n[TRAINING COMPLETE] Best Val IoU: {best_val_iou:.4f}")
+    logger.info(f"Saved best weights to {os.path.join(args.output_dir, f'{args.model}_best.pt')}")
 
 
 if __name__ == "__main__":

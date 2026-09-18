@@ -16,6 +16,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from ai.geospatial.geotagger import GeospatialEngine
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -33,13 +37,13 @@ def export(args):
     os.makedirs(args.output_dir, exist_ok=True)
     engine = GeospatialEngine()
 
-    print("=" * 75)
-    print("STAGE 7: GEOSPATIAL TARGET REPORT EXPORTER")
-    print("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
-    print("=" * 75)
+    logger.info("=" * 75)
+    logger.info("STAGE 7: GEOSPATIAL TARGET REPORT EXPORTER")
+    logger.info("Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
+    logger.info("=" * 75)
 
     if not os.path.exists(args.db_path):
-        print(f"[ERROR] Database not found at: {args.db_path}")
+        logger.error(f"[ERROR] Database not found at: {args.db_path}")
         return
 
     conn = sqlite3.connect(args.db_path)
@@ -52,31 +56,31 @@ def export(args):
     finally:
         conn.close()
 
-    print(f"Loaded {len(targets)} georeferenced targets from audit database.")
+    logger.info(f"Loaded {len(targets)} georeferenced targets from audit database.")
 
     if not targets:
-        print("[INFO] No targets with coordinates found in audit database.")
+        logger.info("[INFO] No targets with coordinates found in audit database.")
         return
 
     # Export GeoJSON
     geojson_path = os.path.join(args.output_dir, "survey_targets.geojson")
     engine.export_geojson(targets, geojson_path)
-    print(f"  [EXPORTED GEOJSON]: {geojson_path}")
+    logger.info(f"  [EXPORTED GEOJSON]: {geojson_path}")
 
     # Export CSV
     csv_path = os.path.join(args.output_dir, "survey_targets_hydrographic.csv")
     engine.export_csv(targets, csv_path)
-    print(f"  [EXPORTED CSV]:     {csv_path}")
+    logger.info(f"  [EXPORTED CSV]:     {csv_path}")
 
     # Bounding extent
     lats = [t["lat"] for t in targets if t.get("lat") is not None]
     lons = [t["lon"] for t in targets if t.get("lon") is not None]
     if lats and lons:
-        print("\nSurvey Spatial Extent:")
-        print(f"  Latitude:  [{min(lats):.6f}, {max(lats):.6f}]")
-        print(f"  Longitude: [{min(lons):.6f}, {max(lons):.6f}]")
+        logger.info("\nSurvey Spatial Extent:")
+        logger.info(f"  Latitude:  [{min(lats):.6f}, {max(lats):.6f}]")
+        logger.info(f"  Longitude: [{min(lons):.6f}, {max(lons):.6f}]")
 
-    print("\n" + "=" * 75)
+    logger.info("\n" + "=" * 75)
 
 
 if __name__ == "__main__":

@@ -21,6 +21,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from ai.segmentation.unet_segmenter import UNetSegmenter
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def parse_args():
@@ -48,9 +52,9 @@ def run_inference(args):
     os.makedirs(masks_dir, exist_ok=True)
     os.makedirs(overlays_dir, exist_ok=True)
 
-    print("=" * 70)
-    print("STAGE 4: U-NET DEBRIS SEGMENTATION INFERENCE")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("STAGE 4: U-NET DEBRIS SEGMENTATION INFERENCE")
+    logger.info("=" * 70)
 
     # Initialize Segmenter
     segmenter = UNetSegmenter(
@@ -68,15 +72,15 @@ def run_inference(args):
     elif os.path.isfile(args.input):
         image_paths = [args.input]
     else:
-        print(f"[ERROR] Input path does not exist: {args.input}")
+        logger.error(f"[ERROR] Input path does not exist: {args.input}")
         return
 
     if not image_paths:
-        print(f"[ERROR] No valid sonar images found at {args.input}")
+        logger.error(f"[ERROR] No valid sonar images found at {args.input}")
         return
 
-    print(f"Found {len(image_paths)} sonar image(s) for segmentation.")
-    print(f"Model loaded: {segmenter.is_model_loaded} ({segmenter.model_type if segmenter.is_model_loaded else 'None'})")
+    logger.info(f"Found {len(image_paths)} sonar image(s) for segmentation.")
+    logger.info(f"Model loaded: {segmenter.is_model_loaded} ({segmenter.model_type if segmenter.is_model_loaded else 'None'})")
 
     results = []
 
@@ -86,7 +90,7 @@ def run_inference(args):
 
         img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         if img is None:
-            print(f"[{idx}/{len(image_paths)}] Skipping unreadable: {filename}")
+            logger.info(f"[{idx}/{len(image_paths)}] Skipping unreadable: {filename}")
             continue
 
         h, w = img.shape[:2]
@@ -138,7 +142,7 @@ def run_inference(args):
             "status": "success"
         }
         results.append(record)
-        print(f"[{idx}/{len(image_paths)}] {filename} -> Area: {area_px} px | Contours: {contours_count} | Mode: {mode}")
+        logger.info(f"[{idx}/{len(image_paths)}] {filename} -> Area: {area_px} px | Contours: {contours_count} | Mode: {mode}")
 
     # Export structured results
     summary_path = os.path.join(args.output_dir, "segmentation_results.json")
@@ -151,7 +155,7 @@ def run_inference(args):
             "results": results
         }, f, indent=2)
 
-    print(f"\n[INFERENCE COMPLETED]: Results saved to {summary_path}")
+    logger.info(f"\n[INFERENCE COMPLETED]: Results saved to {summary_path}")
 
 
 if __name__ == "__main__":

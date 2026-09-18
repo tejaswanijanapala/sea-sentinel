@@ -8,6 +8,10 @@ import os
 import glob
 import cv2
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def generate_acoustic_masks(
@@ -26,7 +30,7 @@ def generate_acoustic_masks(
     image_files = glob.glob(os.path.join(images_dir, "**", "*.*"), recursive=True)
     image_files = [f for f in image_files if f.lower().endswith((".jpg", ".png", ".jpeg", ".tif"))]
 
-    print(f"Processing {len(image_files)} sonar images for segmentation mask generation...")
+    logger.info(f"Processing {len(image_files)} sonar images for segmentation mask generation...")
 
     count = 0
     for img_path in image_files:
@@ -89,7 +93,7 @@ def generate_acoustic_masks(
         cv2.imwrite(dst_mask, mask)
         count += 1
 
-    print(f"Successfully generated {count} image-mask pairs in {output_dir}")
+    logger.info(f"Successfully generated {count} image-mask pairs in {output_dir}")
 
 
 if __name__ == "__main__":

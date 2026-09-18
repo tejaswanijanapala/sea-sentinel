@@ -8,6 +8,10 @@ import sqlite3
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from .models import RiskAssessmentResult
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 class RiskAuditService:
@@ -92,7 +96,7 @@ class RiskAuditService:
                 ))
             return True
         except Exception as e:
-            print(f"[RiskAuditService] Warning saving risk assessment: {e}")
+            logger.warning(f"[RiskAuditService] Warning saving risk assessment: {e}")
             return False
 
     def get_assessment_history(self, debris_id: str) -> List[Dict[str, Any]]:

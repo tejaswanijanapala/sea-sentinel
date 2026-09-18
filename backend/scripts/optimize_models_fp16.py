@@ -1,19 +1,23 @@
 import os
 import torch
 import shutil
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def inspect_and_optimize():
-    print("==================================================")
-    print("      SEA SENTINEL MODEL FP16 OPTIMIZER           ")
-    print("==================================================")
+    logger.info("==================================================")
+    logger.info("      SEA SENTINEL MODEL FP16 OPTIMIZER           ")
+    logger.info("==================================================")
 
     # 1. Inspect and optimize UNet
     unet_path = "models/unet/attention_unet_best.pt"
     if os.path.exists(unet_path):
         ckpt = torch.load(unet_path, map_location="cpu", weights_only=False)
-        print("\n--- Inspecting Attention U-Net Checkpoint ---")
+        logger.info("\n--- Inspecting Attention U-Net Checkpoint ---")
         if isinstance(ckpt, dict):
-            print("Keys:", list(ckpt.keys()))
+            logger.info("Keys:", list(ckpt.keys()))
             state_dict = ckpt.get("model_state_dict", ckpt)
             total_params = 0
             float_params = 0
@@ -22,7 +26,7 @@ def inspect_and_optimize():
                     total_params += v.numel()
                     if v.is_floating_point():
                         float_params += v.numel()
-            print(f"Total Parameters: {total_params:,} (Float: {float_params:,})")
+            logger.info(f"Total Parameters: {total_params:,} (Float: {float_params:,})")
 
             # Create clean FP16 model checkpoint (extract only model_state_dict in half precision, stripping optimizer states)
             fp16_state = {}
@@ -52,13 +56,13 @@ def inspect_and_optimize():
             orig_mb = os.path.getsize(unet_path) / (1024 * 1024)
             new_mb = os.path.getsize(out_fp16) / (1024 * 1024)
             saved_pct = ((orig_mb - new_mb) / orig_mb) * 100
-            print(f"Original U-Net: {orig_mb:.2f} MB -> FP16 U-Net: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
+            logger.info(f"Original U-Net: {orig_mb:.2f} MB -> FP16 U-Net: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
 
     # 2. Inspect and optimize Autoencoder
     ae_path = "models/autoencoder/baseline_autoencoder.pt"
     if os.path.exists(ae_path):
         ckpt = torch.load(ae_path, map_location="cpu", weights_only=False)
-        print("\n--- Inspecting Autoencoder Checkpoint ---")
+        logger.info("\n--- Inspecting Autoencoder Checkpoint ---")
         state_dict = ckpt.get("model_state_dict", ckpt) if isinstance(ckpt, dict) else {}
         fp16_state = {}
         for k, v in state_dict.items():
@@ -81,13 +85,13 @@ def inspect_and_optimize():
         orig_mb = os.path.getsize(ae_path) / (1024 * 1024)
         new_mb = os.path.getsize(out_ae_fp16) / (1024 * 1024)
         saved_pct = ((orig_mb - new_mb) / orig_mb) * 100
-        print(f"Original Autoencoder: {orig_mb:.2f} MB -> FP16 Autoencoder: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
+        logger.info(f"Original Autoencoder: {orig_mb:.2f} MB -> FP16 Autoencoder: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
 
     # 3. Inspect and optimize YOLO
     yolo_path = "models/yolo/best.pt"
     if os.path.exists(yolo_path):
         ckpt = torch.load(yolo_path, map_location="cpu", weights_only=False)
-        print("\n--- Inspecting YOLO Checkpoint ---")
+        logger.info("\n--- Inspecting YOLO Checkpoint ---")
         if isinstance(ckpt, dict) and "model" in ckpt:
             model = ckpt["model"]
             if hasattr(model, "half"):
@@ -109,7 +113,7 @@ def inspect_and_optimize():
             orig_mb = os.path.getsize(yolo_path) / (1024 * 1024)
             new_mb = os.path.getsize(out_yolo_fp16) / (1024 * 1024)
             saved_pct = ((orig_mb - new_mb) / orig_mb) * 100
-            print(f"Original YOLO: {orig_mb:.2f} MB -> FP16 YOLO: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
+            logger.info(f"Original YOLO: {orig_mb:.2f} MB -> FP16 YOLO: {new_mb:.2f} MB [Saved {saved_pct:.1f}%!]")
 
 if __name__ == "__main__":
     inspect_and_optimize()

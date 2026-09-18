@@ -1,5 +1,9 @@
 import os
 import sys
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def check_file(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -61,18 +65,18 @@ def check_file(path):
             stack.append((c, line, col))
         elif c in ')}]':
             if not stack:
-                print(f'{path}: Unmatched closing {c} at line {line}:{col}')
+                logger.info(f'{path}: Unmatched closing {c} at line {line}:{col}')
                 return False
             top, l, cl = stack.pop()
             if pairs[c] != top:
-                print(f'{path}: Mismatched {top} from line {l}:{cl} with {c} at line {line}:{col}')
+                logger.info(f'{path}: Mismatched {top} from line {l}:{cl} with {c} at line {line}:{col}')
                 return False
         i += 1
 
     if stack:
-        print(f'{path}: Unclosed brackets left: {len(stack)}, first unmatched: {stack[0]}')
+        logger.info(f'{path}: Unclosed brackets left: {len(stack)}, first unmatched: {stack[0]}')
         return False
-    print(f'{path}: All {line} lines syntax/bracket OK!')
+    logger.info(f'{path}: All {line} lines syntax/bracket OK!')
     return True
 
 for p in [

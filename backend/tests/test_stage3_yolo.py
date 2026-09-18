@@ -12,6 +12,10 @@ if PROJECT_ROOT not in sys.path:
 from ai.detection.yolo_detector import YOLODetector
 from training.train_yolo import validate_dataset_compatibility
 from evaluation.metrics_engine import calculate_bbox_iou
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def test_dataset_compatibility():
     data_yaml = os.path.join(PROJECT_ROOT, "datasets", "processed", "yolo_dataset", "data.yaml")
@@ -62,4 +66,4 @@ if __name__ == "__main__":
     test_detector_initialization()
     test_draw_detections()
     test_confusion_matrix_generation()
-    print("All Stage 3 YOLO unit tests passed successfully!")
+    logger.info("All Stage 3 YOLO unit tests passed successfully!")

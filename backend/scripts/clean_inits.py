@@ -1,5 +1,9 @@
 """Clean package __init__.py files in backend."""
 from pathlib import Path
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 packages = [
     'debris_detection',
@@ -17,4 +21,4 @@ for pkg in packages:
     init_file.parent.mkdir(parents=True, exist_ok=True)
     with open(init_file, 'w', encoding='utf-8') as f:
         f.write(f'"""{pkg} package."""\n')
-    print(f'Cleaned {init_file}')
+    logger.info(f'Cleaned {init_file}')

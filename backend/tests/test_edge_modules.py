@@ -34,6 +34,10 @@ from edge.watchdog import EdgeWatchdogSupervisor
 from edge.telemetry_modem import AcousticTelemetryEncoder
 from edge.active_learning import ActiveLearningSelector, ContinualLearningGuardian
 from edge.edge_perception import EdgePerceptionPipeline
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_bounded_frame_buffer_drop_policy():
@@ -280,9 +284,9 @@ if __name__ == "__main__":
     for t in tests:
         try:
             t()
-            print(f"[PASS] {t.__name__}")
+            logger.info(f"[PASS] {t.__name__}")
             passed += 1
         except Exception as e:
-            print(f"[FAIL] {t.__name__}: {e}")
+            logger.error(f"[FAIL] {t.__name__}: {e}")
             raise
-    print(f"\nAll {passed}/{len(tests)} Edge AI tests passed successfully!")
+    logger.info(f"\nAll {passed}/{len(tests)} Edge AI tests passed successfully!")

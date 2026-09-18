@@ -135,20 +135,24 @@ import torchvision.transforms as T
 # Ultralytics YOLO
 try:
     from ultralytics import YOLO
-    print("✓ Ultralytics YOLO imported successfully.")
+    logger.info("✓ Ultralytics YOLO imported successfully.")
 except ImportError:
-    print("! Ultralytics not installed. Run: pip install ultralytics")
+    logger.info("! Ultralytics not installed. Run: pip install ultralytics")
 
 # Progress bar and Evaluation
 from tqdm.auto import tqdm
 from sklearn.metrics import confusion_matrix, precision_recall_fscore_support
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 # Configure Matplotlib styling
 plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
 plt.rcParams['figure.figsize'] = (12, 6)
 plt.rcParams['font.size'] = 11
 
-print("✓ Core scientific libraries loaded successfully.")
+logger.info("✓ Core scientific libraries loaded successfully.")
 """)
 
 add_code("""# -----------------------------------------------------------------------------
@@ -226,10 +230,10 @@ class PipelineConfig:
                  cls.YOLO_DATASET_PATH, cls.UNET_DATASET_PATH]:
             p.mkdir(parents=True, exist_ok=True)
             
-        print("✓ Dedicated folder architecture initialized:")
-        print(f"  ├── Notebooks Directory: {cls.NOTEBOOKS_DIR.resolve()}")
-        print(f"  ├── Logs Directory     : {cls.LOGS_DIR.resolve()}")
-        print(f"  └── Outputs Directory  : {cls.OUTPUT_PATH.resolve()}")
+        logger.info("✓ Dedicated folder architecture initialized:")
+        logger.info(f"  ├── Notebooks Directory: {cls.NOTEBOOKS_DIR.resolve()}")
+        logger.info(f"  ├── Logs Directory     : {cls.LOGS_DIR.resolve()}")
+        logger.info(f"  └── Outputs Directory  : {cls.OUTPUT_PATH.resolve()}")
 
 config = PipelineConfig()
 config.setup_directories()
@@ -295,11 +299,11 @@ def initialize_system_environment() -> torch.device:
             torch.backends.cudnn.deterministic = True
             
             logger.info(f"Hardware Acceleration: [CUDA ENABLED] | GPU: {dev_name} | VRAM: {vram:.2f} GB | CUDA: {cuda_ver}")
-            print(f"✓ GPU Active: {dev_name} ({vram:.2f} GB VRAM)")
+            logger.info(f"✓ GPU Active: {dev_name} ({vram:.2f} GB VRAM)")
         else:
             device = torch.device("cpu")
             logger.warning("No CUDA GPU detected. Pipeline running on Host CPU.")
-            print("! Running on Host CPU (CUDA not available).")
+            logger.info("! Running on Host CPU (CUDA not available).")
             
         return device
     except Exception as e:
@@ -825,7 +829,7 @@ names:
             f.write(yaml_content)
             
         logger.info("YOLO YAML dataset config successfully written.")
-        print(f"✓ YOLO dataset configuration written to: {output_yaml_path}")
+        logger.info(f"✓ YOLO dataset configuration written to: {output_yaml_path}")
         return output_yaml_path
     except Exception as e:
         logger.error(f"Failed to create YOLO YAML config: {str(e)}\\n{traceback.format_exc()}")
@@ -891,7 +895,7 @@ def validate_yolo_dataset_integrity(dataset_path: Path) -> Dict[str, Union[int, 
                             logger.error(err_msg)
                             
         logger.info(f"Integrity audit finished. Audited images: {total_images}, BBoxes: {total_annotations}, Errors: {len(errors)}")
-        print(f"✓ Audited {total_images} images, {total_annotations} bounding boxes. Errors found: {len(errors)}")
+        logger.error(f"✓ Audited {total_images} images, {total_annotations} bounding boxes. Errors found: {len(errors)}")
         return {"total_images": total_images, "total_annotations": total_annotations, "errors": errors}
     except Exception as e:
         logger.error(f"YOLO dataset integrity audit failure: {str(e)}\\n{traceback.format_exc()}")
@@ -920,7 +924,7 @@ def train_or_load_yolo_model(yaml_cfg_path: Path, force_retrain: bool = False) -
     
     if best_weights_path.exists() and not force_retrain:
         logger.info(f"Found existing trained YOLO model at: {best_weights_path}. Loading checkpoint...")
-        print(f"✓ Found existing trained YOLO model at: {best_weights_path}")
+        logger.info(f"✓ Found existing trained YOLO model at: {best_weights_path}")
         try:
             model = YOLO(str(best_weights_path))
             logger.info("YOLO checkpoint loaded successfully.")
@@ -953,7 +957,7 @@ def train_or_load_yolo_model(yaml_cfg_path: Path, force_retrain: bool = False) -
             model.save(str(best_weights_path))
             logger.info(f"YOLO model saved to: {best_weights_path}")
             
-        print(f"✓ YOLO model saved to: {best_weights_path}")
+        logger.info(f"✓ YOLO model saved to: {best_weights_path}")
         return model
     except Exception as e:
         logger.error(f"YOLO training encountered an error: {str(e)}\\n{traceback.format_exc()}")
@@ -1107,7 +1111,7 @@ def predict_image(image_path: Union[str, Path],
 test_samples = list((config.DATASET_PATH / "images" / "test").glob("*.png"))
 if test_samples:
     sample_res = predict_image(test_samples[0], yolo_model, conf_thresh=0.25)
-    print(f"✓ Detected {sample_res['num_detections']} marine debris targets in: {test_samples[0].name}")
+    logger.info(f"✓ Detected {sample_res['num_detections']} marine debris targets in: {test_samples[0].name}")
 """)
 
 add_code("""# -----------------------------------------------------------------------------
@@ -1246,7 +1250,7 @@ def prepare_unet_dataset(dataset_path: Path, unet_path: Path):
                     
             logger.debug(f"U-Net split [{split}] synchronized with {len(img_files)} images and masks.")
         logger.info("U-Net dataset preparation completed successfully.")
-        print(f"✓ U-Net dataset prepared at: {unet_path}")
+        logger.info(f"✓ U-Net dataset prepared at: {unet_path}")
     except Exception as e:
         logger.error(f"U-Net dataset preparation error: {str(e)}\\n{traceback.format_exc()}")
 
@@ -1369,7 +1373,7 @@ try:
     with torch.no_grad():
         out_tensor = test_model(dummy_tensor)
     logger.info(f"U-Net architecture verified successfully. Input: {dummy_tensor.shape} => Output: {out_tensor.shape}")
-    print(f"✓ U-Net instantiated. Input: {dummy_tensor.shape} => Output: {out_tensor.shape}")
+    logger.info(f"✓ U-Net instantiated. Input: {dummy_tensor.shape} => Output: {out_tensor.shape}")
 except Exception as arch_err:
     logger.error(f"U-Net instantiation error: {str(arch_err)}\\n{traceback.format_exc()}")
 """)
@@ -1479,7 +1483,7 @@ def train_or_load_unet_model(unet_path: Path, force_retrain: bool = False) -> Tu
     
     if best_weights_path.exists() and not force_retrain:
         logger.info(f"Found existing trained U-Net checkpoint at: {best_weights_path}. Loading checkpoint...")
-        print(f"✓ Found existing trained U-Net checkpoint at: {best_weights_path}")
+        logger.info(f"✓ Found existing trained U-Net checkpoint at: {best_weights_path}")
         try:
             checkpoint = torch.load(str(best_weights_path), map_location=DEVICE)
             model.load_state_dict(checkpoint["model_state_dict"])
@@ -1555,10 +1559,10 @@ def train_or_load_unet_model(unet_path: Path, force_retrain: bool = False) -> Tu
                 logger.info(f"New best U-Net checkpoint saved (Dice: {best_val_dice:.4f}) at epoch {epoch}")
                 
             if epoch % 5 == 0 or epoch == config.UNET_EPOCHS:
-                print(f"Epoch [{epoch:02d}/{config.UNET_EPOCHS:02d}] - Train Loss: {epoch_train_loss:.4f} | Val Loss: {epoch_val_loss:.4f} | Val Dice: {epoch_val_dice:.4f} | Val IoU: {epoch_val_iou:.4f}")
+                logger.info(f"Epoch [{epoch:02d}/{config.UNET_EPOCHS:02d}] - Train Loss: {epoch_train_loss:.4f} | Val Loss: {epoch_val_loss:.4f} | Val Dice: {epoch_val_dice:.4f} | Val IoU: {epoch_val_iou:.4f}")
                 
         logger.info(f"U-Net training finished. Checkpoint saved to: {best_weights_path}")
-        print(f"✓ U-Net training complete. Checkpoint saved (Dice: {best_val_dice:.4f}) to: {best_weights_path}")
+        logger.info(f"✓ U-Net training complete. Checkpoint saved (Dice: {best_val_dice:.4f}) to: {best_weights_path}")
         return model, history
     except Exception as e:
         logger.error(f"U-Net training pipeline failure: {str(e)}\\n{traceback.format_exc()}")
@@ -1697,7 +1701,7 @@ def segment_image(image_path: Union[str, Path],
 test_imgs = list((config.UNET_DATASET_PATH / "images" / "test").glob("*.png"))
 if test_imgs:
     seg_res = segment_image(test_imgs[0], unet_model, threshold=0.5)
-    print(f"✓ Segmented test image: {test_imgs[0].name} ({seg_res['segmented_pixels']} px debris area)")
+    logger.info(f"✓ Segmented test image: {test_imgs[0].name} ({seg_res['segmented_pixels']} px debris area)")
 """)
 
 add_code("""# -----------------------------------------------------------------------------
@@ -2007,7 +2011,7 @@ def run_combined_pipeline(image_path: Union[str, Path],
 test_samples = list((config.DATASET_PATH / "images" / "test").glob("*.png"))
 if test_samples:
     combined_result = run_combined_pipeline(test_samples[0], yolo_model, unet_model)
-    print(f"✓ Combined Pipeline finished ({combined_result['num_objects']} targets identified in {combined_result['latency_ms']:.1f} ms).")
+    logger.info(f"✓ Combined Pipeline finished ({combined_result['num_objects']} targets identified in {combined_result['latency_ms']:.1f} ms).")
 """)
 
 add_code("""# -----------------------------------------------------------------------------
@@ -2074,7 +2078,7 @@ def display_debris_analysis_report(result_dict: dict) -> pd.DataFrame:
             plt.show()
         else:
             logger.info("No debris targets detected above confidence threshold.")
-            print("No debris targets detected above confidence threshold.")
+            logger.info("No debris targets detected above confidence threshold.")
         return df
     except Exception as e:
         logger.error(f"Debris report display error: {str(e)}\\n{traceback.format_exc()}")
@@ -2237,7 +2241,7 @@ def save_yolo_model(model: YOLO, target_path: Optional[Union[str, Path]] = None)
     try:
         model.save(str(save_p))
         logger.info(f"YOLO model saved successfully to: {save_p}")
-        print(f"✓ YOLO model checkpoint saved to: {save_p}")
+        logger.info(f"✓ YOLO model checkpoint saved to: {save_p}")
         return save_p
     except Exception as e:
         logger.error(f"Failed to save YOLO model: {str(e)}\\n{traceback.format_exc()}")
@@ -2251,7 +2255,7 @@ def load_yolo_model(model_path: Optional[Union[str, Path]] = None) -> YOLO:
         raise FileNotFoundError(f"YOLO checkpoint not found at: {load_p}")
     model = YOLO(str(load_p))
     logger.info(f"YOLO model loaded from: {load_p}")
-    print(f"✓ YOLO model successfully loaded from: {load_p}")
+    logger.info(f"✓ YOLO model successfully loaded from: {load_p}")
     return model
 
 def save_unet_model(model: UNet, target_path: Optional[Union[str, Path]] = None) -> Path:
@@ -2260,7 +2264,7 @@ def save_unet_model(model: UNet, target_path: Optional[Union[str, Path]] = None)
     try:
         torch.save({"model_state_dict": model.state_dict()}, str(save_p))
         logger.info(f"U-Net model saved successfully to: {save_p}")
-        print(f"✓ U-Net model checkpoint saved to: {save_p}")
+        logger.info(f"✓ U-Net model checkpoint saved to: {save_p}")
         return save_p
     except Exception as e:
         logger.error(f"Failed to save U-Net model: {str(e)}\\n{traceback.format_exc()}")
@@ -2277,7 +2281,7 @@ def load_unet_model(model_path: Optional[Union[str, Path]] = None) -> UNet:
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
     logger.info(f"U-Net model loaded from: {load_p}")
-    print(f"✓ U-Net model successfully loaded from: {load_p}")
+    logger.info(f"✓ U-Net model successfully loaded from: {load_p}")
     return model
 
 # Validate persistence
@@ -2296,12 +2300,12 @@ def inspect_pipeline_logs(log_file_path: Optional[Path] = None, last_n_lines: in
     Reads and displays the latest log entries recorded in the dedicated logs/ folder.
     \"\"\"
     log_p = log_file_path if log_file_path else config.LOG_FILE
-    print("=" * 100)
-    print(f"       LIVE PIPELINE LOG TRACE (Dedicated Log File: {log_p.resolve()})")
-    print("=" * 100)
+    logger.info("=" * 100)
+    logger.info(f"       LIVE PIPELINE LOG TRACE (Dedicated Log File: {log_p.resolve()})")
+    logger.info("=" * 100)
     
     if not log_p.exists():
-        print("! No log file found on disk yet.")
+        logger.info("! No log file found on disk yet.")
         return
         
     try:
@@ -2312,18 +2316,18 @@ def inspect_pipeline_logs(log_file_path: Optional[Path] = None, last_n_lines: in
         for line in recent_lines:
             clean_line = line.strip()
             if "[ERROR]" in clean_line:
-                print(f"\\033[91m{clean_line}\\033[0m")
+                logger.info(f"\\033[91m{clean_line}\\033[0m")
             elif "[WARNING]" in clean_line:
-                print(f"\\033[93m{clean_line}\\033[0m")
+                logger.info(f"\\033[93m{clean_line}\\033[0m")
             elif "[INFO]" in clean_line:
-                print(f"\\033[92m{clean_line}\\033[0m")
+                logger.info(f"\\033[92m{clean_line}\\033[0m")
             else:
-                print(clean_line)
+                logger.info(clean_line)
                 
-        print("=" * 100)
-        print(f"Total Log Lines Recorded: {len(lines)} | Logs Folder: {config.LOGS_DIR.resolve()}")
+        logger.info("=" * 100)
+        logger.info(f"Total Log Lines Recorded: {len(lines)} | Logs Folder: {config.LOGS_DIR.resolve()}")
     except Exception as e:
-        print(f"Failed to read log file: {str(e)}")
+        logger.error(f"Failed to read log file: {str(e)}")
 
 inspect_pipeline_logs(last_n_lines=25)
 """)
@@ -2376,14 +2380,14 @@ def analyze_sonar_image(image_path: Union[str, Path],
     logger.info(f"[MASTER API SUCCESS] {res['num_objects']} targets identified. Swath coverage: {coverage_pct}%.")
     logger.info(f"============================================================")
     
-    print("=" * 80)
-    print(f"              SONAR INSPECTION COMPLETED: {Path(image_path).name}")
-    print("=" * 80)
-    print(f"  Verified Debris Targets Found : {res['num_objects']}")
-    print(f"  Total Segmented Debris Area   : {total_area} pixels ({coverage_pct}% of swath)")
-    print(f"  Pipeline Execution Latency    : {res['latency_ms']:.2f} ms")
-    print(f"  Dedicated Log File Target     : {config.LOG_FILE.resolve()}")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info(f"              SONAR INSPECTION COMPLETED: {Path(image_path).name}")
+    logger.info("=" * 80)
+    logger.info(f"  Verified Debris Targets Found : {res['num_objects']}")
+    logger.info(f"  Total Segmented Debris Area   : {total_area} pixels ({coverage_pct}% of swath)")
+    logger.info(f"  Pipeline Execution Latency    : {res['latency_ms']:.2f} ms")
+    logger.info(f"  Dedicated Log File Target     : {config.LOG_FILE.resolve()}")
+    logger.info("=" * 80)
     
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.imshow(res["final_composite"])
@@ -2469,6 +2473,6 @@ nb_target = notebooks_dir / "marine_debris_sonar_detection_system.ipynb"
 with open(nb_target, "w", encoding="utf-8") as f:
     json.dump(notebook_dict, f, indent=2)
 
-print(f"Successfully generated clean architecture notebook ({len(cells)} cells):")
-print(f" - Notebook File : {nb_target.resolve()}")
-print(f" - Dedicated Logs: {logs_dir.resolve()}")
+logger.info(f"Successfully generated clean architecture notebook ({len(cells)} cells):")
+logger.info(f" - Notebook File : {nb_target.resolve()}")
+logger.info(f" - Dedicated Logs: {logs_dir.resolve()}")

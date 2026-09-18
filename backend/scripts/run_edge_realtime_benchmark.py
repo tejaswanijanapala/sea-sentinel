@@ -23,6 +23,10 @@ if BACKEND_ROOT not in sys.path:
 
 from edge.edge_perception import EdgePerceptionPipeline
 from edge.resource_manager import EdgeResourceManager
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def generate_synthetic_sonar_swath(size=(640, 640)) -> np.ndarray:
@@ -47,36 +51,36 @@ def generate_synthetic_sonar_swath(size=(640, 640)) -> np.ndarray:
 
 
 def run_benchmark(iterations: int = 50, high_recall: bool = False, output_json: Optional[str] = None):
-    print("=" * 80)
-    print("  SEA SENTINEL — PRODUCTION EDGE AI HARD REAL-TIME BENCHMARK")
-    print("  Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("  SEA SENTINEL — PRODUCTION EDGE AI HARD REAL-TIME BENCHMARK")
+    logger.info("  Ministry of Earth Sciences (MoES) — National Institute of Ocean Technology")
+    logger.info("=" * 80)
 
     res_mgr = EdgeResourceManager()
     dev_prof = res_mgr.device_profile
-    print(f"\n[Hardware Target Introspection]")
-    print(f"  Device Class:         {dev_prof['device_class']}")
-    print(f"  Recommended Backend:  {dev_prof['recommended_backend']}")
-    print(f"  Optimal Precision:    {dev_prof['optimal_precision'].upper()}")
-    print(f"  CUDA GPU Available:   {dev_prof['cuda_available']} ({dev_prof.get('gpu_name')})")
-    print(f"  Total System RAM:     {dev_prof['total_ram_gb']} GB")
-    print(f"  CPU Cores:            {dev_prof['cpu_cores']}")
+    logger.info(f"\n[Hardware Target Introspection]")
+    logger.info(f"  Device Class:         {dev_prof['device_class']}")
+    logger.info(f"  Recommended Backend:  {dev_prof['recommended_backend']}")
+    logger.info(f"  Optimal Precision:    {dev_prof['optimal_precision'].upper()}")
+    logger.info(f"  CUDA GPU Available:   {dev_prof['cuda_available']} ({dev_prof.get('gpu_name')})")
+    logger.info(f"  Total System RAM:     {dev_prof['total_ram_gb']} GB")
+    logger.info(f"  CPU Cores:            {dev_prof['cpu_cores']}")
 
-    print("\n[Initializing Deterministic Edge Pipeline...]")
+    logger.info("\n[Initializing Deterministic Edge Pipeline...]")
     pipeline = EdgePerceptionPipeline(high_recall_mode=high_recall)
-    print(f"  High Recall Mode:     {pipeline.high_recall_mode}")
-    print(f"  YOLO Model Loaded:    {pipeline.yolo.is_model_loaded}")
-    print(f"  U-Net Model Loaded:   {pipeline.unet.is_model_loaded}")
-    print(f"  Bounded Buffer Cap:   {pipeline.frame_buffer.max_capacity}")
-    print(f"  Modem Packet Schema:  24 Bytes (CRC-8 Protected)")
+    logger.info(f"  High Recall Mode:     {pipeline.high_recall_mode}")
+    logger.info(f"  YOLO Model Loaded:    {pipeline.yolo.is_model_loaded}")
+    logger.info(f"  U-Net Model Loaded:   {pipeline.unet.is_model_loaded}")
+    logger.info(f"  Bounded Buffer Cap:   {pipeline.frame_buffer.max_capacity}")
+    logger.info(f"  Modem Packet Schema:  24 Bytes (CRC-8 Protected)")
 
     # Warmup pass
-    print("\n[Pre-Warming AI Engine & GPU/CPU Caches (3 Warmup Passes)...]")
+    logger.info("\n[Pre-Warming AI Engine & GPU/CPU Caches (3 Warmup Passes)...]")
     for _ in range(3):
         dummy_swath = generate_synthetic_sonar_swath((640, 640))
         pipeline.process_frame(dummy_swath, frame_id="WARMUP")
 
-    print(f"\n[Executing Sustained Benchmark Loop: {iterations} Frames]...")
+    logger.info(f"\n[Executing Sustained Benchmark Loop: {iterations} Frames]...")
     stage_metrics = {
         "ingestion_ms": [],
         "quality_gate_ms": [],
@@ -119,7 +123,7 @@ def run_benchmark(iterations: int = 50, high_recall: bool = False, output_json: 
         if (i + 1) % 10 == 0 or (i + 1) == iterations:
             tot = timing.get("total_pipeline_ms", 0.0)
             inf = timing.get("parallel_model_inference_ms", 0.0)
-            print(f"  Iteration [{i+1:03d}/{iterations:03d}] -> Inference: {inf:5.1f}ms | Total Pipeline: {tot:5.1f}ms | Status: {res['status']}")
+            logger.info(f"  Iteration [{i+1:03d}/{iterations:03d}] -> Inference: {inf:5.1f}ms | Total Pipeline: {tot:5.1f}ms | Status: {res['status']}")
 
     total_bench_duration = time.perf_counter() - t_bench_start
     sustained_fps = round(iterations / max(0.001, total_bench_duration), 2)
@@ -141,25 +145,25 @@ def run_benchmark(iterations: int = 50, high_recall: bool = False, output_json: 
     inf_stats = stats["parallel_model_inference_ms"]
     pipe_stats = stats["total_pipeline_ms"]
 
-    print("\n" + "=" * 80)
-    print("  HARD REAL-TIME LATENCY BENCHMARK RESULTS (GRANULAR BREAKDOWN)")
-    print("=" * 80)
-    print(f"{'Pipeline Stage':<30} | {'Mean (ms)':<9} | {'Median':<9} | {'P95 (ms)':<9} | {'P99 (ms)':<9} | {'Max (ms)':<9}")
-    print("-" * 80)
+    logger.info("\n" + "=" * 80)
+    logger.info("  HARD REAL-TIME LATENCY BENCHMARK RESULTS (GRANULAR BREAKDOWN)")
+    logger.info("=" * 80)
+    logger.info(f"{'Pipeline Stage':<30} | {'Mean (ms)':<9} | {'Median':<9} | {'P95 (ms)':<9} | {'P99 (ms)':<9} | {'Max (ms)':<9}")
+    logger.info("-" * 80)
     for stage, s in stats.items():
-        print(f"{stage:<30} | {s['mean']:<9.1f} | {s['median']:<9.1f} | {s['p95']:<9.1f} | {s['p99']:<9.1f} | {s['worst_case']:<9.1f}")
-    print("-" * 80)
-    print(f"  Sustained Throughput:  {sustained_fps} FPS across {iterations} frames")
-    print(f"  Processed Frames:      {processed_frames}")
-    print(f"  Quality-Gate Rejects:  {dropped_frames} (Dead/Corrupt pings safely rejected)")
-    print(f"  Model Inference P95:   {inf_stats['p95']} ms (Hard Target <= 50 ms)")
-    print(f"  Total Pipeline P95:    {pipe_stats['p95']} ms")
+        logger.info(f"{stage:<30} | {s['mean']:<9.1f} | {s['median']:<9.1f} | {s['p95']:<9.1f} | {s['p99']:<9.1f} | {s['worst_case']:<9.1f}")
+    logger.info("-" * 80)
+    logger.info(f"  Sustained Throughput:  {sustained_fps} FPS across {iterations} frames")
+    logger.info(f"  Processed Frames:      {processed_frames}")
+    logger.info(f"  Quality-Gate Rejects:  {dropped_frames} (Dead/Corrupt pings safely rejected)")
+    logger.info(f"  Model Inference P95:   {inf_stats['p95']} ms (Hard Target <= 50 ms)")
+    logger.info(f"  Total Pipeline P95:    {pipe_stats['p95']} ms")
     
     # Validation verdict
     inf_pass = inf_stats["p95"] <= 50.0 or dev_prof["cuda_available"]
     status_label = "PASSED [TARGET <= 50ms MET]" if inf_stats["p95"] <= 50.0 else "OPERATIONAL [EDGE CPU PROFILE]"
-    print(f"\n  Final Edge Verdict:    {status_label}")
-    print("=" * 80)
+    logger.info(f"\n  Final Edge Verdict:    {status_label}")
+    logger.info("=" * 80)
 
     # Save to JSON
     report = {
@@ -177,7 +181,7 @@ def run_benchmark(iterations: int = 50, high_recall: bool = False, output_json: 
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w") as f:
         json.dump(report, f, indent=2)
-    print(f"\n[Saved Detailed Benchmark Report] -> {out_file}\n")
+    logger.info(f"\n[Saved Detailed Benchmark Report] -> {out_file}\n")
 
 
 if __name__ == "__main__":

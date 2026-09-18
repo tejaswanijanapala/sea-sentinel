@@ -11,6 +11,10 @@ if PROJECT_ROOT not in sys.path:
 
 from ai.preprocessing.pipeline import SonarPreprocessor
 from ai.preprocessing.batch_processor import BatchPreprocessor
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def test_normalization():
     proc = SonarPreprocessor()
@@ -83,4 +87,4 @@ if __name__ == "__main__":
     test_shadow_highlight_extraction()
     test_tiling()
     test_full_pipeline_process()
-    print("All Stage 2 preprocessing unit tests passed successfully!")
+    logger.info("All Stage 2 preprocessing unit tests passed successfully!")

@@ -126,11 +126,11 @@ def main():
             node.destroy_node()
             rclpy.shutdown()
     else:
-        print("[ROS 2] Running in standalone test mode (rclpy not detected in host OS).")
+        logger.info("[ROS 2] Running in standalone test mode (rclpy not detected in host OS).")
         node = SeaSentinelROS2Node()
         dummy_img = np.random.randint(20, 180, (640, 640), dtype=np.uint8)
         out = node.process_and_publish(dummy_img)
-        print(f"[ROS 2] Test result status: {out['status']}")
+        logger.info(f"[ROS 2] Test result status: {out['status']}")
 
 
 if __name__ == "__main__":

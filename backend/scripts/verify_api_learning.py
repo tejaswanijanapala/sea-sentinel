@@ -14,6 +14,10 @@ Script to verify all Adaptive Learning & Error Prevention REST API endpoints:
 import json
 import urllib.request
 import urllib.error
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 BASE_URL = "http://localhost:8000"
 
@@ -29,18 +33,18 @@ def test_endpoint(method, path, payload=None):
         with urllib.request.urlopen(req) as response:
             res_body = response.read().decode("utf-8")
             data = json.loads(res_body)
-            print(f"[PASS] {method} {path} -> {response.status}")
+            logger.info(f"[PASS] {method} {path} -> {response.status}")
             return data
     except urllib.error.HTTPError as e:
         err_body = e.read().decode("utf-8")
-        print(f"[FAIL] {method} {path} -> HTTP {e.code}: {err_body}")
+        logger.error(f"[FAIL] {method} {path} -> HTTP {e.code}: {err_body}")
         return None
     except Exception as e:
-        print(f"[ERROR] {method} {path} -> {e}")
+        logger.error(f"[ERROR] {method} {path} -> {e}")
         return None
 
 if __name__ == "__main__":
-    print("=== Testing Sea Sentinel Adaptive Learning REST API ===")
+    logger.info("=== Testing Sea Sentinel Adaptive Learning REST API ===")
     
     # 1. Dashboard
     dash = test_endpoint("GET", "/api/learning/dashboard")
@@ -86,4 +90,4 @@ if __name__ == "__main__":
     # 10. Dashboard refreshed
     dash_post = test_endpoint("GET", "/api/learning/dashboard")
 
-    print("=== All REST API Tests Completed ===")
+    logger.info("=== All REST API Tests Completed ===")

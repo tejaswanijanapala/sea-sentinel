@@ -5,6 +5,10 @@ import os
 import json
 import urllib.request
 import urllib.error
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 BASE_URL = "http://localhost:8000"
 
@@ -14,7 +18,7 @@ def test_photo_analysis():
     if not os.path.exists(sample_path):
         sample_path = os.path.abspath("backend/datasets/samples/noaa_h11584_gulf_sample.tif")
     
-    print(f"Testing analysis with image: {sample_path}")
+    logger.info(f"Testing analysis with image: {sample_path}")
     payload = {
         "image_path": sample_path,
         "mode": "balanced"
@@ -30,15 +34,15 @@ def test_photo_analysis():
     try:
         with urllib.request.urlopen(req) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            print(f"[SUCCESS] Status: {data.get('status')}")
-            print(f"Analysis ID: {data.get('analysis_id')}")
-            print(f"Total Detections: {len(data.get('detections', []))}")
+            logger.info(f"[SUCCESS] Status: {data.get('status')}")
+            logger.info(f"Analysis ID: {data.get('analysis_id')}")
+            logger.info(f"Total Detections: {len(data.get('detections', []))}")
             for idx, d in enumerate(data.get("detections", [])[:4]):
-                print(f"  #{idx+1} {d.get('object_id')} | {d.get('class')} | Conf: {d.get('calibrated_confidence')} | Sources: {d.get('sources')}")
+                logger.info(f"  #{idx+1} {d.get('object_id')} | {d.get('class')} | Conf: {d.get('calibrated_confidence')} | Sources: {d.get('sources')}")
             return data
     except urllib.error.HTTPError as e:
         err = e.read().decode("utf-8")
-        print(f"[FAIL] HTTP {e.code}: {err}")
+        logger.error(f"[FAIL] HTTP {e.code}: {err}")
         return None
 
 if __name__ == "__main__":

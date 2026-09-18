@@ -17,6 +17,10 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from evaluation.ablation_evaluator import AblationEvaluator
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_ablation_evaluation():
@@ -78,4 +82,4 @@ def test_ablation_evaluation():
 
 if __name__ == "__main__":
     test_ablation_evaluation()
-    print("All Ablation Evaluator unit tests passed successfully!")
+    logger.info("All Ablation Evaluator unit tests passed successfully!")

@@ -49,6 +49,10 @@ if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
 from ai.segmentation.unet_segmenter import UNetSegmenter
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def calculate_bbox_iou(box1: List[float], box2: List[float]) -> float:
@@ -145,7 +149,7 @@ class MetricsEngine:
           - Mean IoU of detected bounding boxes
           - mAP@50 and mAP@50-95
         """
-        print(f"\n[EVALUATION] Initiating YOLOv11 evaluation on split: '{split}'...")
+        logger.info(f"\n[EVALUATION] Initiating YOLOv11 evaluation on split: '{split}'...")
         
         img_dir = os.path.join(WORKSPACE_ROOT, "data", "yolo", "images", split)
         lbl_dir = os.path.join(WORKSPACE_ROOT, "data", "yolo", "labels", split)
@@ -269,7 +273,7 @@ class MetricsEngine:
           - Mask mAP@50 = Mean Average Precision of masks at IoU >= 0.50
           - Mask mAP@50-95 = Mean Average Precision across IoU thresholds [0.50:0.05:0.95]
         """
-        print(f"\n[EVALUATION] Initiating U-Net Semantic Segmentation evaluation on split: '{split}'...")
+        logger.info(f"\n[EVALUATION] Initiating U-Net Semantic Segmentation evaluation on split: '{split}'...")
         
         segmenter = UNetSegmenter(
             checkpoint_path=self.unet_weights,
@@ -788,9 +792,9 @@ class MetricsEngine:
           4. Exports clean JSON and CSV report artifacts.
         """
         start_time = time.time()
-        print("=" * 80)
-        print("SEA SENTINEL — COMPREHENSIVE MODEL EVALUATION PIPELINE")
-        print("=" * 80)
+        logger.info("=" * 80)
+        logger.info("SEA SENTINEL — COMPREHENSIVE MODEL EVALUATION PIPELINE")
+        logger.info("=" * 80)
 
         # Run evaluations
         yolo_metrics = self.evaluate_yolo(split=split)
@@ -854,7 +858,7 @@ class MetricsEngine:
         json_path = os.path.join(self.output_dir, "evaluation_report.json")
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
-        print(f"[REPORT] Saved JSON metrics report to: {json_path}")
+        logger.info(f"[REPORT] Saved JSON metrics report to: {json_path}")
 
         # 2. Save CSV Summary Report
         csv_summary_path = os.path.join(self.output_dir, "metrics_summary.csv")
@@ -875,7 +879,7 @@ class MetricsEngine:
             writer.writerow(["U-Net", "Semantic Segmentation (Mask)", "Dice Coefficient", report["unet"]["dice"], "2 * TP / (2 * TP + FP + FN)"])
             writer.writerow(["U-Net", "Semantic Segmentation (Mask)", "Mask mAP@50", report["unet"]["map50"], "Mask AP at IoU >= 0.50"])
             writer.writerow(["U-Net", "Semantic Segmentation (Mask)", "Mask mAP@50-95", report["unet"]["map50_95"], "Mask AP averaged across IoU 0.50:0.95"])
-        print(f"[REPORT] Saved CSV summary report to: {csv_summary_path}")
+        logger.info(f"[REPORT] Saved CSV summary report to: {csv_summary_path}")
 
         # 3. Save Per-Class CSV Report
         csv_per_class_path = os.path.join(self.output_dir, "yolo_per_class_metrics.csv")
@@ -884,7 +888,7 @@ class MetricsEngine:
             writer.writerow(["Class ID", "Class Name", "Precision", "Recall", "F1-Score", "mAP@50", "mAP@50-95"])
             for pc in report["yolo"]["per_class"]:
                 writer.writerow([pc["class_id"], pc["class_name"], pc["precision"], pc["recall"], pc["f1_score"], pc["map50"], pc["map50_95"]])
-        print(f"[REPORT] Saved YOLO per-class CSV report to: {csv_per_class_path}")
+        logger.info(f"[REPORT] Saved YOLO per-class CSV report to: {csv_per_class_path}")
 
         # 4. Save U-Net Per-Image CSV Report
         csv_unet_path = os.path.join(self.output_dir, "unet_per_image_metrics.csv")
@@ -897,11 +901,11 @@ class MetricsEngine:
                     pi["precision"], pi["recall"], pi["f1_score"], pi["iou"], pi["dice"],
                     pi.get("map50", 0.8924), pi.get("map50_95", 0.7315)
                 ])
-        print(f"[REPORT] Saved U-Net per-image CSV report to: {csv_unet_path}")
+        logger.info(f"[REPORT] Saved U-Net per-image CSV report to: {csv_unet_path}")
 
-        print("=" * 80)
-        print("EVALUATION PIPELINE EXECUTION FINISHED SUCCESSFULLY")
-        print("=" * 80)
+        logger.info("=" * 80)
+        logger.info("EVALUATION PIPELINE EXECUTION FINISHED SUCCESSFULLY")
+        logger.info("=" * 80)
 
         return report
 

@@ -9,6 +9,10 @@ import os
 import time
 import cv2
 import numpy as np
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 try:
     from ultralytics import YOLO
@@ -71,7 +75,7 @@ class YOLODetector:
                     # Update classes if custom trained
                     self.classes = {int(k): v for k, v in self.model.names.items()}
             except Exception as e:
-                print(f"[YOLODetector] Warning: Failed to load weights from {self.model_path}: {e}")
+                logger.error(f"[YOLODetector] Warning: Failed to load weights from {self.model_path}: {e}")
                 self.is_model_loaded = False
         else:
             # Fallback to custom trained best.pt in project root models/yolo/best.pt
@@ -95,7 +99,7 @@ class YOLODetector:
                         loaded = True
                         break
                     except Exception as e:
-                        print(f"[YOLODetector] Warning: Failed to load from {cand}: {e}")
+                        logger.error(f"[YOLODetector] Warning: Failed to load from {cand}: {e}")
             if not loaded:
                 self.is_model_loaded = False
 

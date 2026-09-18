@@ -23,6 +23,10 @@ if PROJECT_ROOT not in sys.path:
 from agent.orchestrator import SIHPipelineAgent
 from agent.explainability import ExplainabilitySynthesizer
 from agent.audit_logger import SurveyAuditLogger
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 
 def test_agent_initialization():
@@ -151,15 +155,15 @@ def test_agent_end_to_end_analysis():
 
 
 if __name__ == "__main__":
-    print("Running Stage 6 Unit Tests...")
+    logger.info("Running Stage 6 Unit Tests...")
     test_agent_initialization()
-    print("  [PASSED] test_agent_initialization")
+    logger.info("  [PASSED] test_agent_initialization")
     test_agent_invalid_image()
-    print("  [PASSED] test_agent_invalid_image")
+    logger.info("  [PASSED] test_agent_invalid_image")
     test_explainability_synthesizer()
-    print("  [PASSED] test_explainability_synthesizer")
+    logger.info("  [PASSED] test_explainability_synthesizer")
     test_sqlite_audit_logger()
-    print("  [PASSED] test_sqlite_audit_logger")
+    logger.info("  [PASSED] test_sqlite_audit_logger")
     test_agent_end_to_end_analysis()
-    print("  [PASSED] test_agent_end_to_end_analysis")
-    print("All Stage 6 unit tests executed successfully!")
+    logger.info("  [PASSED] test_agent_end_to_end_analysis")
+    logger.info("All Stage 6 unit tests executed successfully!")

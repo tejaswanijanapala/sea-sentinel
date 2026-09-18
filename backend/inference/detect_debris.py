@@ -14,6 +14,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from ai.detection.yolo_detector import YOLODetector
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run YOLO Inference on Sonar Imagery")
@@ -24,21 +28,21 @@ def main():
     parser.add_argument("--max-images", type=int, default=10, help="Max images to infer if source is directory")
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("SIH26057 — YOLO DEBRIS DETECTION INFERENCE")
-    print("=" * 70)
+    logger.info("=" * 70)
+    logger.info("SIH26057 — YOLO DEBRIS DETECTION INFERENCE")
+    logger.info("=" * 70)
 
     out_dir = os.path.abspath(os.path.join(PROJECT_ROOT, args.output_dir))
     vis_dir = os.path.join(out_dir, "visualizations")
     os.makedirs(vis_dir, exist_ok=True)
 
     detector = YOLODetector(model_path=args.weights, conf_thresh=args.conf)
-    print(f"Model loaded status: {detector.is_model_loaded} (weights: {args.weights})")
-    print(f"Confidence threshold: {args.conf}")
+    logger.info(f"Model loaded status: {detector.is_model_loaded} (weights: {args.weights})")
+    logger.info(f"Confidence threshold: {args.conf}")
 
     src_path = os.path.abspath(os.path.join(PROJECT_ROOT, args.source))
     if not os.path.exists(src_path):
-        print(f"Error: source path not found: {src_path}")
+        logger.error(f"Error: source path not found: {src_path}")
         sys.exit(1)
 
     image_files = []
@@ -51,7 +55,7 @@ def main():
     else:
         image_files = [src_path]
 
-    print(f"Running inference on {len(image_files)} images...")
+    logger.info(f"Running inference on {len(image_files)} images...")
     all_results = []
 
     for img_p in image_files:
@@ -70,17 +74,17 @@ def main():
             res["visualization_path"] = out_img_path
 
         all_results.append(res)
-        print(f"  - {os.path.basename(img_p)}: {len(res.get('detections', []))} detections found (status: {res.get('status')})")
+        logger.info(f"  - {os.path.basename(img_p)}: {len(res.get('detections', []))} detections found (status: {res.get('status')})")
 
     out_json = os.path.join(out_dir, "inference_results.json")
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)
 
-    print(f"\nResults saved to: {out_json}")
-    print(f"Visualizations saved to: {vis_dir}")
-    print("\n" + "=" * 70)
-    print("INFERENCE RUN COMPLETED")
-    print("=" * 70)
+    logger.info(f"\nResults saved to: {out_json}")
+    logger.info(f"Visualizations saved to: {vis_dir}")
+    logger.info("\n" + "=" * 70)
+    logger.info("INFERENCE RUN COMPLETED")
+    logger.info("=" * 70)
 
 if __name__ == "__main__":
     main()

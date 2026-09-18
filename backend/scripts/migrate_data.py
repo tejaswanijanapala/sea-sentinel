@@ -1,6 +1,10 @@
 import os
 import shutil
 import hashlib
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 def get_file_hash(filepath):
     hasher = hashlib.md5()
@@ -31,7 +35,7 @@ def migrate():
         if not os.path.exists(src):
             continue
             
-        print(f"Migrating {src} to {dst}...")
+        logger.info(f"Migrating {src} to {dst}...")
         
         # Pre-flight
         pre_count = 0
@@ -41,7 +45,7 @@ def migrate():
                 pre_count += 1
                 pre_size += os.path.getsize(os.path.join(r, file))
                 
-        print(f"  Pre-migration: {pre_count} files, {pre_size} bytes")
+        logger.info(f"  Pre-migration: {pre_count} files, {pre_size} bytes")
         
         # Move
         shutil.move(src, dst)
@@ -54,12 +58,12 @@ def migrate():
                 post_count += 1
                 post_size += os.path.getsize(os.path.join(r, file))
                 
-        print(f"  Post-migration: {post_count} files, {post_size} bytes")
+        logger.info(f"  Post-migration: {post_count} files, {post_size} bytes")
         
         if pre_count != post_count or pre_size != post_size:
-            print("  [ERROR] Mismatch detected!")
+            logger.error("  [ERROR] Mismatch detected!")
         else:
-            print("  [SUCCESS] Lost files = 0, Corrupted files = 0")
+            logger.info("  [SUCCESS] Lost files = 0, Corrupted files = 0")
 
 if __name__ == "__main__":
     migrate()

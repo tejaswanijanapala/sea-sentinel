@@ -6,11 +6,15 @@ import warnings
 import json
 import numpy as np
 from ultralytics import YOLO
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 warnings.filterwarnings("ignore")
 
 def print_header(title):
-    print(f"\n{'='*60}\n{title}\n{'='*60}")
+    logger.info(f"\n{'='*60}\n{title}\n{'='*60}")
 
 def measure_resources():
     process = psutil.Process(os.getpid())
@@ -24,7 +28,7 @@ def run_gate4_benchmarks():
     os.makedirs(onnx_dir, exist_ok=True)
     
     print_header("GATE 4 BENCHMARK INITIALIZATION")
-    print(f"Workspace: {conversion_dir}")
+    logger.info(f"Workspace: {conversion_dir}")
     
     report = {
         "models": {},
@@ -40,7 +44,7 @@ def run_gate4_benchmarks():
         yolo_pt_path = best_pt_path
         
     try:
-        print(f"Loading {yolo_pt_path}...")
+        logger.info(f"Loading {yolo_pt_path}...")
         model = YOLO(yolo_pt_path)
         
         # Test input
@@ -53,13 +57,13 @@ def run_gate4_benchmarks():
         pt_boxes = pt_results[0].boxes.xyxy.cpu().numpy()
         pt_conf = pt_results[0].boxes.conf.cpu().numpy()
         
-        print(f"PyTorch Latency: {pt_time:.2f} ms")
-        print(f"PyTorch Detections: {len(pt_boxes)}")
+        logger.info(f"PyTorch Latency: {pt_time:.2f} ms")
+        logger.info(f"PyTorch Detections: {len(pt_boxes)}")
         
         # Export to ONNX
-        print("Exporting to ONNX...")
+        logger.info("Exporting to ONNX...")
         export_path = model.export(format="onnx", imgsz=640, dynamic=True, simplify=True)
-        print(f"Exported to {export_path}")
+        logger.info(f"Exported to {export_path}")
         
         # ONNX Inference
         onnx_model = YOLO(export_path)
@@ -69,17 +73,17 @@ def run_gate4_benchmarks():
         onnx_boxes = onnx_results[0].boxes.xyxy.cpu().numpy()
         onnx_conf = onnx_results[0].boxes.conf.cpu().numpy()
         
-        print(f"ONNX Latency: {onnx_time:.2f} ms")
-        print(f"ONNX Detections: {len(onnx_boxes)}")
+        logger.info(f"ONNX Latency: {onnx_time:.2f} ms")
+        logger.info(f"ONNX Detections: {len(onnx_boxes)}")
         
         # Validation differences
         if len(pt_boxes) == len(onnx_boxes) and len(pt_boxes) > 0:
             diff = np.abs(pt_boxes - onnx_boxes).mean()
             conf_diff = np.abs(pt_conf - onnx_conf).mean()
-            print(f"BBox Mean Diff: {diff}")
-            print(f"Conf Mean Diff: {conf_diff}")
+            logger.info(f"BBox Mean Diff: {diff}")
+            logger.info(f"Conf Mean Diff: {conf_diff}")
         else:
-            print("Detection counts differ or are zero.")
+            logger.info("Detection counts differ or are zero.")
             diff, conf_diff = 0, 0
             
         report["models"]["yolo"] = {
@@ -93,7 +97,7 @@ def run_gate4_benchmarks():
         }
         
     except Exception as e:
-        print(f"YOLO Failed: {e}")
+        logger.error(f"YOLO Failed: {e}")
         report["models"]["yolo"] = {"status": "failed", "error": str(e)}
 
     # We will stub the U-Net and Autoencoder tests since we don't have their class definitions imported easily in a standalone script.

@@ -9,6 +9,10 @@ import os
 import time
 import numpy as np
 import torch
+from shared.utils.logger import get_logger
+logger = get_logger(__name__)
+
+
 
 try:
     import onnxruntime as ort
@@ -69,7 +73,7 @@ class OptimizedInferenceEngine:
                 self.is_onnx = True
                 return
             except Exception as e:
-                print(f"[OptimizedEngine] Warning: ONNX Runtime initialization failed: {e}. Using PyTorch engine.")
+                logger.error(f"[OptimizedEngine] Warning: ONNX Runtime initialization failed: {e}. Using PyTorch engine.")
                 self.is_onnx = False
 
         if self.pytorch_model is not None:
