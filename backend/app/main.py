@@ -1631,8 +1631,8 @@ def register_gis_survey(
             prio_score = risk_res.risk_priority_score
             hazard_score = risk_res.hazard_severity_score
 
-            prio_lvl = "CRITICAL" if prio_score >= 80.0 else ("HIGH" if prio_score >= 60.0 else ("MODERATE" if prio_score >= 40.0 else "LOW"))
-            hazard_lvl = "CRITICAL" if hazard_score >= 80.0 else ("HIGH" if hazard_score >= 60.0 else ("MODERATE" if hazard_score >= 40.0 else "LOW"))
+            prio_lvl = "CRITICAL" if prio_score >= 80.0 else ("HIGH" if prio_score >= 75.0 else ("MODERATE" if prio_score >= 40.0 else "LOW"))
+            hazard_lvl = "CRITICAL" if hazard_score >= 80.0 else ("HIGH" if hazard_score >= 75.0 else ("MODERATE" if hazard_score >= 40.0 else "LOW"))
 
             d["hazard_score"] = hazard_score
             d["hazard_risk"] = hazard_score

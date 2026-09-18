@@ -81,7 +81,7 @@ class RiskPriorityEngine:
         """Categorizes 0-100 score into standard 4-tier risk categories."""
         if score >= 80.0:
             return "CRITICAL"
-        elif score >= 60.0:
+        elif score >= 75.0:
             return "HIGH"
         elif score >= 40.0:
             return "MODERATE"
@@ -253,7 +253,7 @@ class RiskPriorityEngine:
         elif base_hazard >= 75.0:
             marine_hazard_level = "high"
             marine_hazard_desc = "High impact on benthic habitat, commercial trawl gear snagging, and structural integrity."
-        elif base_hazard >= 60.0:
+        elif base_hazard >= 40.0:
             marine_hazard_level = "medium"
             marine_hazard_desc = "Moderate ecological degradation and marine debris accumulation."
         else:

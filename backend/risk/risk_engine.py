@@ -60,7 +60,7 @@ class IMORiskEngine:
             l_rank, l_lbl = 1, "Rare"
         elif likelihood_score < 40.0:
             l_rank, l_lbl = 2, "Unlikely"
-        elif likelihood_score < 60.0:
+        elif likelihood_score < 75.0:
             l_rank, l_lbl = 3, "Possible"
         elif likelihood_score < 80.0:
             l_rank, l_lbl = 4, "Likely"
@@ -72,7 +72,7 @@ class IMORiskEngine:
             c_rank, c_lbl = 1, "Negligible"
         elif consequence_score < 40.0:
             c_rank, c_lbl = 2, "Minor"
-        elif consequence_score < 60.0:
+        elif consequence_score < 75.0:
             c_rank, c_lbl = 3, "Moderate"
         elif consequence_score < 80.0:
             c_rank, c_lbl = 4, "Major"
@@ -138,7 +138,7 @@ class IMORiskEngine:
             drivers.append(f"Proximity to sensitive marine habitat ({hab_str}): Within {dist_str} of sensitive benthic zone.")
 
         # 7. Recurrence Persistence
-        if norm.recurrence_score >= 60.0:
+        if norm.recurrence_score >= 75.0:
             drivers.append(f"Chronic recurrence ({raw.detection_count} independent survey detections): Persistent unaddressed seabed obstacle.")
 
         # Fallback if few triggered

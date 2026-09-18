@@ -20,8 +20,8 @@ FRAMEWORK_DESIGNATION = "IMO-aligned project-specific marine debris hazard risk 
 # ---------------------------------------------------------------------
 RISK_THRESHOLDS = {
     "LOW": {"min": 0.0, "max": 39.99, "color": "#10b981", "badge": "LOW RISK"},
-    "MODERATE": {"min": 40.0, "max": 59.99, "color": "#eab308", "badge": "MODERATE RISK"},
-    "HIGH": {"min": 60.0, "max": 79.99, "color": "#f97316", "badge": "HIGH RISK"},
+    "MODERATE": {"min": 40.0, "max": 74.99, "color": "#eab308", "badge": "MODERATE RISK"},
+    "HIGH": {"min": 75.0, "max": 79.99, "color": "#f97316", "badge": "HIGH RISK"},
     "CRITICAL": {"min": 80.0, "max": 100.0, "color": "#ef4444", "badge": "CRITICAL RISK"}
 }
 

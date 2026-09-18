@@ -1060,7 +1060,7 @@ class DashboardApp {
       const cleanClass = (t.class || 'marine_debris').replace(/_/g, ' ');
       
       const prioScore = t.priority_score != null ? Math.round(t.priority_score) : Math.round(conf * 0.95);
-      const prioLevel = (t.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 60 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
+      const prioLevel = (t.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 75 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
       
       const vStatus = t.verification_status || "confirmed";
       const isConfirmed = (vStatus === "confirmed" || vStatus === "confirmed_debris");
@@ -1562,7 +1562,7 @@ class DashboardApp {
 
     const conf = Math.round((Number(target.calibrated_confidence) || Number(target.confidence) || 0.85) * 100);
     const prioScore = target.priority_score != null ? Math.round(Number(target.priority_score)) : (imo.risk_priority_score ? Math.round(imo.risk_priority_score) : Math.round(conf * 0.95));
-    const prioLevel = (typeof target.priority_level === 'string' ? target.priority_level : (prioScore >= 80 ? 'CRITICAL' : prioScore >= 60 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
+    const prioLevel = (typeof target.priority_level === 'string' ? target.priority_level : (prioScore >= 80 ? 'CRITICAL' : prioScore >= 75 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
 
     let lat = (target.latitude != null) ? Number(target.latitude) : (target.lat != null ? Number(target.lat) : null);
     let lon = (target.longitude != null) ? Number(target.longitude) : (target.lon != null ? Number(target.lon) : null);
@@ -3473,9 +3473,9 @@ class DashboardApp {
     detections.forEach((d, idx) => {
       const conf = Math.round((d.calibrated_confidence || d.confidence || 0.85) * 100);
       const prioScore = d.priority_score != null ? Math.round(d.priority_score) : Math.round(conf * 0.95);
-      const prioLevel = d.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 60 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW');
+      const prioLevel = d.priority_level || (prioScore >= 80 ? 'CRITICAL' : prioScore >= 75 ? 'HIGH' : prioScore >= 40 ? 'MEDIUM' : 'LOW');
       const hazardScore = d.hazard_score != null ? Math.round(d.hazard_score) : 75;
-      const hazardLevel = d.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW');
+      const hazardLevel = d.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 75 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW');
       const cleanClass = (d.class || 'marine_debris').replace(/_/g, ' ').toUpperCase();
       const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
       const vStatus = (d.verification_status || 'confirmed').toUpperCase();
@@ -4518,8 +4518,9 @@ class DashboardApp {
       // Per-Class Table
       const tbPerClass = document.getElementById('yoloPerClassTableBody');
       if (tbPerClass && y.per_class) {
-        tbPerClass.innerHTML = y.per_class.map(pc => {
-          const hasTargets = (pc.target_count !== undefined && pc.target_count > 0) || pc.is_present;
+        const filteredClasses = y.per_class.filter(pc => (pc.target_count !== undefined && pc.target_count > 0) || pc.is_present);
+        tbPerClass.innerHTML = filteredClasses.length > 0 ? filteredClasses.map(pc => {
+          const hasTargets = true;
           const countBadge = hasTargets
             ? `<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; background:rgba(16,185,129,0.12); color:#047857; font-weight:700; font-size:0.68rem; border:1px solid rgba(16,185,129,0.3);"><i class="fa-solid fa-check"></i> ${pc.target_count || 1} Detected</span>`
             : `<span style="color:var(--text-muted); font-size:0.68rem; padding:2px 6px; background:#f1f5f9; border-radius:10px;">0 in scan</span>`;
@@ -4538,7 +4539,7 @@ class DashboardApp {
             <td style="padding: 6px 8px; font-family: var(--font-mono); color: ${hasTargets ? 'var(--purple-accent)' : 'var(--text-dim)'};">${hasTargets || pc.map50_95 > 0 ? Number(pc.map50_95).toFixed(4) : '<span style="color:var(--text-dim);">--</span>'}</td>
           </tr>
         `;
-        }).join('');
+        }).join('') : `<tr><td colspan="7" style="text-align:center; padding:16px; color:var(--text-muted);">No targets detected in current scan.</td></tr>`;
       }
 
       // Confusion Matrix

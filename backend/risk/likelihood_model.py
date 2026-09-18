@@ -35,8 +35,8 @@ class LikelihoodExposureModel:
         # Non-Linear Interaction Terms:
         interaction_bonus = 0.0
         # High Mobility + Close Navigation Route creates compound encounter probability
-        if norm.mobility_score >= 60.0 and norm.navigation_distance_score >= 60.0:
-            interaction_bonus += ((norm.mobility_score - 60.0) / 40.0) * ((norm.navigation_distance_score - 60.0) / 40.0) * 10.0
+        if norm.mobility_score >= 75.0 and norm.navigation_distance_score >= 75.0:
+            interaction_bonus += ((norm.mobility_score - 75.0) / 25.0) * ((norm.navigation_distance_score - 75.0) / 25.0) * 10.0
 
         # Water Column near-surface bonus for shallow depth
         if norm.water_column_score >= 80.0 and norm.depth_exposure_score >= 75.0:
