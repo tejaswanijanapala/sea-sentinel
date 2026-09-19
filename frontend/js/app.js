@@ -601,18 +601,6 @@ class DashboardApp {
       if (isNonSonar) {
         this.handlePipelineRejection(err.detail || err.message);
       } else {
-        // Network or fetch error
-        this.showToast({
-          type: "error",
-          title: "Inference Error",
-          message: "Model inference unavailable. Cloud backend is unreachable."
-        });
-        if (statusPill && statusText) {
-          statusPill.className = "status-pill error";
-          statusText.textContent = "PIPELINE FAILED";
-        }
-      }
-
         if (statusPill && statusText) {
           statusPill.className = "status-pill error";
           statusText.textContent = "PIPELINE ERROR";
