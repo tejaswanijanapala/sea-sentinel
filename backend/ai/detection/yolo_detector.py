@@ -109,17 +109,10 @@ class YOLODetector:
         conf_override: Optional[float] = None,
         tile_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Runs high-recall object detection on sonar image or tile.
-        Returns:
-          - detections: list of dicts with bbox, class, confidence, centroid, source="yolo"
-          - model_loaded: boolean
-          - inference_time_ms: float
-        """
         t0 = time.perf_counter()
         conf = conf_override if conf_override is not None else self.conf_thresh
 
-        if not self.is_model_loaded:
+        if not self.is_model_loaded or self.model is None:
             return {
                 "status": "model_unavailable",
                 "message": "Trained YOLO weights not found. Use training/train_yolo.py to train on the SSS dataset.",
@@ -131,80 +124,56 @@ class YOLODetector:
 
         detections = []
         try:
-            # Override neural network with robust OpenCV thresholding for guaranteed tight bounding boxes
             if isinstance(image_input, str):
-                img_cv = cv2.imread(image_input, cv2.IMREAD_GRAYSCALE)
+                img_cv = cv2.imread(image_input)
             else:
-                if len(image_input.shape) == 3:
-                    img_cv = cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY)
-                else:
-                    img_cv = image_input.copy()
+                img_cv = image_input
 
-            # Apply Gaussian Blur and Adaptive Thresholding to find acoustic highlights
-            blur = cv2.GaussianBlur(img_cv, (5, 5), 0)
-            m_val = float(np.mean(blur))
-            s_val = float(np.std(blur))
-            t_val = max(80.0, m_val + 1.5 * s_val) # Very strict threshold to only get bright debris
-            _, thresh = cv2.threshold(blur, int(t_val), 255, cv2.THRESH_BINARY)
-            
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-            thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-            thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # Run YOLO inference
+            results = self.model(img_cv, conf=conf, verbose=False)
             
             det_id = 1
-            h, w = img_cv.shape[:2]
-            
-            for cnt in contours:
-                area = cv2.contourArea(cnt)
-                if area < 30 or area > (h * w * 0.20): # Ignore noise and massive artifacts
-                    continue
-                    
-                x, y, bw, bh = cv2.boundingRect(cnt)
+            for result in results:
+                boxes = result.boxes
+                if boxes is None: continue
                 
-                # Determine class by shape
-                aspect_ratio = max(bw, bh) / max(1.0, float(min(bw, bh)))
-                if aspect_ratio >= 3.0:
-                    cls_name, cls_idx = "pipeline_or_cable", 1
-                elif area > 1000:
-                    cls_name, cls_idx = "shipwreck_fragment", 2
-                elif area < 300:
-                    cls_name, cls_idx = "riprap_debris", 4
-                else:
-                    cls_name, cls_idx = "fishing_net", 0
+                for box in boxes:
+                    b = box.xyxy[0].cpu().numpy()
+                    x1, y1, x2, y2 = float(b[0]), float(b[1]), float(b[2]), float(b[3])
+                    bw, bh = x2 - x1, y2 - y1
+                    conf_val = float(box.conf[0].cpu().numpy())
+                    cls_idx = int(box.cls[0].cpu().numpy())
+                    cls_name = self.classes.get(cls_idx, "unknown")
+                    cx, cy = round(x1 + bw / 2.0, 1), round(y1 + bh / 2.0, 1)
+
+                    det_record = {
+                        "object_id": f"YOLO_{det_id:03d}" if not tile_id else f"{tile_id}_YOLO_{det_id:03d}",
+                        "source": "yolo",
+                        "model": "YOLOv11",
+                        "class": cls_name,
+                        "class_id": cls_idx,
+                        "confidence": round(conf_val, 3),
+                        "bbox": {
+                            "x1": float(x1),
+                            "y1": float(y1),
+                            "x2": float(x2),
+                            "y2": float(y2)
+                        },
+                        "width": float(bw),
+                        "height": float(bh),
+                        "center": [cx, cy],
+                        "centroid": [cx, cy]
+                    }
+                    if tile_id:
+                        det_record["tile_id"] = tile_id
+
+                    detections.append(det_record)
+                    det_id += 1
                     
-                conf_val = min(0.99, 0.60 + (area / 3000.0) * 0.39)
-                cx, cy = round(x + bw / 2.0, 1), round(y + bh / 2.0, 1)
-
-                det_record = {
-                    "object_id": f"YOLO_{det_id:03d}" if not tile_id else f"{tile_id}_YOLO_{det_id:03d}",
-                    "source": "yolo",
-                    "model": "YOLOv11",
-                    "class": cls_name,
-                    "class_id": cls_idx,
-                    "confidence": round(conf_val, 3),
-                    "bbox": {
-                        "x1": float(x),
-                        "y1": float(y),
-                        "x2": float(x + bw),
-                        "y2": float(y + bh)
-                    },
-                    "width": float(bw),
-                    "height": float(bh),
-                    "center": [cx, cy],
-                    "centroid": [cx, cy]
-                }
-                if tile_id:
-                    det_record["tile_id"] = tile_id
-
-                detections.append(det_record)
-                det_id += 1
-                
         except Exception as e:
             return {
                 "status": "error",
-                "message": f"Heuristic inference failed: {str(e)}",
+                "message": f"YOLO inference failed: {str(e)}",
                 "model_loaded": self.is_model_loaded,
                 "confidence_threshold": conf,
                 "detections": [],
@@ -229,17 +198,13 @@ class YOLODetector:
         conf_override: Optional[float] = None,
         batch_size: int = 16
     ) -> List[Dict[str, Any]]:
-        """
-        Runs batched high-recall object detection on a list of tiles or images.
-        Returns a list of detection result dictionaries, one per input image.
-        """
         if not image_inputs:
             return []
 
         t0 = time.perf_counter()
         conf = conf_override if conf_override is not None else self.conf_thresh
 
-        if not self.is_model_loaded:
+        if not self.is_model_loaded or self.model is None:
             return [
                 {
                     "status": "model_unavailable",
@@ -253,85 +218,13 @@ class YOLODetector:
 
         batch_outputs = []
         try:
+            # We can process sequentially for simplicity, or use batched YOLO inference
             for i, image_input in enumerate(image_inputs):
                 tile_id = tile_ids[i] if tile_ids and i < len(tile_ids) else None
-                detections = []
-                
-                if len(image_input.shape) == 3:
-                    img_cv = cv2.cvtColor(image_input, cv2.COLOR_BGR2GRAY)
-                else:
-                    img_cv = image_input.copy()
-
-                blur = cv2.GaussianBlur(img_cv, (5, 5), 0)
-                m_val = float(np.mean(blur))
-                s_val = float(np.std(blur))
-                t_val = max(80.0, m_val + 1.5 * s_val)
-                _, thresh = cv2.threshold(blur, int(t_val), 255, cv2.THRESH_BINARY)
-                
-                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-                thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-                thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-                contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                
-                det_id = 1
-                h, w = img_cv.shape[:2]
-                
-                for cnt in contours:
-                    area = cv2.contourArea(cnt)
-                    if area < 30 or area > (h * w * 0.20):
-                        continue
-                        
-                    x, y, bw, bh = cv2.boundingRect(cnt)
-                    
-                    aspect_ratio = max(bw, bh) / max(1.0, float(min(bw, bh)))
-                    if aspect_ratio >= 3.0:
-                        cls_name, cls_idx = "pipeline_or_cable", 1
-                    elif area > 1000:
-                        cls_name, cls_idx = "shipwreck_fragment", 2
-                    elif area < 300:
-                        cls_name, cls_idx = "riprap_debris", 4
-                    else:
-                        cls_name, cls_idx = "fishing_net", 0
-                        
-                    conf_val = min(0.99, 0.60 + (area / 3000.0) * 0.39)
-                    cx, cy = round(x + bw / 2.0, 1), round(y + bh / 2.0, 1)
-
-                    det_record = {
-                        "object_id": f"{tile_id}_YOLO_{det_id:03d}" if tile_id else f"YOLO_{det_id:03d}",
-                        "source": "yolo",
-                        "model": "YOLOv11",
-                        "class": cls_name,
-                        "class_id": cls_idx,
-                        "confidence": round(conf_val, 3),
-                        "bbox": {
-                            "x1": float(x),
-                            "y1": float(y),
-                            "x2": float(x + bw),
-                            "y2": float(y + bh)
-                        },
-                        "width": float(bw),
-                        "height": float(bh),
-                        "center": [cx, cy],
-                        "centroid": [cx, cy]
-                    }
-                    if tile_id:
-                        det_record["tile_id"] = tile_id
-
-                    detections.append(det_record)
-                    det_id += 1
-                
-                batch_outputs.append({
-                    "status": "success",
-                    "model_loaded": True,
-                    "confidence_threshold": conf,
-                    "tile_id": tile_id,
-                    "detections": detections,
-                    "total_detections": len(detections),
-                    "inference_time_ms": round((time.perf_counter() - t0) * 1000, 2) / len(image_inputs)
-                })
+                res = self.detect(image_input, conf_override=conf, tile_id=tile_id)
+                res["tile_id"] = tile_id
+                batch_outputs.append(res)
         except Exception as e:
-            # Fallback on per-image error
             return [
                 {
                     "status": "error",

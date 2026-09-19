@@ -152,10 +152,6 @@ class UNetSegmenter:
         threshold: Optional[float] = None,
         offset_xy: Optional[Tuple[int, int]] = (0, 0)
     ) -> Dict[str, Any]:
-        """
-        Runs pixel-level segmentation on candidate detection ROI patch.
-        Returns binary mask, mean confidence, and simplified polygon contours.
-        """
         if image_patch is None or not isinstance(image_patch, np.ndarray) or image_patch.size == 0:
             return {
                 "status": "error",
@@ -176,7 +172,7 @@ class UNetSegmenter:
             gray = image_patch.copy()
 
         binary_mask = np.zeros((h_orig, w_orig), dtype=np.uint8)
-        mean_conf = 0.70
+        mean_conf = 0.0
 
         if self.is_model_loaded and self.model is not None:
             try:
@@ -195,24 +191,10 @@ class UNetSegmenter:
             except Exception as e:
                 binary_mask = np.zeros((h_orig, w_orig), dtype=np.uint8)
 
-        # If neural mask is empty or model unavailable, use localized Otsu/adaptive acoustic highlight
-        if np.sum(binary_mask) < 15:
-            blur = cv2.GaussianBlur(gray, (5, 5), 0)
-            m_val = float(np.mean(blur))
-            s_val = float(np.std(blur))
-            t_val = max(80.0, m_val + 0.25 * s_val)
-            _, acoustic_mask = cv2.threshold(blur, int(t_val), 255, cv2.THRESH_BINARY)
-            if np.sum(acoustic_mask > 0) >= 15:
-                binary_mask = (acoustic_mask > 0).astype(np.uint8)
-            else:
-                # Margin padded rectangular mask
-                pad_x = max(1, int(w_orig * 0.08))
-                pad_y = max(1, int(h_orig * 0.08))
-                binary_mask[pad_y:max(pad_y+1, h_orig - pad_y), pad_x:max(pad_x+1, w_orig - pad_x)] = 1
-
         # Morphological smoothing
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
+        if np.any(binary_mask > 0):
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+            binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel)
 
         # Extract contours and convert to global polygon vertices
         contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -226,20 +208,12 @@ class UNetSegmenter:
                 px, py = pt[0]
                 polygon_pts.append([round(float(ox + px), 1), round(float(oy + py), 1)])
 
-        if len(polygon_pts) < 3:
-            polygon_pts = [
-                [round(float(ox), 1), round(float(oy), 1)],
-                [round(float(ox + w_orig), 1), round(float(oy), 1)],
-                [round(float(ox + w_orig), 1), round(float(oy + h_orig), 1)],
-                [round(float(ox), 1), round(float(oy + h_orig), 1)]
-            ]
-
         total_area = int(np.sum(binary_mask))
 
         return {
             "status": "success",
-            "mask_available": True,
-            "mask": binary_mask,
+            "mask_available": True if total_area > 0 else False,
+            "mask": binary_mask if total_area > 0 else None,
             "polygon": polygon_pts,
             "contours_count": len(contours),
             "total_area_px": total_area,
@@ -253,10 +227,6 @@ class UNetSegmenter:
         threshold: Optional[float] = None,
         min_area: Optional[int] = None
     ) -> Dict[str, Any]:
-        """
-        Runs independent patch-based segmentation across large sonar image/mosaic
-        and extracts candidate objects without relying on YOLO.
-        """
         t0 = time.perf_counter()
         thresh = threshold if threshold is not None else self.confidence_threshold
         min_comp_area = min_area if min_area is not None else self.min_component_area_px
@@ -272,13 +242,7 @@ class UNetSegmenter:
 
         h, w = image.shape[:2]
 
-        # Ensure single channel grayscale
-        if image.ndim == 3:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = image.copy()
-
-        if not self.is_model_loaded:
+        if not self.is_model_loaded or self.model is None:
             return {
                 "status": "model_unavailable",
                 "message": "Trained U-Net weights not found. Use training/train_unet.py to generate checkpoints.",
@@ -289,35 +253,51 @@ class UNetSegmenter:
                 "inference_time_ms": 0.0
             }
 
-        # Override neural network with robust OpenCV thresholding for guaranteed exact masks
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        m_val = float(np.mean(blur))
-        s_val = float(np.std(blur))
-        t_val = max(80.0, m_val + 1.5 * s_val) # Strict threshold to get only the debris
-        
-        _, binary_mask = cv2.threshold(blur, int(t_val), 255, cv2.THRESH_BINARY)
-        
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        cleaned_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel)
-        cleaned_mask = cv2.morphologyEx(cleaned_mask, cv2.MORPH_CLOSE, kernel)
-        
-        # Make full prob map for API signature
-        full_prob = (cleaned_mask.astype(np.float32) / 255.0)
+        if image.ndim == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image.copy()
 
-        # Extract independent object candidates
-        objects = self.extract_candidate_objects(
-            binary_mask=cleaned_mask,
-            probability_map=full_prob,
-            min_area=min_comp_area,
-            max_area_ratio=self.max_component_area_ratio
-        )
+        try:
+            # Simple full-image resize approach for real U-Net inference
+            resized = cv2.resize(gray, (self.img_size, self.img_size), interpolation=cv2.INTER_AREA)
+            norm_img = resized.astype(np.float32) / 255.0
+            tensor = torch.from_numpy(norm_img).unsqueeze(0).unsqueeze(0).float().to(self.device)
+
+            with torch.no_grad():
+                logits = self.model(tensor)
+                probs = torch.sigmoid(logits).squeeze().cpu().numpy()
+
+            # Restore original scale
+            full_prob = cv2.resize(probs, (w, h), interpolation=cv2.INTER_LINEAR)
+            binary_mask = (full_prob >= thresh).astype(np.uint8)
+
+            if np.any(binary_mask > 0):
+                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+                cleaned_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel)
+                cleaned_mask = cv2.morphologyEx(cleaned_mask, cv2.MORPH_CLOSE, kernel)
+            else:
+                cleaned_mask = binary_mask
+
+            # Extract independent object candidates
+            objects = self.extract_candidate_objects(
+                binary_mask=cleaned_mask,
+                probability_map=full_prob,
+                min_area=min_comp_area,
+                max_area_ratio=self.max_component_area_ratio
+            )
+        except Exception as e:
+            logger.error(f"[UNetSegmenter] Full image segmentation error: {e}")
+            cleaned_mask = np.zeros((h, w), dtype=np.uint8)
+            full_prob = np.zeros((h, w), dtype=np.float32)
+            objects = []
 
         inference_time_ms = round((time.perf_counter() - t0) * 1000, 2)
 
         return {
             "status": "success",
-            "model_type": "heuristic_unet",
-            "mask_available": True,
+            "model_type": self.model_type,
+            "mask_available": True if len(objects) > 0 else False,
             "mask": cleaned_mask,
             "probability_map": full_prob,
             "objects": objects,
