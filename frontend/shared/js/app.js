@@ -601,26 +601,17 @@ class DashboardApp {
       if (isNonSonar) {
         this.handlePipelineRejection(err.detail || err.message);
       } else {
-        // If an unexpected network or fetch error slipped through, attempt emergency edge simulation
-        if (this.uploadedFile && window.apiService && window.apiService._runEdgeSimulationInference) {
-          try {
-            console.log("[SeaSentinel App] Attempting emergency Edge simulation after error:", err);
-            const edgeRes = window.apiService._runEdgeSimulationInference(`local_edge://${this.uploadedFile.name}`, this.uploadedFile, this.currentPipelineMode);
-            this.applyAnalysisResult(edgeRes);
-            if (statusPill && statusText) {
-              statusPill.className = "status-pill complete";
-              statusText.textContent = "PIPELINE COMPLETE (EDGE AI)";
-            }
-            this.showToast({
-              type: "warning",
-              title: "Cloud Backend Unreachable",
-              message: "Completed analysis in Edge Simulation mode. Click the Cloud status icon to configure your Backend URL."
-            });
-            return;
-          } catch (edgeErr) {
-            console.error("Emergency Edge fallback failed:", edgeErr);
-          }
+        // Network or fetch error
+        this.showToast({
+          type: "error",
+          title: "Inference Error",
+          message: "Model inference unavailable. Cloud backend is unreachable."
+        });
+        if (statusPill && statusText) {
+          statusPill.className = "status-pill error";
+          statusText.textContent = "PIPELINE FAILED";
         }
+      }
 
         if (statusPill && statusText) {
           statusPill.className = "status-pill error";
