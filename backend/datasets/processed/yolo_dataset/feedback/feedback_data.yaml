@@ -1,9 +1,0 @@
-names:
-  0: fishing_net
-  1: pipeline_or_cable
-  2: shipwreck_fragment
-  3: engine_debris
-  4: riprap_debris
-path: C:\Users\jaish\.gemini\antigravity-ide\scratch\sea-sentinel\backend\datasets\processed\yolo_dataset\feedback
-train: images/train
-val: images/val
