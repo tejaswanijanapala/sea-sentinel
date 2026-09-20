@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "name": "Subsea Cables & Hydrocarbon Pipelines",
+  "category": "critical_infrastructure",
+  "risk_multiplier": 2.8,
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF_001",
+        "name": "Trans-Indian Submarine Fiber Optic Cable 4",
+        "type": "Fiber Cable",
+        "sensitivity": "CRITICAL"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.5,
+            8.5
+          ],
+          [
+            79.0,
+            9.0
+          ],
+          [
+            79.5,
+            9.4
+          ],
+          [
+            80.2,
+            10.0
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF_002",
+        "name": "Offshore Gas Gathering Pipeline A",
+        "type": "Gas Pipeline",
+        "sensitivity": "CRITICAL"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.75,
+            8.95
+          ],
+          [
+            79.15,
+            9.15
+          ]
+        ]
+      }
+    }
+  ]
+}

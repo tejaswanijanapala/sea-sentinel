@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "name": "Marine Protected Areas (MPAs)",
+  "category": "regulatory_zone",
+  "risk_multiplier": 2.0,
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "MPA_001",
+        "name": "Gulf of Mannar Marine National Park",
+        "type": "MPA",
+        "sensitivity": "HIGH"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.6,
+              8.6
+            ],
+            [
+              79.3,
+              8.6
+            ],
+            [
+              79.3,
+              9.25
+            ],
+            [
+              78.6,
+              9.25
+            ],
+            [
+              78.6,
+              8.6
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "MPA_002",
+        "name": "Malvan Marine Sanctuary",
+        "type": "MPA",
+        "sensitivity": "HIGH"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              73.4,
+              15.9
+            ],
+            [
+              73.6,
+              15.9
+            ],
+            [
+              73.6,
+              16.15
+            ],
+            [
+              73.4,
+              16.15
+            ],
+            [
+              73.4,
+              15.9
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

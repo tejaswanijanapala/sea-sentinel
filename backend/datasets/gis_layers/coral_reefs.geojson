@@ -1,0 +1,116 @@
+{
+  "type": "FeatureCollection",
+  "name": "Coral Reef Sanctuaries & Ecosystems",
+  "category": "sensitive_habitat",
+  "risk_multiplier": 2.5,
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CR_001",
+        "name": "Palk Bay Coral Fringe",
+        "type": "Coral Reef",
+        "sensitivity": "CRITICAL"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              79.15,
+              9.2
+            ],
+            [
+              79.35,
+              9.2
+            ],
+            [
+              79.35,
+              9.35
+            ],
+            [
+              79.15,
+              9.35
+            ],
+            [
+              79.15,
+              9.2
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CR_002",
+        "name": "Gulf of Mannar Coral Zone",
+        "type": "Coral Reef",
+        "sensitivity": "CRITICAL"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.8,
+              8.8
+            ],
+            [
+              79.1,
+              8.8
+            ],
+            [
+              79.1,
+              9.1
+            ],
+            [
+              78.8,
+              9.1
+            ],
+            [
+              78.8,
+              8.8
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CR_003",
+        "name": "Andaman Deep Reef Shelf",
+        "type": "Coral Reef",
+        "sensitivity": "CRITICAL"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              92.6,
+              11.5
+            ],
+            [
+              92.9,
+              11.5
+            ],
+            [
+              92.9,
+              11.8
+            ],
+            [
+              92.6,
+              11.8
+            ],
+            [
+              92.6,
+              11.5
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

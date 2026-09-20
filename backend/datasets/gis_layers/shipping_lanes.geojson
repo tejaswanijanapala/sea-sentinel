@@ -1,0 +1,44 @@
+{
+  "type": "FeatureCollection",
+  "name": "Commercial Shipping Channels & Fairways",
+  "category": "navigation_hazard",
+  "risk_multiplier": 1.9,
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "NAV_001",
+        "name": "East-West Deepwater Traffic Separation Scheme",
+        "type": "Shipping Channel",
+        "sensitivity": "HIGH"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.0,
+              8.2
+            ],
+            [
+              80.5,
+              8.2
+            ],
+            [
+              80.5,
+              8.45
+            ],
+            [
+              78.0,
+              8.45
+            ],
+            [
+              78.0,
+              8.2
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
