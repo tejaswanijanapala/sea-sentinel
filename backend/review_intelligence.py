@@ -14,7 +14,7 @@ import sqlite3
 import json
 import uuid
 from datetime import datetime
-
+from ai.learning.error_memory import ErrorMemoryEngine
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 DB_PATH = os.path.join(PROJECT_ROOT, "outputs", "database", "sea_sentinel_edge.db")
