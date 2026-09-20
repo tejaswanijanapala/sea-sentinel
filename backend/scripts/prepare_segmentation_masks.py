@@ -75,9 +75,8 @@ def generate_acoustic_masks(
                         
                         # If highlight area is too small, use morphological region inside box
                         if np.sum(local_mask > 0) < 20:
-                            pad_x = max(2, int((x2 - x1) * 0.1))
-                            pad_y = max(2, int((y2 - y1) * 0.1))
-                            cv2.rectangle(local_mask, (pad_x, pad_y), (x2 - x1 - pad_x, y2 - y1 - pad_y), 255, -1)
+                            # [REMOVED FAKE RECTANGLE MASK GENERATION]
+                            pass
 
                         # Clean contour
                         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))

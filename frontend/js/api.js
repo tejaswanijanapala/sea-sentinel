@@ -602,17 +602,8 @@ class SeaSentinelAPI {
             const bWidth = norm_bbox.x2 - norm_bbox.x1;
             const bHeight = norm_bbox.y2 - norm_bbox.y1;
 
-            const norm_polygon = [
-              [bx1, by1],
-              [bx1 + bWidth, by1],
-              [bx1 + bWidth, by1 + bHeight],
-              [bx1, by1 + bHeight]
-            ];
-
-            const polygon = norm_polygon.map(pt => [
-              Math.round(pt[0] * targetW),
-              Math.round(pt[1] * targetH)
-            ]);
+            const norm_polygon = [];
+            const polygon = [];
 
             // Dimensions in physical metric units
             const length_m = Math.round(bWidth * 120 * 10) / 10;
@@ -690,42 +681,10 @@ class SeaSentinelAPI {
 
       img.onload = processCanvas;
       img.onerror = () => {
-        // Direct fallback generator
+        // [REMOVED FAKE DETECTIONS]
         resolve({
           rejected: false,
-          detections: [
-            {
-              object_id: "TGT_001",
-              target_id: "TGT_001",
-              class: "shipwreck_fragment",
-              class_name: "shipwreck_fragment",
-              class_display: "Shipwreck Fragment",
-              sources: ["yolo", "unet"],
-              source_category: "BOTH",
-              agreement: true,
-              confidence: 0.94,
-              calibrated_confidence: 0.94,
-              detection_confidence_pct: 94.0,
-              sonar_aware_confidence: 93.5,
-              verification_status: "confirmed",
-              verification_score: 0.95,
-              priority_score: 92,
-              priority_level: "CRITICAL",
-              hazard_score: 96,
-              hazard_level: "CRITICAL",
-              risk_score: "CRITICAL",
-              latitude: 30.170420,
-              longitude: -87.824210,
-              lat: 30.170420,
-              lon: -87.824210,
-              length_m: 24.5,
-              width_m: 12.2,
-              area_sq_m: 298.9,
-              norm_bbox: { x1: 0.12, y1: 0.28, x2: 0.38, y2: 0.58 },
-              norm_polygon: [[0.14, 0.30], [0.35, 0.29], [0.37, 0.55], [0.15, 0.57]],
-              explanation: "Primary acoustic contact: Structural shipwreck hull with distinct shadow acoustic relief."
-            }
-          ]
+          detections: []
         });
       };
       img.src = imageUrl;
