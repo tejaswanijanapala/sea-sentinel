@@ -202,7 +202,7 @@ class UNetSegmenter:
         if len(contours) > 0:
             # Sort by contour area and take largest
             cnt = max(contours, key=cv2.contourArea)
-            epsilon = 0.015 * cv2.arcLength(cnt, True)
+            epsilon = 0.001 * cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, max(1.0, epsilon), True)
             for pt in approx:
                 px, py = pt[0]
@@ -371,7 +371,7 @@ class UNetSegmenter:
                 if hull_area > 0:
                     solidity = float(area / hull_area)
 
-                epsilon = 0.015 * cv2.arcLength(cnt, True)
+                epsilon = 0.001 * cv2.arcLength(cnt, True)
                 approx = cv2.approxPolyDP(cnt, max(1.0, epsilon), True)
                 for pt in approx:
                     px, py = pt[0]
