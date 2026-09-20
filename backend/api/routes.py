@@ -9,6 +9,7 @@ from backend.duplicate_detection import router as duplicate_router
 from backend.debris_density import router as density_router
 from backend.sonar_quality import router as quality_router
 from backend.visualization.routes.viz_routes import router as viz_router
+from backend.api.parallel_routes import router as parallel_router
 
 api_router = APIRouter(prefix="/api/v2")
 
@@ -21,3 +22,4 @@ api_router.include_router(duplicate_router)
 api_router.include_router(density_router)
 api_router.include_router(quality_router)
 api_router.include_router(viz_router)
+api_router.include_router(parallel_router)
