@@ -3043,14 +3043,10 @@ class DashboardApp {
           let normPolyPts = d.norm_polygon;
           if (!normPolyPts || !Array.isArray(normPolyPts) || normPolyPts.length < 3) {
             normPolyPts = [
-              [nb.x1 + (nb.x2 - nb.x1) * 0.18, nb.y1 + (nb.y2 - nb.y1) * 0.06],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.72, nb.y1 + (nb.y2 - nb.y1) * 0.08],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.96, nb.y1 + (nb.y2 - nb.y1) * 0.38],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.90, nb.y1 + (nb.y2 - nb.y1) * 0.82],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.58, nb.y1 + (nb.y2 - nb.y1) * 0.96],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.20, nb.y1 + (nb.y2 - nb.y1) * 0.92],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.04, nb.y1 + (nb.y2 - nb.y1) * 0.62],
-              [nb.x1 + (nb.x2 - nb.x1) * 0.06, nb.y1 + (nb.y2 - nb.y1) * 0.25]
+              [nb.x1, nb.y1],
+              [nb.x2, nb.y1],
+              [nb.x2, nb.y2],
+              [nb.x1, nb.y2]
             ];
           }
 

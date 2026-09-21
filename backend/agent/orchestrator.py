@@ -108,6 +108,7 @@ class UNetSegmenter:
         self.min_component_area_px = 15
         self.is_model_loaded = False
     def segment_crop(self, *args, **kwargs): return {}
+    def segment_roi(self, *args, **kwargs): return {}
 
 class TiledInferenceEngine:
     def __init__(self, *args, **kwargs):
