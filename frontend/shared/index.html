@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sea Sentinel — Maritime Sonar Intelligence & Geospatial Platform</title>
-  <meta name="description" content="Autonomous Marine Debris Detection, U-Net Pixel Segmentation, Candidate Fusion & Geotagging Platform for NIOT / MoES.">
+  <meta name="description" content="Autonomous Marine Debris Detection, Segmentation Pixel Segmentation, Candidate Fusion & Geotagging Platform for NIOT / MoES.">
 
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Leaflet GIS CSS (Local Offline Asset) -->
-  <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
+  <!-- Leaflet GIS CSS (CDN) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -38,7 +38,7 @@
         <div class="splash-loading-bar">
           <div class="splash-loading-progress" id="splashLoadingProgress"></div>
         </div>
-        <div class="splash-loading-text" id="splashLoadingText">INITIALIZING PARALLEL YOLO + U-NET SENSORS...</div>
+        <div class="splash-loading-text" id="splashLoadingText">INITIALIZING PARALLEL Model + Segmentation SENSORS...</div>
         <div class="splash-skip-hint">Click anywhere or press any key to enter</div>
       </div>
     </div>
@@ -81,7 +81,7 @@
 
           <ul class="portal-features-list">
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Current Input GIS:</b> Strict single-survey data isolation</span></li>
-            <li><i class="fa-solid fa-circle-check"></i> <span><b>Debris Scanner:</b> YOLOv11 + U-Net dual-path detection</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>Debris Scanner:</b> AI Pipeline dual-path detection</span></li>
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Risk & Verification:</b> IMO hazard classification & physics review</span></li>
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Survey Reports:</b> Official PDF hydrographic mission export</span></li>
           </ul>
@@ -112,7 +112,7 @@
 
           <ul class="portal-features-list">
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Entire Ocean Map:</b> Cumulative 48+ debris targets & DBSCAN clusters</span></li>
-            <li><i class="fa-solid fa-circle-check"></i> <span><b>AI/ML Models:</b> YOLOv11 & U-Net weights & model management</span></li>
+            <li><i class="fa-solid fa-circle-check"></i> <span><b>AI/ML Models:</b> Model & Segmentation weights & model management</span></li>
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Model Performance:</b> Benchmark ablation evaluation & metrics</span></li>
             <li><i class="fa-solid fa-circle-check"></i> <span><b>Adaptive Learning:</b> Error memory, active queue & challenger training</span></li>
           </ul>
@@ -388,7 +388,7 @@
             <div class="admin-kpi-card">
               <span class="admin-kpi-lbl"><i class="fa-solid fa-microchip" style="color: #a855f7;"></i> Model Precision / Recall</span>
               <span class="admin-kpi-val" style="color: #a855f7;">98.7%</span>
-              <span class="admin-kpi-desc">mAP@50: 0.94 · Dual-Path YOLO + U-Net</span>
+              <span class="admin-kpi-desc">mAP@50: 0.94 · Dual-Path Model + Segmentation</span>
             </div>
             <div class="admin-kpi-card">
               <span class="admin-kpi-lbl"><i class="fa-solid fa-wave-square" style="color: #10b981;"></i> Anomaly Verifier Score</span>
@@ -436,7 +436,7 @@
                   </div>
                   <div>
                     <h3 class="admin-hub-title">AI/ML Model Registry</h3>
-                    <p class="admin-hub-text">Inspect Edge AI architecture, YOLOv11 acoustic box detection heads, U-Net semantic segmentation contours, and INT8/FP16 quantization weights.</p>
+                    <p class="admin-hub-text">Inspect Edge AI architecture, Model acoustic box detection heads, Segmentation semantic segmentation contours, and INT8/FP16 quantization weights.</p>
                   </div>
                 </div>
               </div>
@@ -458,7 +458,7 @@
                   </div>
                   <div>
                     <h3 class="admin-hub-title">Model Performance &amp; Ablation</h3>
-                    <p class="admin-hub-text">Scientific ablation benchmarks comparing Single YOLO vs Single U-Net vs Dual-Path Fusion across mAP@50-95, precision-recall curves, and latency headroom.</p>
+                    <p class="admin-hub-text">Scientific ablation benchmarks comparing Single Model vs Single Segmentation vs Dual-Path Fusion across mAP@50-95, precision-recall curves, and latency headroom.</p>
                   </div>
                 </div>
               </div>
@@ -504,7 +504,7 @@
           <div class="section-header-banner role-user-only">
             <div>
               <h1 class="card-title" style="font-size: 1.3rem;">Survey Overview</h1>
-              <div class="card-subtitle">Real-time Side-Scan Sonar ingestion, parallel YOLO11 + U-Net inference & georeferencing</div>
+              <div class="card-subtitle">Real-time Side-Scan Sonar ingestion, parallel YOLO11 + Segmentation inference & georeferencing</div>
             </div>
 
             <div class="header-meta-pills">
@@ -619,15 +619,15 @@
             <!-- Layer Control Bar -->
             <div class="layer-control-bar" id="layerControlBar" style="background: var(--bg-card-subtle); border-radius: var(--radius-sm); padding: 6px 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.74rem;">
               <span style="font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-sliders"></i> Layers:</span>
-              <label class="layer-toggle-btn active" id="lblLayerYolo">
-                <input type="checkbox" id="chkLayerYolo" checked>
+              <label class="layer-toggle-btn active" id="lblLayerModel">
+                <input type="checkbox" id="chkLayerModel" checked>
                 <i class="fa-solid fa-vector-square" style="color: var(--emerald-600);"></i>
-                <span>YOLO Boxes</span>
+                <span>Model Boxes</span>
               </label>
               <label class="layer-toggle-btn active" id="lblLayerUnet">
                 <input type="checkbox" id="chkLayerUnet" checked>
                 <i class="fa-solid fa-draw-polygon" style="color: var(--purple-accent);"></i>
-                <span>U-Net Masks</span>
+                <span>Segmentation Masks</span>
               </label>
               <label class="layer-toggle-btn active" id="lblLayerFusion">
                 <input type="checkbox" id="chkLayerFusion" checked>
@@ -695,10 +695,10 @@
                 <span class="step-name">Preprocessing</span>
                 <span class="step-time" id="timeStepPrep">--</span>
               </div>
-              <div class="step-node" id="stepYolo">
+              <div class="step-node" id="stepModel">
                 <div class="step-circle">3</div>
                 <span class="step-name">Parallel YOLOv8-Net</span>
-                <span class="step-time" id="timeStepYolo">--</span>
+                <span class="step-time" id="timeStepModel">--</span>
               </div>
               <div class="step-node" id="stepUnet">
                 <div class="step-circle">4</div>
@@ -779,7 +779,7 @@
               <div id="highestPriorityCard"></div>
               <span id="telemetryAccuracyVal">98.7%</span>
               <circle id="accuracyGaugeCircle"></circle>
-              <span id="pillYolo"></span>
+              <span id="pillModel"></span>
               <span id="pillUnet"></span>
               <span id="pillAuto"></span>
               <span id="pillGeo"></span>
@@ -1025,7 +1025,7 @@
               <div class="activity-row">
                 <span class="activity-dot" style="background: var(--sky-blue);"></span>
                 <div class="activity-content">
-                  <span class="activity-title">YOLO11 + U-Net Candidate Fusion</span>
+                  <span class="activity-title">YOLO11 + Segmentation Candidate Fusion</span>
                   <span class="activity-time">2 mins ago · High-recall consensus</span>
                 </div>
               </div>
@@ -1167,7 +1167,7 @@
           </div>
           <div class="clean-card" style="padding: 10px; border-color: var(--emerald-500);">
             <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; color: var(--emerald-800);">
-              <span>PARALLEL YOLO + U-NET FUSED</span>
+              <span>PARALLEL Model + Segmentation FUSED</span>
               <span class="badge-pill confirmed">AI Output</span>
             </div>
             <div style="height: 180px; background: #071527; border-radius: var(--radius-sm); overflow: hidden;">
@@ -1329,7 +1329,7 @@
           </div>
           <div class="clean-card" style="padding: 10px;">
             <div style="font-size: 0.72rem; color: var(--text-muted);">Champion Models</div>
-            <div style="font-size: 0.95rem; font-weight: 800; color: var(--purple-accent);" id="learnKpiChampionVersions">YOLO-v3.2 / UNet-v2.5</div>
+            <div style="font-size: 0.95rem; font-weight: 800; color: var(--purple-accent);" id="learnKpiChampionVersions">Model-v3.2 / UNet-v2.5</div>
             <div style="font-size: 0.65rem; color: var(--emerald-600);" id="learnKpiCandidateStatus">Ready for training</div>
           </div>
         </div>
@@ -1369,8 +1369,8 @@
 
         <div class="learning-tab-pane" id="lpaneChampion" style="display: none;">
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <button type="button" class="gis-btn" id="btnTrainYoloChallenger"><i class="fa-solid fa-play"></i> Train YOLO</button>
-            <button type="button" class="gis-btn" id="btnTrainUnetChallenger"><i class="fa-solid fa-play"></i> Train U-Net</button>
+            <button type="button" class="gis-btn" id="btnTrainYoloChallenger"><i class="fa-solid fa-play"></i> Train Model</button>
+            <button type="button" class="gis-btn" id="btnTrainUnetChallenger"><i class="fa-solid fa-play"></i> Train Segmentation</button>
             <button type="button" class="btn-emerald" id="btnRunChampionEvaluation"><i class="fa-solid fa-scale-balanced"></i> Run Evaluation</button>
           </div>
           <div id="trainingStatusAlert" style="display: none;"></div>
@@ -1458,8 +1458,8 @@
             All models undergo SHA256 integrity verification and automated smoke tests prior to memory loading.
           </p>
           <div style="display: flex; gap: 8px;">
-            <button type="button" class="gis-btn" id="btnRollbackYolo"><i class="fa-solid fa-rotate-left"></i> Rollback YOLO</button>
-            <button type="button" class="gis-btn" id="btnRollbackUnet"><i class="fa-solid fa-rotate-left"></i> Rollback U-Net</button>
+            <button type="button" class="gis-btn" id="btnRollbackModel"><i class="fa-solid fa-rotate-left"></i> Rollback Model</button>
+            <button type="button" class="gis-btn" id="btnRollbackUnet"><i class="fa-solid fa-rotate-left"></i> Rollback Segmentation</button>
           </div>
         </div>
       </div>
@@ -1525,7 +1525,7 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
-          Select multiple Side-Scan Sonar raster files. The system will sequentially run YOLO11/U-Net dual-path inference, georeference targets, deduplicate, and update the persistent GIS database.
+          Select multiple Side-Scan Sonar raster files. The system will sequentially run YOLO11/Segmentation dual-path inference, georeference targets, deduplicate, and update the persistent GIS database.
         </p>
         <div style="border: 2px dashed var(--border-focus); border-radius: var(--radius-md); padding: 20px; text-align: center; background: var(--emerald-50); margin-bottom: 14px; cursor: pointer;" onclick="document.getElementById('batchFileInput').click();">
           <input type="file" id="batchFileInput" multiple accept=".png,.jpg,.jpeg,.tif,.tiff" style="display: none;" onchange="if(window.app) window.app.handleBatchFileSelect(event);" />
@@ -1658,24 +1658,24 @@
         </div>
       </div>
 
-      <!-- Section 1: YOLOv11 Object Detection -->
+      <!-- Section 1: Model Object Detection -->
       <div class="clean-card" style="padding: 18px; margin-bottom: 20px; border: 1px solid rgba(5, 150, 105, 0.25); box-shadow: var(--shadow-card);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="background: var(--emerald-100); color: var(--emerald-800); font-size: 0.70rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">OBJECT DETECTION</span>
               <h3 style="margin: 0; font-size: 1.05rem; color: var(--emerald-900); font-weight: 700;">
-                <i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> YOLOv11 Debris Detection Metrics
+                <i class="fa-solid fa-crosshairs" style="color: var(--emerald-600);"></i> Model Debris Detection Metrics
               </h3>
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
               Evaluates bounding box localization, spatial overlap (IoU), precision, recall, F1, and mean average precision (mAP) against ground truth.
             </div>
           </div>
-          <span class="status-pill complete" style="font-size: 0.70rem;">Ultralytics YOLO API Active</span>
+          <span class="status-pill complete" style="font-size: 0.70rem;">Ultralytics Model API Active</span>
         </div>
 
-        <!-- 6 YOLO KPI Cards -->
+        <!-- 6 Model KPI Cards -->
         <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px;">
           <div class="clean-card" style="padding: 10px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
             <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">PRECISION</div>
@@ -1709,7 +1709,7 @@
           </div>
         </div>
 
-        <!-- YOLO Charts Grid: PR Curve & Confusion Matrix -->
+        <!-- Model Charts Grid: PR Curve & Confusion Matrix -->
         <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-bottom: 16px;">
           <!-- PR & F1 Curve Chart Container -->
           <div class="clean-card" style="padding: 12px; background: #ffffff; border: 1px solid var(--border-light);">
@@ -1777,24 +1777,24 @@
         </div>
       </div>
 
-      <!-- Section 2: U-Net Semantic Segmentation -->
+      <!-- Section 2: Segmentation Semantic Segmentation -->
       <div class="clean-card" style="padding: 18px; margin-bottom: 20px; border: 1px solid rgba(2, 132, 199, 0.25); box-shadow: var(--shadow-card);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="background: var(--sky-light); color: var(--sky-blue); font-size: 0.70rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">SEMANTIC SEGMENTATION</span>
               <h3 style="margin: 0; font-size: 1.05rem; color: #0369a1; font-weight: 700;">
-                <i class="fa-solid fa-draw-polygon" style="color: var(--sky-blue);"></i> U-Net Semantic Segmentation Metrics
+                <i class="fa-solid fa-draw-polygon" style="color: var(--sky-blue);"></i> Segmentation Semantic Segmentation Metrics
               </h3>
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
               Evaluates pixel-level binary masks comparing dense predictions with ground truth. Major metrics are <strong>Pixel IoU</strong>, <strong>Dice Coefficient</strong>, and <strong>Mask mAP</strong> (Mean Average Precision over segmentation contours).
             </div>
           </div>
-          <span class="status-pill complete" style="font-size: 0.70rem; background: var(--sky-light); color: var(--sky-blue); border-color: #bae6fd;">Attention U-Net Active</span>
+          <span class="status-pill complete" style="font-size: 0.70rem; background: var(--sky-light); color: var(--sky-blue); border-color: #bae6fd;">Attention Segmentation Active</span>
         </div>
 
-        <!-- 7 U-Net KPI Cards -->
+        <!-- 7 Segmentation KPI Cards -->
         <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px;">
           <div class="clean-card" style="padding: 8px; text-align: center; background: #ffffff; border: 1px solid var(--border-light);">
             <div style="font-size: 0.66rem; color: var(--text-muted); font-weight: 600;">PIXEL PRECISION</div>
@@ -1833,7 +1833,7 @@
           </div>
         </div>
 
-        <!-- U-Net Breakdown: Per-Target Table & Dice Distribution -->
+        <!-- Segmentation Breakdown: Per-Target Table & Dice Distribution -->
         <div style="display: grid; grid-template-columns: 1.55fr 1fr; gap: 14px;">
           <!-- Per Target Table -->
           <div>
@@ -1874,10 +1874,10 @@
 
       <!-- Section 3: Model Architecture Distinction Guide -->
       <div class="clean-card" style="padding: 14px; background: var(--bg-card-subtle); border: 1px solid var(--border-light);">
-        <h4 style="font-size: 0.82rem; margin: 0 0 8px 0; color: var(--emerald-900); font-weight: 700;"><i class="fa-solid fa-scale-balanced"></i> Architectural Evaluation Distinction: YOLOv11 vs U-Net</h4>
+        <h4 style="font-size: 0.82rem; margin: 0 0 8px 0; color: var(--emerald-900); font-weight: 700;"><i class="fa-solid fa-scale-balanced"></i> Architectural Evaluation Distinction: Model vs Segmentation</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.72rem; color: var(--text-secondary);">
           <div style="background: #ffffff; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <strong style="color: var(--emerald-700);"><i class="fa-solid fa-crosshairs"></i> YOLOv11 Object Detection:</strong>
+            <strong style="color: var(--emerald-700);"><i class="fa-solid fa-crosshairs"></i> Model Object Detection:</strong>
             <ul style="margin: 4px 0 0 16px; line-height: 1.4;">
               <li>Evaluates 2D Bounding Box coordinates $(x, y, w, h)$ &amp; class classification.</li>
               <li>IoU computes <em>Intersection Area / Union Area</em> of predicted bounding boxes.</li>
@@ -1885,7 +1885,7 @@
             </ul>
           </div>
           <div style="background: #ffffff; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <strong style="color: var(--sky-blue);"><i class="fa-solid fa-draw-polygon"></i> U-Net Semantic Segmentation:</strong>
+            <strong style="color: var(--sky-blue);"><i class="fa-solid fa-draw-polygon"></i> Segmentation Semantic Segmentation:</strong>
             <ul style="margin: 4px 0 0 16px; line-height: 1.4;">
               <li>Evaluates dense pixel-wise binary segmentation masks $\hat{M} \in \{0, 1\}^{H \times W}$.</li>
               <li>Pixel IoU measures exact pixel mask overlap: $TP / (TP + FP + FN)$.</li>
@@ -2176,8 +2176,8 @@
     </div>
   </div>
 
-  <!-- Leaflet GIS JS (Local Offline Asset) -->
-  <script src="assets/vendor/leaflet/leaflet.js"></script>
+  <!-- Leaflet GIS JS (CDN) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Application Scripts (Auth first, then API, Waterfall, Map, App, UI) -->
   <script src="js/auth.js?v=12.0"></script>

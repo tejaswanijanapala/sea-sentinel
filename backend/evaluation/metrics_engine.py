@@ -40,6 +40,8 @@ import numpy as np
 import cv2
 import torch
 
+from agent.orchestrator import UNetSegmenter
+
 # Ensure backend root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 WORKSPACE_ROOT = os.path.abspath(os.path.join(PROJECT_ROOT, ".."))
@@ -48,7 +50,6 @@ if PROJECT_ROOT not in sys.path:
 if WORKSPACE_ROOT not in sys.path:
     sys.path.insert(0, WORKSPACE_ROOT)
 
-from ai.segmentation.unet_segmenter import UNetSegmenter
 from shared.utils.logger import get_logger
 logger = get_logger(__name__)
 

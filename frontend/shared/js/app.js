@@ -1,6 +1,6 @@
 /**
  * Sea Sentinel: Main Application Controller
- * Dual-Path Parallel YOLO + U-Net Sonar Detection, Segmentation, Verification & Geolocation.
+ * Dual-Path Parallel MODEL + U-Net Sonar Detection, Segmentation, Verification & Geolocation.
  */
 
 class DashboardApp {
@@ -114,7 +114,7 @@ class DashboardApp {
     window.addEventListener('keydown', keyHandler);
 
     const steps = [
-      { progress: 25, text: 'INITIALIZING PARALLEL YOLO + U-NET PIPELINES...', delay: 200 },
+      { progress: 25, text: 'INITIALIZING PARALLEL MODEL + U-NET PIPELINES...', delay: 200 },
       { progress: 55, text: 'CALIBRATING MULTI-SIGNAL FUSION ENGINE...', delay: 650 },
       { progress: 85, text: 'CALIBRATING GEOMATICS & HIGH-RECALL VERIFIER...', delay: 1100 },
       { progress: 100, text: 'DUAL-PATH SYSTEMS ONLINE · SELECT OPERATIONAL PORTAL...', delay: 1500 },
@@ -195,11 +195,11 @@ class DashboardApp {
     if (health.models) {
       const pillYolo = document.getElementById('pillYolo');
       if (pillYolo) {
-        pillYolo.innerHTML = `<span class="dot ${health.models.yolo_detector_loaded ? 'green' : 'green'}"></span> YOLOv11 (Boxes)`;
+        pillYolo.innerHTML = `<span class="dot ${health.models.model_detector_loaded ? 'green' : 'green'}"></span> MODELv11 (Boxes)`;
       }
-      const pillUnet = document.getElementById('pillUnet');
-      if (pillUnet) {
-        pillUnet.innerHTML = `<span class="dot ${health.models.unet_segmenter_loaded ? 'green' : 'green'}"></span> U-Net (Masks)`;
+      const pillSegmenter = document.getElementById('pillSegmenter');
+      if (pillSegmenter) {
+        pillSegmenter.innerHTML = `<span class="dot ${health.models.segmenter_segmenter_loaded ? 'green' : 'green'}"></span> U-Net (Masks)`;
       }
       const pillAuto = document.getElementById('pillAuto');
       if (pillAuto) {
@@ -387,7 +387,7 @@ class DashboardApp {
   _clearInspector() {
     const narrativeEl = document.getElementById('targetNarrative');
     if (narrativeEl) {
-      narrativeEl.textContent = "Select or hover any detected seabed target to inspect acoustic morphology, dual-model provenance (YOLO/U-Net), and physics-grounded verification.";
+      narrativeEl.textContent = "Select or hover any detected seabed target to inspect acoustic morphology, dual-model provenance (MODEL/U-Net), and physics-grounded verification.";
     }
     const recEl = document.getElementById('targetActionRec');
     if (recEl) {
@@ -454,7 +454,7 @@ class DashboardApp {
     this.targets = [];
     this.currentAnalysisResult = null;
 
-    const stepNodes = ["stepUpload", "stepPrep", "stepYolo", "stepUnet", "stepAuto", "stepGeo", "stepReport"];
+    const stepNodes = ["stepUpload", "stepPrep", "stepYolo", "stepSegmenter", "stepAuto", "stepGeo", "stepReport"];
     stepNodes.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.className = "stepper-node";
@@ -517,7 +517,7 @@ class DashboardApp {
     }
 
     const stepNodes = [
-      "stepUpload", "stepPrep", "stepYolo", "stepUnet", "stepAuto", "stepGeo", "stepReport"
+      "stepUpload", "stepPrep", "stepYolo", "stepSegmenter", "stepAuto", "stepGeo", "stepReport"
     ];
 
     stepNodes.forEach(id => {
@@ -711,7 +711,7 @@ class DashboardApp {
 
       setStepTime('timeStepUpload', (stages.input_loading || 50));
       setStepTime('timeStepPrep', (stages.preprocessing || 80));
-      setStepTime('timeStepYolo', (stages.parallel_inference || stages.yolo_inference || 800));
+      setStepTime('timeStepYolo', (stages.parallel_inference || stages.model_inference || 800));
       setStepTime('timeStepFusion', (stages.candidate_fusion || 70));
       setStepTime('timeStepVerify', (stages.candidate_verification || 10));
       setStepTime('timeStepGeo', (stages.georeference_check || 15));
@@ -750,7 +750,7 @@ class DashboardApp {
       { id: "stepUpload", num: 1, timeId: "timeStepUpload" },
       { id: "stepPrep", num: 2, timeId: "timeStepPrep" },
       { id: "stepYolo", num: 3, timeId: "timeStepYolo" },
-      { id: "stepUnet", num: 4, timeId: "timeStepFusion" },
+      { id: "stepSegmenter", num: 4, timeId: "timeStepFusion" },
       { id: "stepAuto", num: 5, timeId: "timeStepVerify" },
       { id: "stepGeo", num: 6, timeId: "timeStepGeo" },
       { id: "stepReport", num: 7, timeId: "timeStepReport" }
@@ -825,8 +825,8 @@ class DashboardApp {
     const isRejected = Boolean(this.isRejected);
 
     let bothCount = 0;
-    let yoloOnlyCount = 0;
-    let unetOnlyCount = 0;
+    let modelOnlyCount = 0;
+    let segmenterOnlyCount = 0;
 
     let criticalCount = 0;
     let highCount = 0;
@@ -835,10 +835,10 @@ class DashboardApp {
 
     if (!isRejected && this.targets.length > 0) {
       this.targets.forEach(t => {
-        const srcCat = t.source_category || (t.sources && t.sources.length > 1 ? "BOTH" : (t.sources && t.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
+        const srcCat = t.source_category || (t.sources && t.sources.length > 1 ? "BOTH" : (t.sources && t.sources[0] === "segmenter" ? "UNET_ONLY" : "MODEL_ONLY"));
         if (srcCat === "BOTH") bothCount++;
-        else if (srcCat === "YOLO_ONLY") yoloOnlyCount++;
-        else if (srcCat === "UNET_ONLY") unetOnlyCount++;
+        else if (srcCat === "MODEL_ONLY") modelOnlyCount++;
+        else if (srcCat === "UNET_ONLY") segmenterOnlyCount++;
 
         const prioLevel = (t.priority_level || (t.priority_score >= 80 ? 'CRITICAL' : t.priority_score >= 60 ? 'HIGH' : t.priority_score >= 40 ? 'MEDIUM' : 'LOW')).toUpperCase();
         if (prioLevel === 'CRITICAL') criticalCount++;
@@ -865,9 +865,9 @@ class DashboardApp {
     const elBoth = document.getElementById('kpiBothCount');
     if (elBoth) elBoth.textContent = bothCount;
     const elYolo = document.getElementById('kpiYoloOnlyCount');
-    if (elYolo) elYolo.textContent = yoloOnlyCount;
-    const elUnet = document.getElementById('kpiUnetOnlyCount');
-    if (elUnet) elUnet.textContent = unetOnlyCount;
+    if (elYolo) elYolo.textContent = modelOnlyCount;
+    const elSegmenter = document.getElementById('kpiSegmenterOnlyCount');
+    if (elSegmenter) elSegmenter.textContent = segmenterOnlyCount;
 
     // 5-Tier Priority Matrix KPIs
     const elKpiTotalDebris = document.getElementById('kpiTotalDebris');
@@ -1154,7 +1154,7 @@ class DashboardApp {
 
     const physicsEl = document.getElementById('targetPhysicsDetails');
     if (physicsEl) {
-      const srcCat = target.source_category || (target.sources && target.sources.length > 1 ? "BOTH" : (target.sources && target.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
+      const srcCat = target.source_category || (target.sources && target.sources.length > 1 ? "BOTH" : (target.sources && target.sources[0] === "segmenter" ? "UNET_ONLY" : "MODEL_ONLY"));
       const prioScore = target.priority_score != null ? Math.round(target.priority_score) : 85;
       const prioLevel = (target.priority_level || 'HIGH').toUpperCase();
       const hazardScore = target.hazard_score != null ? Math.round(target.hazard_score) : 75;
@@ -1859,12 +1859,12 @@ class DashboardApp {
       return;
     }
 
-    const ta = data.test_a_yolo_only || { precision: 0.852, recall: 0.745, f1: 0.795 };
-    const tb = data.test_b_unet_only || { precision: 0.781, recall: 0.812, f1: 0.796 };
-    const tc = data.test_c_dual_fusion || data.test_c_dual_path_nofusion || { precision: 0.865, recall: 0.835, f1: 0.850, yolo_misses_recovered_by_unet: 2 };
+    const ta = data.test_a_model_only || { precision: 0.852, recall: 0.745, f1: 0.795 };
+    const tb = data.test_b_segmenter_only || { precision: 0.781, recall: 0.812, f1: 0.796 };
+    const tc = data.test_c_dual_fusion || data.test_c_dual_path_nofusion || { precision: 0.865, recall: 0.835, f1: 0.850, model_misses_recovered_by_segmenter: 2 };
     const td = data.test_d_verified || data.test_d_dual_path_with_fusion || { precision: 0.942, recall: 0.915, f1: 0.928 };
     const te = data.test_e_full_pipeline || data.test_e_edge_quantized || { precision: 0.918, recall: 0.884, f1: 0.901 };
-    const s = data.summary || { recall_delta_vs_yolo: 0.139, recovered_yolo_misses: 2 };
+    const s = data.summary || { recall_delta_vs_model: 0.139, recovered_model_misses: 2 };
 
     container.innerHTML = `
       <div style="margin-bottom: 16px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
@@ -1886,7 +1886,7 @@ class DashboardApp {
           </thead>
           <tbody>
             <tr>
-              <td><b>TEST A:</b> YOLO Detection Only</td>
+              <td><b>TEST A:</b> MODEL Detection Only</td>
               <td>${(ta.precision * 100).toFixed(1)}%</td>
               <td><span class="metric-badge amber">${(ta.recall * 100).toFixed(1)}%</span></td>
               <td>${(ta.f1 * 100).toFixed(1)}%</td>
@@ -1902,11 +1902,11 @@ class DashboardApp {
               <td>Active</td>
             </tr>
             <tr>
-              <td><b>TEST C:</b> YOLO + U-Net Parallel Fusion</td>
+              <td><b>TEST C:</b> MODEL + U-Net Parallel Fusion</td>
               <td>${(tc.precision * 100).toFixed(1)}%</td>
               <td><span class="metric-badge green">${(tc.recall * 100).toFixed(1)}%</span></td>
               <td>${(tc.f1 * 100).toFixed(1)}%</td>
-              <td><b>+${tc.yolo_misses_recovered_by_unet || 1} YOLO Misses</b></td>
+              <td><b>+${tc.model_misses_recovered_by_segmenter || 1} MODEL Misses</b></td>
               <td>Dual-Path Active</td>
             </tr>
             <tr>
@@ -1931,12 +1931,12 @@ class DashboardApp {
 
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px;">
         <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 8px; padding: 12px;">
-          <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">RECALL GAIN OVER YOLO</div>
-          <div style="font-size: 1.4rem; font-weight: 800; color: var(--cyan-beam);">+${((s.recall_delta_vs_yolo || 0.33) * 100).toFixed(1)}%</div>
+          <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">RECALL GAIN OVER MODEL</div>
+          <div style="font-size: 1.4rem; font-weight: 800; color: var(--cyan-beam);">+${((s.recall_delta_vs_model || 0.33) * 100).toFixed(1)}%</div>
         </div>
         <div style="background: rgba(217, 70, 239, 0.08); border: 1px solid rgba(217, 70, 239, 0.25); border-radius: 8px; padding: 12px;">
-          <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">YOLO MISSES RECOVERED BY U-NET</div>
-          <div style="font-size: 1.4rem; font-weight: 800; color: #e879f9;">${s.recovered_yolo_misses || 1} Targets</div>
+          <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">MODEL MISSES RECOVERED BY U-NET</div>
+          <div style="font-size: 1.4rem; font-weight: 800; color: #e879f9;">${s.recovered_model_misses || 1} Targets</div>
         </div>
         <div style="background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.25); border-radius: 8px; padding: 12px;">
           <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">FINAL F1 SCORE</div>
@@ -1974,8 +1974,8 @@ class DashboardApp {
 
     // Layer Controls
     const layerDefs = [
-      { id: 'chkLayerYolo', layer: 'yolo', labelId: 'lblLayerYolo' },
-      { id: 'chkLayerUnet', layer: 'unet', labelId: 'lblLayerUnet' },
+      { id: 'chkLayerYolo', layer: 'model', labelId: 'lblLayerYolo' },
+      { id: 'chkLayerSegmenter', layer: 'segmenter', labelId: 'lblLayerSegmenter' },
       { id: 'chkLayerFusion', layer: 'fusion', labelId: 'lblLayerFusion' },
       { id: 'chkLayerVerify', layer: 'verify', labelId: 'lblLayerVerify' },
       { id: 'chkLayerIds', layer: 'ids', labelId: 'lblLayerIds' }
@@ -2335,7 +2335,7 @@ class DashboardApp {
     const modelModal = document.getElementById('modelModal');
     const btnCloseModel = document.getElementById('btnCloseModelModal');
     const btnRollbackYolo = document.getElementById('btnRollbackYolo');
-    const btnRollbackUnet = document.getElementById('btnRollbackUnet');
+    const btnRollbackSegmenter = document.getElementById('btnRollbackSegmenter');
 
     if (btnOpenModel) {
       btnOpenModel.onclick = async () => {
@@ -2350,18 +2350,18 @@ class DashboardApp {
     }
     if (btnRollbackYolo) {
       btnRollbackYolo.onclick = async () => {
-        const res = await window.apiService.rollbackModel('yolo');
+        const res = await window.apiService.rollbackModel('model');
         if (res.status === 'SUCCESS') {
-          this.showToast({ type: "success", title: "YOLO Rolled Back", message: res.message });
+          this.showToast({ type: "success", title: "MODEL Rolled Back", message: res.message });
           await this.renderModelModal();
         } else {
           this.showToast({ type: "warning", title: "Rollback Unavailable", message: res.error || "No backup checkpoints found." });
         }
       };
     }
-    if (btnRollbackUnet) {
-      btnRollbackUnet.onclick = async () => {
-        const res = await window.apiService.rollbackModel('unet');
+    if (btnRollbackSegmenter) {
+      btnRollbackSegmenter.onclick = async () => {
+        const res = await window.apiService.rollbackModel('segmenter');
         if (res.status === 'SUCCESS') {
           this.showToast({ type: "success", title: "U-Net Rolled Back", message: res.message });
           await this.renderModelModal();
@@ -2379,7 +2379,7 @@ class DashboardApp {
     const btnCloseLearning = document.getElementById('btnCloseLearningModal');
     const btnRefreshActiveQueue = document.getElementById('btnRefreshActiveQueue');
     const btnTrainYolo = document.getElementById('btnTrainYoloChallenger');
-    const btnTrainUnet = document.getElementById('btnTrainUnetChallenger');
+    const btnTrainSegmenter = document.getElementById('btnTrainSegmenterChallenger');
     const btnRunEval = document.getElementById('btnRunChampionEvaluation');
     const btnDeployChallenger = document.getElementById('btnDeployChallenger');
     const btnRollbackToChampion = document.getElementById('btnRollbackToChampion');
@@ -2394,10 +2394,10 @@ class DashboardApp {
       btnRefreshActiveQueue.onclick = () => this.renderActiveQueue();
     }
     if (btnTrainYolo) {
-      btnTrainYolo.onclick = () => this.trainChallenger('yolo');
+      btnTrainYolo.onclick = () => this.trainChallenger('model');
     }
-    if (btnTrainUnet) {
-      btnTrainUnet.onclick = () => this.trainChallenger('unet');
+    if (btnTrainSegmenter) {
+      btnTrainSegmenter.onclick = () => this.trainChallenger('segmenter');
     }
     if (btnRunEval) {
       btnRunEval.onclick = () => this.runChampionEvaluation();
@@ -2560,7 +2560,7 @@ class DashboardApp {
         priority_level: "CRITICAL",
         hazard_score: 80,
         hazard_level: "HIGH",
-        sources: ["yolo", "unet"],
+        sources: ["model", "segmenter"],
         source_category: "BOTH",
         verification_status: "confirmed",
         verification_score: 0.96,
@@ -2581,7 +2581,7 @@ class DashboardApp {
         priority_level: "CRITICAL",
         hazard_score: 80,
         hazard_level: "HIGH",
-        sources: ["yolo", "unet"],
+        sources: ["model", "segmenter"],
         source_category: "BOTH",
         verification_status: "confirmed",
         verification_score: 0.94,
@@ -2602,7 +2602,7 @@ class DashboardApp {
         priority_level: "CRITICAL",
         hazard_score: 86,
         hazard_level: "CRITICAL",
-        sources: ["yolo", "unet"],
+        sources: ["model", "segmenter"],
         source_category: "BOTH",
         verification_status: "confirmed",
         verification_score: 0.91,
@@ -2623,7 +2623,7 @@ class DashboardApp {
         priority_level: "HIGH",
         hazard_score: 65,
         hazard_level: "MEDIUM",
-        sources: ["unet"],
+        sources: ["segmenter"],
         source_category: "UNET_ONLY",
         verification_status: "confirmed",
         verification_score: 0.88,
@@ -2644,7 +2644,7 @@ class DashboardApp {
         priority_level: "CRITICAL",
         hazard_score: 78,
         hazard_level: "HIGH",
-        sources: ["yolo", "unet"],
+        sources: ["model", "segmenter"],
         source_category: "BOTH",
         verification_status: "confirmed",
         verification_score: 0.93,
@@ -2665,7 +2665,7 @@ class DashboardApp {
         priority_level: "HIGH",
         hazard_score: 60,
         hazard_level: "MEDIUM",
-        sources: ["unet"],
+        sources: ["segmenter"],
         source_category: "UNET_ONLY",
         verification_status: "suspicious",
         verification_score: 0.72,
@@ -2767,7 +2767,7 @@ class DashboardApp {
           }
         });
 
-        // Draw YOLO bounding boxes and crisp label badges
+        // Draw MODEL bounding boxes and crisp label badges
         detections.forEach((t, idx) => {
           let bbox = t.norm_bbox;
           let x1, y1, x2, y2;
@@ -2844,12 +2844,12 @@ class DashboardApp {
     let datumStr = (spatial.coordinate_system || (res.spatial_metadata && res.spatial_metadata.coordinate_system) || "WGS84 (EPSG:4326)").toUpperCase();
     let swathStr = spatial.swath_width_m ? `${spatial.swath_width_m}m Swath` : "75m Swath";
 
-    let bothCnt = 0, unetCnt = 0, yoloCnt = 0;
+    let bothCnt = 0, segmenterCnt = 0, modelCnt = 0;
     detections.forEach(d => {
-      const s = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
+      const s = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "segmenter" ? "UNET_ONLY" : "MODEL_ONLY"));
       if (s === "BOTH") bothCnt++;
-      else if (s === "UNET_ONLY") unetCnt++;
-      else if (s === "YOLO_ONLY") yoloCnt++;
+      else if (s === "UNET_ONLY") segmenterCnt++;
+      else if (s === "MODEL_ONLY") modelCnt++;
       else bothCnt++;
     });
     let avgConf = detections.length > 0 
@@ -2902,9 +2902,9 @@ class DashboardApp {
       sonarConfVal = Math.min(99.5, Math.max(45.0, sonarConfVal));
       const sonarConfStr = (sonarConfVal % 1 === 0) ? sonarConfVal.toFixed(0) : sonarConfVal.toFixed(1);
 
-      const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
-      const srcTagClass = srcCat === "BOTH" ? "both" : (srcCat === "UNET_ONLY" ? "unet" : "yolo");
-      const srcTagLabel = srcCat === "BOTH" ? "YOLO + U-NET" : srcCat.replace("_ONLY", " ONLY");
+      const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "segmenter" ? "UNET_ONLY" : "MODEL_ONLY"));
+      const srcTagClass = srcCat === "BOTH" ? "both" : (srcCat === "UNET_ONLY" ? "segmenter" : "model");
+      const srcTagLabel = srcCat === "BOTH" ? "MODEL + U-NET" : srcCat.replace("_ONLY", " ONLY");
 
       let lat = (d.latitude != null) ? Number(d.latitude) : (d.lat != null ? Number(d.lat) : null);
       let lon = (d.longitude != null) ? Number(d.longitude) : (d.lon != null ? Number(d.lon) : null);
@@ -2961,8 +2961,8 @@ class DashboardApp {
 
       // Target-specific crops generation
       let rawCropUrl = null;
-      let yoloCropUrl = null;
-      let unetCropUrl = null;
+      let modelCropUrl = null;
+      let segmenterCropUrl = null;
 
       try {
         if (enhBaseImg || rawBaseImg) {
@@ -2990,7 +2990,7 @@ class DashboardApp {
           rCtx.drawImage((rawBaseImg || baseSource), srcX, srcY, srcW, srcH, 0, 0, cw, ch);
           rawCropUrl = rCanvas.toDataURL('image/jpeg', 0.88);
 
-          // 2. YOLO Crop
+          // 2. MODEL Crop
           const yCanvas = document.createElement('canvas');
           yCanvas.width = cw;
           yCanvas.height = ch;
@@ -3031,7 +3031,7 @@ class DashboardApp {
           yCtx.strokeRect(boxX, bY, bW, bH);
           yCtx.fillStyle = "#ffffff";
           yCtx.fillText(badgeText, boxX + 6, bY + 13);
-          yoloCropUrl = yCanvas.toDataURL('image/jpeg', 0.88);
+          modelCropUrl = yCanvas.toDataURL('image/jpeg', 0.88);
 
           // 3. U-Net Crop
           const uCanvas = document.createElement('canvas');
@@ -3084,15 +3084,15 @@ class DashboardApp {
             uCtx.stroke();
           }
 
-          unetCropUrl = uCanvas.toDataURL('image/jpeg', 0.88);
+          segmenterCropUrl = uCanvas.toDataURL('image/jpeg', 0.88);
         }
       } catch (cropErr) {
         console.warn("Dossier target crop generation fallback:", cropErr);
       }
 
       const rawCropSrc = rawCropUrl || rawUrl;
-      const yoloCropSrc = yoloCropUrl || annotatedUrl;
-      const unetCropSrc = unetCropUrl || annotatedUrl;
+      const modelCropSrc = modelCropUrl || annotatedUrl;
+      const segmenterCropSrc = segmenterCropUrl || annotatedUrl;
 
       const explainText = (d.score_explanation && d.score_explanation.narrative) || d.explanation || 
         `Target #${idx + 1} (${objId}) classified as '${cleanClass}' with ${conf}% AI detection confidence and ${sonarConfStr}% Sonar-Aware physical confidence. Morphological extent: ${lenM}m × ${widM}m (${areaM.toLocaleString()} m²), Perimeter: ${perimeterM}m. Positioned in ${swathSide} at ${slantRange} (${geoText}). Distinct acoustic backscatter highlight and shadow relief verify seabed elevation and active maritime risk. Assigned ${prioScore}/100 inspection priority (${prioLevel}) and ${hazardScore}/100 IMO hazard severity (${hazardLevel}).`;
@@ -3158,11 +3158,11 @@ class DashboardApp {
 
             <div class="report-dossier-img-card">
               <div class="report-dossier-img-header">
-                <span style="color:#059669;"><i class="fa-solid fa-vector-square"></i> YOLOv11 DETECTION</span>
+                <span style="color:#059669;"><i class="fa-solid fa-vector-square"></i> MODELv11 DETECTION</span>
                 <span class="badge-pill" style="background:rgba(16,185,129,0.15); color:#059669; font-size:0.65rem;">BBox Output</span>
               </div>
               <div class="report-dossier-img-box">
-                <img src="${yoloCropSrc}" alt="Target YOLO Bounding Box" />
+                <img src="${modelCropSrc}" alt="Target MODEL Bounding Box" />
               </div>
             </div>
 
@@ -3172,7 +3172,7 @@ class DashboardApp {
                 <span class="badge-pill" style="background:rgba(2,132,199,0.15); color:#0284c7; font-size:0.65rem;">Mask Output</span>
               </div>
               <div class="report-dossier-img-box">
-                <img src="${unetCropSrc}" alt="Target U-Net Segmentation Mask" />
+                <img src="${segmenterCropSrc}" alt="Target U-Net Segmentation Mask" />
               </div>
             </div>
           </div>
@@ -3276,11 +3276,11 @@ class DashboardApp {
 
         <div class="report-img-card highlight">
           <div class="report-img-header">
-            <span style="color:#00e676;"><i class="fa-solid fa-cubes-stacked"></i> PARALLEL YOLO + U-NET FUSED</span>
+            <span style="color:#00e676;"><i class="fa-solid fa-cubes-stacked"></i> PARALLEL MODEL + U-NET FUSED</span>
             <span class="report-img-tag output">AI Output</span>
           </div>
           <div class="report-img-box">
-            <img src="${annotatedUrl}" alt="Parallel Dual-Path YOLO + U-Net AI Output" onerror="if(!this.src.endsWith('SURVEY_54434B1B_annotated.png')){this.src='assets/samples/SURVEY_54434B1B_annotated.png';}" />
+            <img src="${annotatedUrl}" alt="Parallel Dual-Path MODEL + U-Net AI Output" onerror="if(!this.src.endsWith('SURVEY_54434B1B_annotated.png')){this.src='assets/samples/SURVEY_54434B1B_annotated.png';}" />
           </div>
         </div>
       </div>
@@ -3296,7 +3296,7 @@ class DashboardApp {
         </div>
         <div class="report-meta-card">
           <div class="rm-lbl">TOTAL TARGETS FUSED</div>
-          <div class="rm-val green">${detections.length} Fused (${bothCnt} Both | ${unetCnt} U-Net | ${yoloCnt} YOLO)</div>
+          <div class="rm-val green">${detections.length} Fused (${bothCnt} Both | ${segmenterCnt} U-Net | ${modelCnt} MODEL)</div>
         </div>
         <div class="report-meta-card">
           <div class="rm-lbl">HIGH-RECALL ACCURACY</div>
@@ -3346,7 +3346,7 @@ class DashboardApp {
       <!-- 5. Official Hydrographic Certification Footer -->
       <div class="report-official-footer">
         <div class="rof-left">
-          <div class="rof-brand"><i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i> SEA SENTINEL 2.0 &mdash; DUAL-PATH YOLOv11 + U-NET FUSION CORE</div>
+          <div class="rof-brand"><i class="fa-solid fa-shield-halved" style="color: var(--emerald-600);"></i> SEA SENTINEL 2.0 &mdash; DUAL-PATH MODELv11 + U-NET FUSION CORE</div>
           <div class="rof-note">MoES / NIOT Autonomous Ocean Surveillance Protocol · Official High-Recall Hydrographic Mission Dossier</div>
         </div>
         <div class="rof-right">
@@ -3425,15 +3425,15 @@ class DashboardApp {
       console.warn("Could not fetch model status:", e);
     }
 
-    const yolo = (modelData && modelData.yolo) || {
-      model_type: "Ultralytics YOLOv11 Marine",
+    const model = (modelData && modelData.model) || {
+      model_type: "Ultralytics MODELv11 Marine",
       loaded: true,
       conf_threshold: 0.25,
       iou_threshold: 0.45,
       classes: ["ghost_net", "fishing_gear", "metal_debris", "plastic_container", "shipwreck_fragment", "pipe_cable"]
     };
 
-    const unet = (modelData && modelData.unet) || {
+    const segmenter = (modelData && modelData.segmenter) || {
       model_type: "ResNet34 U-Net Anomaly Segmenter",
       loaded: true,
       confidence_threshold: 0.50,
@@ -3446,7 +3446,7 @@ class DashboardApp {
           <div>
             <div style="font-size:0.68rem; color:var(--text-muted); font-weight:700;">PRIMARY REAL-TIME DETECTOR</div>
             <h4 style="margin:2px 0 0 0; font-size:0.92rem; color:var(--emerald-800);">
-              <i class="fa-solid fa-crosshairs" style="color:var(--emerald-600);"></i> ${yolo.model_type || 'Ultralytics YOLOv11'}
+              <i class="fa-solid fa-crosshairs" style="color:var(--emerald-600);"></i> ${model.model_type || 'Ultralytics MODELv11'}
             </h4>
           </div>
           <span style="background:var(--emerald-100); color:var(--emerald-800); padding:2px 8px; border-radius:12px; font-size:0.70rem; font-weight:800;">
@@ -3457,8 +3457,8 @@ class DashboardApp {
           High-speed bounding box localization optimized for small debris objects across single/dual-channel sonar swaths.
         </p>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:0.72rem; background:var(--bg-card-subtle); padding:8px; border-radius:var(--radius-sm);">
-          <div><b>Conf Threshold:</b> <span style="color:var(--emerald-700); font-family:var(--font-mono);">${yolo.conf_threshold || 0.25}</span></div>
-          <div><b>IoU NMS:</b> <span style="color:var(--emerald-700); font-family:var(--font-mono);">${yolo.iou_threshold || 0.45}</span></div>
+          <div><b>Conf Threshold:</b> <span style="color:var(--emerald-700); font-family:var(--font-mono);">${model.conf_threshold || 0.25}</span></div>
+          <div><b>IoU NMS:</b> <span style="color:var(--emerald-700); font-family:var(--font-mono);">${model.iou_threshold || 0.45}</span></div>
           <div><b>Inference Time:</b> <span style="color:var(--emerald-700); font-family:var(--font-mono);">&lt;12ms / tile</span></div>
           <div><b>Classes:</b> <span style="color:var(--emerald-700); font-weight:600;">6 Marine Debris</span></div>
         </div>
@@ -3469,7 +3469,7 @@ class DashboardApp {
           <div>
             <div style="font-size:0.68rem; color:var(--text-muted); font-weight:700;">DEEP MORPHOLOGY SEGMENTER</div>
             <h4 style="margin:2px 0 0 0; font-size:0.92rem; color:var(--purple-accent, #9333ea);">
-              <i class="fa-solid fa-shapes" style="color:var(--purple-accent, #9333ea);"></i> ${unet.model_type || 'ResNet34 U-Net'}
+              <i class="fa-solid fa-shapes" style="color:var(--purple-accent, #9333ea);"></i> ${segmenter.model_type || 'ResNet34 U-Net'}
             </h4>
           </div>
           <span style="background:rgba(147, 51, 234, 0.12); color:#7e22ce; padding:2px 8px; border-radius:12px; font-size:0.70rem; font-weight:800;">
@@ -3480,9 +3480,9 @@ class DashboardApp {
           Pixel-wise morphological mask segmentation to capture irregular ghost nets, ropes, and acoustic shadow contours.
         </p>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:0.72rem; background:var(--bg-card-subtle); padding:8px; border-radius:var(--radius-sm);">
-          <div><b>Mask Threshold:</b> <span style="color:#7e22ce; font-family:var(--font-mono);">${unet.confidence_threshold || 0.50}</span></div>
-          <div><b>Min Area:</b> <span style="color:#7e22ce; font-family:var(--font-mono);">${unet.min_component_area_px || 50} px</span></div>
-          <div><b>Dual Fusion:</b> <span style="color:#7e22ce; font-weight:600;">YOLO + U-Net IoU</span></div>
+          <div><b>Mask Threshold:</b> <span style="color:#7e22ce; font-family:var(--font-mono);">${segmenter.confidence_threshold || 0.50}</span></div>
+          <div><b>Min Area:</b> <span style="color:#7e22ce; font-family:var(--font-mono);">${segmenter.min_component_area_px || 50} px</span></div>
+          <div><b>Dual Fusion:</b> <span style="color:#7e22ce; font-weight:600;">MODEL + U-Net IoU</span></div>
           <div><b>Device:</b> <span style="color:#7e22ce; font-weight:600;">Edge CPU/GPU Auto</span></div>
         </div>
       </div>
@@ -3503,7 +3503,7 @@ class DashboardApp {
       const hazardScore = d.hazard_score != null ? Math.round(d.hazard_score) : 75;
       const hazardLevel = d.hazard_level || (hazardScore >= 80 ? 'CRITICAL' : hazardScore >= 60 ? 'HIGH' : hazardScore >= 40 ? 'MEDIUM' : 'LOW');
       const cleanClass = (d.class || 'marine_debris').replace(/_/g, ' ').toUpperCase();
-      const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "unet" ? "UNET_ONLY" : "YOLO_ONLY"));
+      const srcCat = d.source_category || (d.sources && d.sources.length > 1 ? "BOTH" : (d.sources && d.sources[0] === "segmenter" ? "UNET_ONLY" : "MODEL_ONLY"));
       const vStatus = (d.verification_status || 'confirmed').toUpperCase();
       const lat = d.latitude != null ? d.latitude : (d.lat != null ? d.lat : '');
       const lon = d.longitude != null ? d.longitude : (d.lon != null ? d.lon : '');
@@ -3556,7 +3556,7 @@ class DashboardApp {
       if (tabBadgeUnknown) tabBadgeUnknown.textContent = data.unknown_classes_count || 0;
 
       if (elChampionVersions && data.champion_models) {
-        elChampionVersions.textContent = `${data.champion_models.yolo_detector || 'YOLO-v3.2'} / ${data.champion_models.unet_segmenter || 'UNet-v2.5'}`;
+        elChampionVersions.textContent = `${data.champion_models.model_detector || 'MODEL-v3.2'} / ${data.champion_models.segmenter_segmenter || 'UNet-v2.5'}`;
       }
 
       // 2. Render Error Distribution
@@ -3830,9 +3830,9 @@ class DashboardApp {
     }
   }
 
-  async trainChallenger(modelType = 'yolo') {
+  async trainChallenger(modelType = 'model') {
     const alertBox = document.getElementById('trainingStatusAlert');
-    const btn = document.getElementById(modelType === 'yolo' ? 'btnTrainYoloChallenger' : 'btnTrainUnetChallenger');
+    const btn = document.getElementById(modelType === 'model' ? 'btnTrainYoloChallenger' : 'btnTrainSegmenterChallenger');
     const origText = btn ? btn.innerHTML : '';
 
     if (alertBox) {
@@ -3928,7 +3928,7 @@ class DashboardApp {
     }
 
     try {
-      const res = await window.apiService.deployApprovedChallenger('yolo');
+      const res = await window.apiService.deployApprovedChallenger('model');
       this.showToast({
         type: "success",
         title: "Challenger Deployed Successfully",
@@ -3959,7 +3959,7 @@ class DashboardApp {
     }
 
     try {
-      const res = await window.apiService.rollbackModel('yolo');
+      const res = await window.apiService.rollbackModel('model');
       this.showToast({
         type: "info",
         title: "Model Rollback Complete",
@@ -3998,7 +3998,7 @@ class DashboardApp {
 
     const conf = Math.round((target.calibrated_confidence || target.confidence || 0.8) * 100);
     const cleanCls = (target.class || 'unknown').replace(/_/g, ' ');
-    const srcCat = target.source_category || (target.sources && target.sources.length > 1 ? "BOTH (YOLO + U-Net)" : (target.sources && target.sources[0] === "unet" ? "U-Net Only" : "YOLO Only"));
+    const srcCat = target.source_category || (target.sources && target.sources.length > 1 ? "BOTH (MODEL + U-Net)" : (target.sources && target.sources[0] === "segmenter" ? "U-Net Only" : "MODEL Only"));
 
     if (summary) {
       summary.innerHTML = `
@@ -4006,7 +4006,7 @@ class DashboardApp {
           <div><span style="color: #94a3b8;">Target ID:</span> <b style="color: #ffffff;">#${target.object_id}</b></div>
           <div><span style="color: #94a3b8;">Predicted Class:</span> <b style="color: var(--cyan-beam); text-transform: capitalize;">${cleanCls} (${conf}%)</b></div>
           <div><span style="color: #94a3b8;">Model Provenance:</span> <b style="color: #38bdf8;">${srcCat}</b></div>
-          <div><span style="color: #94a3b8;">Active Model Version:</span> <b style="color: #4ade80;">YOLO-v3.2 / UNet-v2.5</b></div>
+          <div><span style="color: #94a3b8;">Active Model Version:</span> <b style="color: #4ade80;">MODEL-v3.2 / UNet-v2.5</b></div>
         </div>
       `;
     }
@@ -4077,7 +4077,7 @@ class DashboardApp {
         reviewer_confidence: reviewerConfidence,
         reviewer_comment: comment,
         candidate_new_class: candidateClassName,
-        model_name: 'yolo_detector',
+        model_name: 'model_detector',
         model_version: 'v3.2',
         predicted_confidence: this.feedbackTarget.calibrated_confidence || this.feedbackTarget.confidence || 0.85,
         bbox: this.feedbackTarget.bbox || [],
@@ -4180,7 +4180,7 @@ class DashboardApp {
         reviewer_id: 'Hydrographer_Alpha',
         reviewer_confidence: 0.95,
         reviewer_comment: comment,
-        model_name: 'yolo_detector',
+        model_name: 'model_detector',
         model_version: 'v3.2',
         predicted_confidence: target.calibrated_confidence || target.confidence || 0.85
       };
@@ -4329,7 +4329,7 @@ class DashboardApp {
         this.showToast({
           type: "info",
           title: "Running Model Evaluation",
-          message: currentScope === 'active' ? "Calculating metrics for active input image..." : "Executing YOLOv11 & U-Net validation across test dataset..."
+          message: currentScope === 'active' ? "Calculating metrics for active input image..." : "Executing MODELv11 & U-Net validation across test dataset..."
         });
         try {
           await this.loadAndRenderEvaluationMetrics(true, currentScope);
@@ -4403,7 +4403,7 @@ class DashboardApp {
       const activeImg = (this.currentAnalysisResult && (this.currentAnalysisResult.raw_image_path || this.currentAnalysisResult.image_path)) 
         || (this.currentSample && (this.currentSample.path || this.currentSample.image_path)) 
         || (this.uploadedFile && this.uploadedFile.name) 
-        || 'data/yolo/images/test/dongying_EP_008.jpg';
+        || 'data/model/images/test/dongying_EP_008.jpg';
       
       if (scope === 'active') {
         url += `?image_path=${encodeURIComponent(activeImg)}`;
@@ -4425,7 +4425,7 @@ class DashboardApp {
         dataset_split: 'test',
         total_images: 27,
         execution_time_seconds: 0.42,
-        yolo: {
+        model: {
           precision: 0.9412, recall: 0.9103, f1_score: 0.9255, iou: 0.7843,
           map50: 0.9387, map50_95: 0.7192, total_test_images: 27,
           per_class: [
@@ -4468,7 +4468,7 @@ class DashboardApp {
             ]
           }
         },
-        unet: {
+        segmenter: {
           precision: 0.9218, recall: 0.8934, f1_score: 0.9074, iou: 0.8192,
           dice: 0.8712, map50: 0.8924, map50_95: 0.7315,
           dataset_micro_aggregate: { pixel_tp: 9821400, pixel_fp: 843200, pixel_fn: 1173600, pixel_tn: 2043600, dice: 0.8712 },
@@ -4515,7 +4515,7 @@ class DashboardApp {
     if (samplesEl) {
       samplesEl.textContent = data.is_active_image
         ? `Active Scan (${data.active_image_name || 'Current Image'})`
-        : `${data.yolo ? (data.yolo.total_test_images || 27) : 27} SSS Images`;
+        : `${data.model ? (data.model.total_test_images || 27) : 27} SSS Images`;
     }
 
     const gtCountEl = document.getElementById('evalGtCount');
@@ -4525,9 +4525,10 @@ class DashboardApp {
         : 'Verified GT BBoxes & Masks';
     }
 
-    // 1. YOLOv11 KPIs
-    if (data.yolo) {
-      const y = data.yolo;
+    // 1. MODELv11 KPIs
+    const modelData = data.yolo || data.model;
+    if (modelData) {
+      const y = modelData;
       const elPrec = document.getElementById('yoloKpiPrecision');
       if (elPrec) elPrec.textContent = (y.precision !== undefined) ? Number(y.precision).toFixed(4) : '--';
       const elRec = document.getElementById('yoloKpiRecall');
@@ -4605,8 +4606,9 @@ class DashboardApp {
     }
 
     // 2. U-Net KPIs
-    if (data.unet) {
-      const u = data.unet;
+    const unetData = data.unet || data.segmenter;
+    if (unetData) {
+      const u = unetData;
       const elPrec = document.getElementById('unetKpiPrecision');
       if (elPrec) elPrec.textContent = (u.precision !== undefined) ? Number(u.precision).toFixed(4) : '--';
       const elRec = document.getElementById('unetKpiRecall');
@@ -4625,9 +4627,9 @@ class DashboardApp {
       if (u.dataset_micro_aggregate) {
         const micro = u.dataset_micro_aggregate;
         const totalPix = (micro.pixel_tp || 0) + (micro.pixel_fp || 0) + (micro.pixel_fn || 0) + (micro.pixel_tn || 0);
-        const elTotal = document.getElementById('unetTotalPixels');
+        const elTotal = document.getElementById('segmenterTotalPixels');
         if (elTotal) elTotal.textContent = data.is_active_image ? `${(u.per_image ? u.per_image.length - 1 : 6)} Targets (${totalPix.toLocaleString()} px)` : (totalPix > 0 ? totalPix.toLocaleString() : '13.8M');
-        const elMicroDice = document.getElementById('unetMicroDice');
+        const elMicroDice = document.getElementById('segmenterMicroDice');
         if (elMicroDice) elMicroDice.textContent = Number(micro.dice || u.dice).toFixed(4);
       }
 
@@ -4679,8 +4681,9 @@ class DashboardApp {
 
   renderCurveSvg(curveKey) {
     const svg = document.getElementById('yoloCurveSvg');
-    if (!svg || !this.currentEvaluationData || !this.currentEvaluationData.yolo || !this.currentEvaluationData.yolo.curves) return;
-    const pts = this.currentEvaluationData.yolo.curves[curveKey] || [];
+    const modelData = this.currentEvaluationData.yolo || this.currentEvaluationData.model;
+    if (!svg || !this.currentEvaluationData || !modelData || !modelData.curves) return;
+    const pts = modelData.curves[curveKey] || [];
     if (pts.length === 0) {
       svg.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="12">Curve data pending</text>`;
       return;

@@ -11,7 +11,7 @@
 Side-Scan Sonar (SSS), towed behind research vessels or mounted on Autonomous Underwater Vehicles (AUVs), acoustically maps the seafloor to detect lost fishing gear ("ghost nets"), sunken pipelines/cables, shipwrecks, and hazardous anthropogenic debris. Manual acoustic log inspection across thousands of nautical miles is tedious, slow, and error-prone due to high speckle noise, varying pixel resolutions, and natural acoustic shadows.
 
 This project delivers an end-to-end, production-quality system built around four mandated deliverables:
-1. **Object Detection & Semantic Segmentation Core:** Domain-aware candidate extraction (YOLOv11) and pixel-level region refinement (Standard U-Net & Attention U-Net).
+1. **Object Detection & Semantic Segmentation Core:** Domain-aware candidate extraction (ML Model) and pixel-level region refinement (Standard Segmentation & Attention Segmentation).
 2. **Confidence Scoring & Noise Filtering Module:** Acoustic shadow-highlight geometric pairing and Autoencoder-based anomaly filtering to eliminate rock clusters, sand ripples, and speckle noise.
 3. **Anomalous Reporting & Geotagging Engine:** Deterministic location determination (Case A: Affine GeoTransform; Case B: Sonar geometry + Navigation log), dimension estimation (length, width, area), and JSON/CSV reporting.
 4. **Interactive Dashboard:** Modern UI displaying sonar waterfall overlays, detection tables, Leaflet/Mapbox geospatial mapping, and automated PDF/CSV reports.
@@ -22,10 +22,10 @@ This project delivers an end-to-end, production-quality system built around four
 
 | Stage | Module | Status | Key Deliverables |
 |---|---|---|---|
-| **Stage 1** | **Dataset Preparation & Audit** | **COMPLETED** | Non-destructive audit (3,255 Zenodo chips, NOAA GeoTIFFs), inventory JSON, baseline isolation, YOLO split. |
+| **Stage 1** | **Dataset Preparation & Audit** | **COMPLETED** | Non-destructive audit (3,255 Zenodo chips, NOAA GeoTIFFs), inventory JSON, baseline isolation, ML Model split. |
 | **Stage 2** | **Sonar Preprocessing Pipeline** | **COMPLETED** | Lee speckle filter ($1.276\times$ ENL gain), CLAHE contrast boost, shadow-highlight extraction, high-res mosaic tiling ($640\times640$). |
-| **Stage 3** | **YOLO Debris Detection Core** | **COMPLETED** | YOLOv11 detection engine, training script, mAP evaluation, confusion matrix generator, batch inference CLI. |
-| **Stage 4** | **U-Net Semantic Segmentation** | **COMPLETED** | Standard U-Net & Attention U-Net with Attention Gates, BCEDiceLoss, FocalLoss, PatchTiler with cosine blending, dry-run & synthetic demo. |
+| **Stage 3** | **ML Model Debris Detection Core** | **COMPLETED** | ML Model detection engine, training script, mAP evaluation, confusion matrix generator, batch inference CLI. |
+| **Stage 4** | **Segmentation Semantic Segmentation** | **COMPLETED** | Standard Segmentation & Attention Segmentation with Attention Gates, BCEDiceLoss, FocalLoss, PatchTiler with cosine blending, dry-run & synthetic demo. |
 | **Stage 5** | **Anomaly Detection & Rock Suppression** | **COMPLETED** | CNN Autoencoder (Algorithms 1-9), 3-sigma threshold calibration ($T=0.094049$), DBSCAN rock field filter, Platt confidence calibration. |
 | **Stage 6** | **AI Agent / Orchestrator** | **COMPLETED** | Central SIHPipelineAgent coordinator, execution tracing with microsecond metrics, explainability narratives, SQLite audit persistence. |
 | **Stage 7** | **Dimension Estimation & Geotagging** | **COMPLETED** | Module 5 five-stage geotagging (Case A Affine & Case B Navigation math), PyProj WGS84 conversion, oriented contour dimension estimation. |
@@ -56,13 +56,13 @@ Side-Scan Sonar (SSS) Image / Survey Mosaic
        └── Far-range acoustic shadow trailing verification
                    │
                    ▼
-         [YOLO Candidate Detection]
-       ├── YOLOv11 inference for candidate region proposals
+         [ML Model Candidate Detection]
+       ├── ML Model inference for candidate region proposals
        └── Bounding box extraction & class confidence
                    │
                    ▼
-        [U-Net Region Segmentation]
-       ├── Attention U-Net with Oktay et al. Attention Gates
+        [Segmentation Region Segmentation]
+       ├── Attention Segmentation with Oktay et al. Attention Gates
        └── Patch-based sliding window with cosine seam blending
                    │
                    ▼
@@ -112,10 +112,10 @@ python tests/test_stage1_dataset.py
 # 3. Verify Stage 2 preprocessing pipeline (Lee filter, CLAHE, Tiler)
 python tests/test_stage2_preprocessing.py
 
-# 4. Verify Stage 3 YOLO detection core
-python tests/test_stage3_yolo.py
+# 4. Verify Stage 3 ML Model detection core
+python tests/test_stage3_ML Model.py
 
-# 5. Verify Stage 4 U-Net & Attention U-Net segmentation core
+# 5. Verify Stage 4 Segmentation & Attention Segmentation segmentation core
 python tests/test_stage4_segmentation.py
 
 # 6. Verify Stage 5 Anomaly Detection & False-Positive Filtering
@@ -128,7 +128,7 @@ python tests/test_stage6_agent.py
 python tests/test_stage7_geospatial.py
 ```
 
-### Stage 4: U-Net Training & Inference
+### Stage 4: Segmentation Training & Inference
 
 ```bash
 # Dry run verification (validates architecture, shapes, gradient flow, audits dataset)
@@ -167,7 +167,7 @@ python inference/filter_anomalies.py
 python scripts/run_pipeline.py --input <path_to_image_or_mosaic>
 
 # Run batch survey analysis with CSV & JSON inspection report export
-python scripts/run_pipeline.py --input datasets/processed/yolo_dataset/images/test/ --output-dir outputs/reports/
+python scripts/run_pipeline.py --input datasets/processed/ML Model_dataset/images/test/ --output-dir outputs/reports/
 ```
 
 ### Stage 7: Geospatial Target Export (GeoJSON / Hydrographic CSV)

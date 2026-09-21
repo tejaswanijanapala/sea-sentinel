@@ -25,8 +25,6 @@ from .resource_manager import EdgeResourceManager, DegradationLevel
 from .telemetry_modem import AcousticTelemetryEncoder
 from .active_learning import ActiveLearningSelector
 
-from ai.detection.yolo_detector import YOLODetector
-from ai.segmentation.unet_segmenter import UNetSegmenter
 
 
 class EdgePerceptionPipeline:
