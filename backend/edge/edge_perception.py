@@ -25,6 +25,15 @@ from .resource_manager import EdgeResourceManager, DegradationLevel
 from .telemetry_modem import AcousticTelemetryEncoder
 from .active_learning import ActiveLearningSelector
 
+# Dummy classes for removed legacy AI modules
+class YOLODetector:
+    def predict(self, *args, **kwargs):
+        return []
+
+class UNetSegmenter:
+    def segment(self, *args, **kwargs):
+        return {}
+
 
 
 class EdgePerceptionPipeline:
